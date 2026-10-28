@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tổng quan</title>
+    <link rel="stylesheet" href="/css/output.css">
+    <script type="module" src="/js/fragments/AdminIndex.js"></script>
+</head>
+
+<body>
+    <app-navigation></app-navigation>
+    <div class="ml-24 mr-5">
+        <app-header title="Tổng quan" data-title="Tổng quan cửa hàng và doanh thu gần đây" user-role="Chủ cửa hàng"></app-header>
+
+        <div id="shop-bar" class="mb-5 flex flex-wrap items-center gap-3 px-5"></div>
+
+        <section id="onboarding" hidden class="mx-5 mb-8 p-5 rounded-2xl bg-white p-10 text-center shadow-md">
+            <h2 class="mb-2 text-xl font-bold text-text">Chào mừng bạn! Hãy tạo cửa hàng đầu tiên</h2>
+            <p class="mx-auto mb-6 max-w-md text-sm text-support-900">Sau khi tạo, quản trị viên sẽ duyệt cửa hàng. Bạn có thể thêm khu vực, bàn và thực đơn ngay trong lúc chờ.</p>
+            <p-button id="onboarding-create" class="p-3" label="Tạo cửa hàng" icon="add" variant="solid"></p-button>
+        </section>
+
+        <div id="dashboard" hidden>
+            <p id="load-error" hidden class="mx-5 mb-4 rounded-xl border-2 border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700" role="alert"></p>
+            <div class="mb-8 grid gap-5 px-5 md:grid-cols-2 xl:grid-cols-3">
+                <stat-ring id="stat-revenue-today" label="Doanh thu trong ngày" value="0" format="money" note="Đang tải…" icon="money"></stat-ring>
+                <stat-ring id="stat-tables" label="Bàn đang phục vụ" value="0" note="Đang tải…" icon="table"></stat-ring>
+                <stat-ring id="stat-products" label="Món đang bán" value="0" note="Đang tải…" icon="food"></stat-ring>
+            </div>
+            <div class="px-5">
+                <revenue-chart id="revenue-chart-days" title="Doanh thu 14 ngày gần nhất" unit="triệu VNĐ" days="14"></revenue-chart>
+                <revenue-chart id="revenue-chart-month" title="Doanh thu tháng" unit="triệu VNĐ"></revenue-chart>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

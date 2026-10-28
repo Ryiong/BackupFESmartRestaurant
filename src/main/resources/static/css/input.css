@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+@source "../../templates/**/*.html";
+@source "../../templates/*.html";
+@source "../js/**/*.js";
+
+@theme {
+  --font-sans: Quicksand, sans-serif;
+
+  /* Primary */
+  --color-primary: #106C56;
+  --color-primary-50: #C6DCD6;
+  --color-primary-100: #9FC4BB;
+  --color-primary-200: #79ADA0;
+  --color-primary-300: #539585;
+  --color-primary-400: #31816E;
+  --color-primary-500: #106C56;
+  --color-primary-600: #0E5D4A;
+  --color-primary-700: #0B4C3C;
+  --color-primary-800: #08382D;
+  --color-primary-900: #05251D;
+
+  /* Secondary */
+  --color-secondary: #81C29A;
+  --color-secondary-50: #E1F0E7;
+  --color-secondary-100: #CDE7D7;
+  --color-secondary-200: #B8DDC6;
+  --color-secondary-300: #A4D3B6;
+  --color-secondary-400: #93CBA8;
+  --color-secondary-500: #81C29A;
+  --color-secondary-600: #6FA784;
+  --color-secondary-700: #5A886C;
+  --color-secondary-800: #436550;
+  --color-secondary-900: #2C4234;
+
+  /* Accent */
+  --color-accent: #064943;
+  --color-accent-50: #C3D3D2;
+  --color-accent-100: #9BB6B4;
+  --color-accent-200: #749996;
+  --color-accent-300: #4C7C78;
+  --color-accent-400: #29625D;
+  --color-accent-500: #064943;
+  --color-accent-600: #053F3A;
+  --color-accent-700: #04332F;
+  --color-accent-800: #032623;
+  --color-accent-900: #021917;
+
+  /* Support */
+  --color-support: #D5DDDF;
+  --color-support-50: #F5F7F7;
+  --color-support-100: #EEF1F2;
+  --color-support-200: #E7ECED;
+  --color-support-300: #E1E7E8;
+  --color-support-400: #DBE2E3;
+  --color-support-500: #D5DDDF;
+  --color-support-600: #B7BEC0;
+  --color-support-700: #959B9C;
+  --color-support-800: #6F7374;
+  --color-support-900: #484B4C;
+
+  --color-text: #041F25;
+  --color-bug: #B42318;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-support-50);
+  }
+  
+  h1 {
+    font-family: var(--font-sans);
+    font-size: 2.25rem;
+    font-weight: 700;
+  }
+
+  h2 {
+    font-family: var(--font-sans);
+    font-size: 1.875rem;
+    font-weight: 700;
+  }
+
+  h3 {
+    font-family: var(--font-sans);
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+
+  h4 {
+    font-family: var(--font-sans);
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+
+  h5 {
+    font-family: var(--font-sans);
+    font-size: 1.125rem;
+    font-weight: 700;
+  }
+
+  p,
+  span,
+  a,
+  li,
+  button {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+  input::-ms-reveal,
+  input::-ms-clear { display: none; }
+  
+}
