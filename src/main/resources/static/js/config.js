@@ -8,6 +8,7 @@ export const API_MODE = 'spring';
 export const MOCKAPI_BASE = 'https://6ae07898be3bc8fead974ed8.mockapi.io/';
 
 export const SPRING_BASE = 'http://localhost:8080/smart-restaurant/v1';
-export const LOGIN_URL = '/src/main/resources/templates/auth/login.html';
-export const REGISTER_URL = '/src/main/resources/templates/auth/register.html';
-export const ADMIN_URL = '/src/main/resources/templates/admin/index.html';
+export const BASE_URL = '/main/resources/templates';
+export const LOGIN_URL = `${BASE_URL}/auth/login.html`;
+export const REGISTER_URL = `${BASE_URL}/auth/register.html`;
+export const ADMIN_URL = `${BASE_URL}/admin/index.html`;
