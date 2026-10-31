@@ -12,7 +12,7 @@ export function shopFormDialog({ shop = null } = { }) {
     const val = {
         name: shop ? titleCase(shop.name) : '',
         address: shop?.address ?? '',
-        phoneNumber: shop?phoneNumber : '',
+        phoneNumber: shop?.phoneNumber ?? '',
         openTime: shop ? hhmm(shop.openTime) : '08:00',
         closeTime: shop ? hhmm(shop.closeTime) : '22:00',
     };
