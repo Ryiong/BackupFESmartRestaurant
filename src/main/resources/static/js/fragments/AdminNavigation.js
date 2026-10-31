@@ -1,10 +1,11 @@
 import { ICONS, LOGO } from '../icon.js';
 import { http, logoutRedirect, requireLogin } from '../services/HttpClient.js';
 import { auth } from '../services/AuthStore.js';
+import { BASE_URL } from '../config.js';
 
 const NAV = [
-    { href: '/admin/index.html', name: 'Tổng quan', icon: 'dashboard' },
-    { href: '/admin/area.html', name: 'Bàn & Khu vực', icon: 'table' },
+    { href: `${BASE_URL}/admin/index.html`, name: 'Tổng quan', icon: 'dashboard' },
+    { href: `${BASE_URL}/admin/area.html`, name: 'Bàn & Khu vực', icon: 'table' },
     { href: '#', name: 'Thực đơn', icon: 'menu' },
     { href: '#', name: 'Kho nguyên liệu', icon: 'storage' },
     { href: '#', name: 'Cài đặt', icon: 'setting' },

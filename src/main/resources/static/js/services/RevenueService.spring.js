@@ -1,10 +1,6 @@
 import { http } from './HttpClient.js';
 import { getShopId } from './AreaService.spring.js';
 
-/**
- * BE chưa có /revenue → tính từ GET /order/{shopId}?date=yyyy-MM-dd (chỉ lấy đơn PAID).
- * getDaily gọi song song `days` request (mặc định 14); getToday dùng lại kết quả ngày hôm nay.
- */
 const key = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const sum = list => list.reduce((s, t) => s + t.total, 0);
 

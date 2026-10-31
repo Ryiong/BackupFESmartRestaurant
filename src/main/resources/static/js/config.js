@@ -5,8 +5,6 @@
  */
 export const API_MODE = 'spring';
 
-export const MOCKAPI_BASE = 'https://6ae07898be3bc8fead974ed8.mockapi.io/';
-
 export const SPRING_BASE = 'http://localhost:8080/smart-restaurant/v1';
 export const BASE_URL = '/main/resources/templates';
 export const LOGIN_URL = `${BASE_URL}/auth/login.html`;

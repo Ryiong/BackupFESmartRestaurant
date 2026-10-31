@@ -1,7 +1,6 @@
 import { API_MODE } from '../config.js';
 import { springRevenue } from './RevenueService.spring.js';
 import { revenueStore, dateKey, REVENUE_EVENT } from './RevenueStore.js';
-import { mockApiRevenueService } from './RevenueService.mockapi.js';
 
 const wait = (ms = 80) => new Promise(r => setTimeout(r, ms));
 
@@ -57,6 +56,6 @@ const springRevenueService = {
     },
 };
 
-const SERVICES = { local: localRevenueService, mockapi: mockApiRevenueService, spring: springRevenueService };
+const SERVICES = { local: localRevenueService, spring: springRevenueService };
 
 export const revenueService = SERVICES[API_MODE] ?? localRevenueService;
