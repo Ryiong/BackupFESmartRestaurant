@@ -105,9 +105,9 @@ class AreaManager extends HTMLElement {
         const { areas, areaId, loading } = this.state;
         if (loading) { this.el.tabs.innerHTML = '<span class="text-sm text-secondary-700">Đang tải…</span>'; return; }
         this.el.tabs.innerHTML = areas.length ? areas.map(a => a.active
-            ? `<span role="tab" aria-selected="${a.id === areaId}"><l-button data-act="select-area" data-id="${esc(a.id)}" label="${esc(a.name).toLocaleUpperCase()}" variant="${a.id === areaId ? 'primary' : 'solid'}"></l-button></span>`
+            ? `<span role="tab" aria-selected="${a.id === areaId}"><l-button data-act="select-area" data-id="${esc(a.id)}" label="${esc(titleCase(a.name))}" variant="${a.id === areaId ? 'primary' : 'solid'}"></l-button></span>`
             : `<span role="tab" aria-selected="false" data-act="reactivate" data-id="${esc(a.id)}" title="Khu vực đang tạm ngưng — bấm để kích hoạt lại"
-                class="cursor-pointer [&_button]:pointer-events-none"><l-button label="${esc(a.name).toLocaleUpperCase()}" disabled></l-button></span>`).join('')
+                class="cursor-pointer [&_button]:pointer-events-none"><l-button label="${esc(titleCase(a.name))}" disabled></l-button></span>`).join('')
             : '<span class="text-sm text-secondary-700">Chưa có khu vực nào. Nhấn “Thêm khu vực” để bắt đầu.</span>';
     }
 
@@ -137,8 +137,8 @@ class AreaManager extends HTMLElement {
         if (!list.length) { this.el.grid.innerHTML = '<p class="col-span-full py-16 text-center text-sm text-secondary-700">Không có bàn nào ở trạng thái này.</p>'; return; }
         this.el.grid.innerHTML = list.map(t => {
             const primary = t.status === 'merged' ? area.tables.find(x => x.id === t.mergedInto) : null;
-            return `<table-card data-act="select-table" data-id="${esc(t.id)}" name="${esc(t.name).toLocaleUpperCase()}" capacity="${effectiveCapacity(t, area.tables)}"
-                status="${t.status}" variant="view" ${primary ? `note="Gộp vào ${esc(primary.name).toLocaleUpperCase()}"` : ''}
+            return `<table-card data-act="select-table" data-id="${esc(t.id)}" name="${esc(titleCase(t.name))}" capacity="${effectiveCapacity(t, area.tables)}"
+                status="${t.status}" variant="view" ${primary ? `note="Gộp vào ${esc(titleCase(primary.name))}"` : ''}
                 ${t.id === this.state.tableId ? 'selected' : ''}></table-card>`;
         }).join('');
     }
@@ -213,14 +213,14 @@ class AreaManager extends HTMLElement {
             'open-table': async () => {
                 const { table, area } = this;
                 if (!table) return;
-                const guests = await guestsDialog({ tableName: table.name, max: effectiveCapacity(table, area.tables) });
-                if (guests) this.run(() => areaService.openTable(table.id, guests), `Đã mở ${table.name}`);
+                const guests = await guestsDialog({ tableName: titleCase(table.name), max: effectiveCapacity(table, area.tables) });
+                if (guests) this.run(() => areaService.openTable(table.id, guests), `Đã mở ${titleCase(table.name)}`);
             },
             order: async () => {
                 const table = this.table;
                 if (!table) return;
                 this.menu ??= await areaService.listMenu();
-                const items = await orderDialog({ tableName: table.name, menu: this.menu });
+                const items = await orderDialog({ tableName: titleCase(table.name), menu: this.menu });
                 if (items?.length) this.run(() => areaService.addOrder(table.id, items), 'Đã thêm món vào bàn');
             },
             pay: () => {
@@ -240,12 +240,6 @@ class AreaManager extends HTMLElement {
                 const { method, received } = this.state.pay;
                 this.run(() => areaService.checkoutTable(t.id, { method, received }),
                     r => `Đã thanh toán ${money(r.total)}${r.change ? ` — trả lại ${money(r.change)}` : ''}`);
-            },
-            'cancel-reserve': async () => {
-                const t = this.table;
-                if (!t) return;
-                const ok = await confirmDialog({ title: 'Huỷ đặt trước', message: `Huỷ đặt trước cho ${t.name}?`, confirmLabel: 'Huỷ đặt', confirmIcon: 'close', variant: 'danger' });
-                if (ok) this.run(() => areaService.cancelReservation(t.id), 'Đã huỷ bàn đặt trước');
             },
             merge: async () => {
                 const { table, area } = this;

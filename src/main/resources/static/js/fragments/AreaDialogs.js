@@ -1,14 +1,14 @@
 import '../components/PrimaryButton.js';
 import '../components/TableCard.js';
 import { openDialog, confirmDialog, bindActions, toast } from '../utils/dialog.js';
-import { esc, money, INPUT_CLS } from '../utils/format.js';
+import { esc, money, INPUT_CLS, titleCase } from '../utils/format.js';
 import { areaService } from '../services/AreaService.js';
 
 const BTN_ROW = 'mt-6 flex flex-wrap justify-center gap-3';
 
 export function guestsDialog({ tableName, max }) {
     return openDialog({
-        title: `Sử dụng ${tableName.toLocaleUpperCase()}`, width: 360,
+        title: `Sử dụng ${titleCase(tableName)}`, width: 360,
         render(body, close) {
             body.innerHTML = `
                 <label for="g-guests" class="mb-1.5 block text-sm font-semibold">Số khách</label>
@@ -38,7 +38,7 @@ export function pickTableDialog({ title, subtitle, tables, reasonFor }) {
             let picked = null;
             const cards = tables.map(t => {
                 const reason = reasonFor(t);
-                return `<table-card data-act="pick" data-id="${esc(t.id)}" name="${esc(t.name).toLocaleUpperCase()}" capacity="${t.capacity}"
+                return `<table-card data-act="pick" data-id="${esc(t.id)}" name="${esc(titleCase(t.name))}" capacity="${t.capacity}"
                     status="${t.status}" variant="pick" ${reason ? `disabled note="${esc(reason)}"` : ''}></table-card>`;
             }).join('');
             body.innerHTML = `
@@ -76,11 +76,11 @@ export function orderDialog({ tableName, menu }) {
                 <ul class="max-h-80 divide-y divide-primary-100 overflow-y-auto pr-1">
                     ${menu.map(m => `
                     <li class="flex items-center justify-between gap-3 py-2">
-                        <div class="min-w-0"><p class="line-clamp-1 text-sm font-bold">${esc(m.name).toLocaleUpperCase()}</p><p class="text-xs text-secondary-700">${money(m.price)}</p></div>
+                        <div class="min-w-0"><p class="line-clamp-1 text-sm font-bold">${esc(titleCase(m.name))}</p><p class="text-xs text-secondary-700">${money(m.price)}</p></div>
                         <div class="flex items-center gap-2">
-                            <button type="button" data-act="dec" data-id="${m.id}" aria-label="Giảm ${esc(m.name)}" class="flex size-7 cursor-pointer items-center justify-center rounded-full border-2 border-primary-200 text-primary-700 transition-all hover:scale-90">−</button>
+                            <button type="button" data-act="dec" data-id="${m.id}" aria-label="Giảm ${esc(titleCase(m.name))}" class="flex size-7 cursor-pointer items-center justify-center rounded-full border-2 border-primary-200 text-primary-700 transition-all hover:scale-90">−</button>
                             <span data-qty="${m.id}" class="w-6 text-center text-sm font-bold">0</span>
-                            <button type="button" data-act="inc" data-id="${m.id}" aria-label="Thêm ${esc(m.name)}" class="flex size-7 cursor-pointer items-center justify-center rounded-full border-2 border-primary-700 bg-primary-700 text-white transition-all hover:scale-90">+</button>
+                            <button type="button" data-act="inc" data-id="${m.id}" aria-label="Thêm ${esc(titleCase(m.name))}" class="flex size-7 cursor-pointer items-center justify-center rounded-full border-2 border-primary-700 bg-primary-700 text-white transition-all hover:scale-90">+</button>
                         </div>
                     </li>`).join('')}
                 </ul>
@@ -116,7 +116,7 @@ export function areaEditorDialog({ area }) {
     const isNew = !area;
     const draft = {
         id: area?.id,
-        name: area?.name ?? '',
+        name: titleCase(area?.name),
         tables: (area?.tables ?? []).map(t => ({ _k: t.id, id: t.id, name: t.name, capacity: t.capacity, status: t.status })),
     };
     let editing = null;
@@ -149,7 +149,7 @@ export function areaEditorDialog({ area }) {
 
             const drawGrid = () => {
                 grid.innerHTML = draft.tables.length
-                    ? draft.tables.map(t => `<table-card data-key="${esc(t._k)}" name="${esc(t.name)}" capacity="${t.capacity}" status="${t.status}" variant="edit"></table-card>`).join('')
+                    ? draft.tables.map(t => `<table-card data-key="${esc(t._k)}" name="${esc(titleCase(t.name))}" capacity="${t.capacity}" status="${t.status}" variant="edit"></table-card>`).join('')
                     : '<p class="col-span-full py-8 text-center text-sm text-secondary-700">Chưa có bàn nào. Nhấn “Thêm bàn” để bắt đầu.</p>';
             };
 
@@ -179,7 +179,7 @@ export function areaEditorDialog({ area }) {
             const removeTable = key => {
                 const t = byKey(key);
                 if (!t) return;
-                if (t.status !== 'empty') return toast(`${t.name} đang được sử dụng hoặc đã đặt trước, không thể xoá`);
+                if (t.status !== 'empty') return toast(`${titleCase(t.name)} đang được sử dụng hoặc đã đặt trước, không thể xoá`);
                 draft.tables = draft.tables.filter(x => x._k !== key);
                 if (editing?.key === key) editing = null;
                 drawGrid(); drawForm();
@@ -192,13 +192,18 @@ export function areaEditorDialog({ area }) {
                 else if (f === 't-cap' && editing) editing.capacity = Number(e.target.value);
             });
             body.addEventListener('keydown', e => {
-                if (e.key === 'Enter' && e.target.dataset?.f === 't-name') { e.preventDefault(); body.querySelector('[data-act="table-save"]')?.click(); }
+                if (e.key === 'Enter' && e.target.dataset?.f === 't-name') {
+                    e.preventDefault();
+                    body.querySelector('[data-act="table-save"]')?.click();
+                }
             });
 
             const guard = async fn => {
                 if (busy) return;
                 busy = true;
-                try { await fn(); } catch (err) { toast(err.message || 'Có lỗi xảy ra'); } finally { busy = false; }
+                try { await fn(); }
+                catch (err) { toast(err.message || 'Có lỗi xảy ra'); }
+                finally { busy = false; }
             };
 
             bindActions(body, {
@@ -209,7 +214,15 @@ export function areaEditorDialog({ area }) {
                 },
                 'edit-table': el => {
                     const t = byKey(el.dataset.key);
-                    if (t) { editing = { key: t._k, isNew: false, name: t.name, capacity: t.capacity }; drawForm(); }
+                    if (t) {
+                        editing = {
+                            key: t._k,
+                            isNew: false,
+                            name: titleCase(t.name),
+                            capacity: t.capacity
+                        };
+                        drawForm();
+                    }
                 },
                 'delete-table': el => removeTable(el.dataset.key),
                 'table-delete': () => removeTable(editing?.key),
