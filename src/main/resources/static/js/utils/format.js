@@ -17,6 +17,14 @@ export const hhmm = ts => new Date(ts).toLocaleTimeString('vi-VN', {
     hour12: false
 });
 
+export const titleCase = s =>
+    String(s ?? '')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .split(' ')
+        .map(w => (w ? w[0].toLocaleUpperCase('vi') + w.slice(1) : w))
+        .join(' ');
+
 export const minutesSince = ts => Math.max(0, Math.floor((Date.now() - ts) / 60000));
 
 export const orderTotal = t => (t?.orders ?? []).reduce((s, o) => s + o.price * o.qty, 0);

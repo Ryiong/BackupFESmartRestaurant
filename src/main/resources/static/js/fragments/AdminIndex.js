@@ -7,8 +7,8 @@ import { API_MODE } from '../config.js';
 import { revenueService } from '../services/RevenueService.js';
 import { getTableStats, getProductStats } from '../services/DashboardService.js';
 import { listShops, getCurrentShop, setCurrentShopId, onShopChange, STATUS_LABEL } from '../services/ShopService.js';
-import { shopCreateDialog } from './ShopDialogs.js';
-import { esc } from '../utils/format.js';
+import { shopCreateDialog, shopEditDialog } from './ShopDialogs.js';
+import { esc, titleCase } from '../utils/format.js';
 
 const $ = sel => document.querySelector(sel);
 const el = {
@@ -29,22 +29,28 @@ const toMillion = vnd => Math.round(vnd / 1e4) / 100;
 const set = (node, attrs) => Object.entries(attrs).forEach(([k, v]) => node.setAttribute(k, v));
 
 const createShopFlow = () => shopCreateDialog();
+const hhmm = t => (t ? String(t).slice(0, 5) : '');
 
 function renderShopBar(shops, current) {
     const status = STATUS_LABEL[current.status];
+    const hours = current.openTime && current.closeTime ? `${hhmm(current.openTime)} – ${hhmm(current.closeTime)}` : '';
+    const meta = [current.address, hours].filter(Boolean).join(' - ')
     el.bar.innerHTML = `
         ${shops.length > 1
             ? `<label class="sr-only" for="shop-select">Cửa hàng</label>
                <select id="shop-select" class="rounded-xl border border-support-600 bg-white px-3 py-2 font-semibold text-text">
-                   ${shops.map(s => `<option value="${esc(s.id)}" ${s.id === current.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}
+                   ${shops.map(s => `<option value="${esc(s.id)}" ${s.id === current.id ? 'selected' : ''}>${esc(titleCase(s.name))}</option>`).join('')}
                </select>`
-            : `<h2 class="text-lg font-bold text-text">${esc(current.name)}</h2>`}
+            : `<h2 class="text-lg font-bold text-text">${esc(titleCase(current.name))}</h2>`}
         ${status ? `<span class="rounded-full px-3 py-1 text-xs font-bold ${status.cls}">${status.text}</span>` : ''}
         ${current.status === 'LOCKED' && current.statusReason ? `<span class="text-xs text-red-700">Lý do: ${esc(current.statusReason)}</span>` : ''}
         ${current.status === 'PENDING' ? '<span class="text-xs text-support-900">Quản trị viên đang xem xét cửa hàng của bạn</span>' : ''}
+        ${meta ? `<span class="text-support-900">${esc(meta)}</span>` : ''}
         <span class="ml-auto"></span>
-        <p-button id="shop-create" label="Tạo cửa hàng" icon="add"></p-button>`;
+        <p-button id="shop-edit" label="Sửa cửa hàng" icon="edit"></p-button>
+        <p-button id="shop-create" label="Tạo cửa hàng" icon="add" variant="solid"></p-button>`;
     el.bar.querySelector('#shop-select')?.addEventListener('change', e => setCurrentShopId(e.target.value));
+    el.bar.querySelector('#shop-edit').addEventListener('click', () => shopEditDialog(current))
     el.bar.querySelector('#shop-create').addEventListener('click', createShopFlow);
 }
 

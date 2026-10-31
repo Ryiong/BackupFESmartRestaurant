@@ -1,11 +1,6 @@
 import { http } from './HttpClient.js';
 
-/**
- * Cửa hàng của người dùng hiện tại.
- *   GET  /shop/me  → List<ShopResponse>  {id,name,address,phoneNumber,openTime,closeTime,status,statusReason}
- *   POST /shop     → ShopResponse        (status = PENDING, chờ ADMIN duyệt)
- * Cửa hàng đang chọn được nhớ trong sessionStorage để các trang dùng chung.
- */
+
 const KEY = 'sr:shopId';
 const store = {
     get: () => { try { return sessionStorage.getItem(KEY); } catch { return null; } },
@@ -51,5 +46,14 @@ export async function createShop({ name, address, phoneNumber, openTime, closeTi
     const shop = await http('POST', '/shop', { name, address, phoneNumber, openTime, closeTime });
     await listShops({ force: true });
     setCurrentShopId(shop.id);
+    return shop;
+}
+
+export async function updateShop (id, { name, address, phoneNumber, openTime, closeTime}) {
+    const shop = await http('PUT', `/shop/${id}`, {
+        name, address, phoneNumber, openTime, closeTime
+    });
+    await listShops({force: true});
+    setCurrentShopId(id);
     return shop;
 }

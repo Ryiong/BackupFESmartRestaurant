@@ -3,15 +3,14 @@ import '../components/LabelButton.js';
 import '../components/TableCard.js';
 import { areaService } from '../services/AreaService.js';
 import { bindActions, confirmDialog, toast } from '../utils/dialog.js';
-import { esc, money, orderTotal, effectiveCapacity } from '../utils/format.js';
+import { esc, money, orderTotal, effectiveCapacity, titleCase } from '../utils/format.js';
 import { detailHtml, emptyDetailHtml } from './AreaTemplates.js';
 import { areaEditorDialog, guestsDialog, orderDialog, pickTableDialog } from './AreaDialogs.js';
 
 const FILTERS = [
     { v: 'all', label: 'Tất cả', match: () => true },
     { v: 'empty', label: 'Trống', match: t => t.status === 'empty' },
-    { v: 'busy', label: 'Đang dùng', match: t => ['serving', 'paying', 'merged'].includes(t.status) },
-    { v: 'reserved', label: 'Đặt trước', match: t => t.status === 'reserved' },
+    { v: 'busy', label: 'Đang dùng', match: t => ['serving', 'paying', 'merged'].includes(t.status) }
 ];
 
 class AreaManager extends HTMLElement {
@@ -106,9 +105,9 @@ class AreaManager extends HTMLElement {
         const { areas, areaId, loading } = this.state;
         if (loading) { this.el.tabs.innerHTML = '<span class="text-sm text-secondary-700">Đang tải…</span>'; return; }
         this.el.tabs.innerHTML = areas.length ? areas.map(a => a.active
-            ? `<span role="tab" aria-selected="${a.id === areaId}"><l-button data-act="select-area" data-id="${esc(a.id)}" label="${esc(a.name)}" variant="${a.id === areaId ? 'primary' : 'solid'}"></l-button></span>`
+            ? `<span role="tab" aria-selected="${a.id === areaId}"><l-button data-act="select-area" data-id="${esc(a.id)}" label="${esc(a.name).toLocaleUpperCase()}" variant="${a.id === areaId ? 'primary' : 'solid'}"></l-button></span>`
             : `<span role="tab" aria-selected="false" data-act="reactivate" data-id="${esc(a.id)}" title="Khu vực đang tạm ngưng — bấm để kích hoạt lại"
-                class="cursor-pointer [&_button]:pointer-events-none"><l-button label="${esc(a.name)}" disabled></l-button></span>`).join('')
+                class="cursor-pointer [&_button]:pointer-events-none"><l-button label="${esc(a.name).toLocaleUpperCase()}" disabled></l-button></span>`).join('')
             : '<span class="text-sm text-secondary-700">Chưa có khu vực nào. Nhấn “Thêm khu vực” để bắt đầu.</span>';
     }
 
@@ -138,8 +137,8 @@ class AreaManager extends HTMLElement {
         if (!list.length) { this.el.grid.innerHTML = '<p class="col-span-full py-16 text-center text-sm text-secondary-700">Không có bàn nào ở trạng thái này.</p>'; return; }
         this.el.grid.innerHTML = list.map(t => {
             const primary = t.status === 'merged' ? area.tables.find(x => x.id === t.mergedInto) : null;
-            return `<table-card data-act="select-table" data-id="${esc(t.id)}" name="${esc(t.name)}" capacity="${effectiveCapacity(t, area.tables)}"
-                status="${t.status}" variant="view" ${primary ? `note="Gộp vào ${esc(primary.name)}"` : ''}
+            return `<table-card data-act="select-table" data-id="${esc(t.id)}" name="${esc(t.name).toLocaleUpperCase()}" capacity="${effectiveCapacity(t, area.tables)}"
+                status="${t.status}" variant="view" ${primary ? `note="Gộp vào ${esc(primary.name).toLocaleUpperCase()}"` : ''}
                 ${t.id === this.state.tableId ? 'selected' : ''}></table-card>`;
         }).join('');
     }

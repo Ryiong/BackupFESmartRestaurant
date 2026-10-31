@@ -8,7 +8,7 @@ const BTN_ROW = 'mt-6 flex flex-wrap justify-center gap-3';
 
 export function guestsDialog({ tableName, max }) {
     return openDialog({
-        title: `Sử dụng ${tableName}`, width: 360,
+        title: `Sử dụng ${tableName.toLocaleUpperCase()}`, width: 360,
         render(body, close) {
             body.innerHTML = `
                 <label for="g-guests" class="mb-1.5 block text-sm font-semibold">Số khách</label>
@@ -38,7 +38,7 @@ export function pickTableDialog({ title, subtitle, tables, reasonFor }) {
             let picked = null;
             const cards = tables.map(t => {
                 const reason = reasonFor(t);
-                return `<table-card data-act="pick" data-id="${esc(t.id)}" name="${esc(t.name)}" capacity="${t.capacity}"
+                return `<table-card data-act="pick" data-id="${esc(t.id)}" name="${esc(t.name).toLocaleUpperCase()}" capacity="${t.capacity}"
                     status="${t.status}" variant="pick" ${reason ? `disabled note="${esc(reason)}"` : ''}></table-card>`;
             }).join('');
             body.innerHTML = `
@@ -76,7 +76,7 @@ export function orderDialog({ tableName, menu }) {
                 <ul class="max-h-80 divide-y divide-primary-100 overflow-y-auto pr-1">
                     ${menu.map(m => `
                     <li class="flex items-center justify-between gap-3 py-2">
-                        <div class="min-w-0"><p class="line-clamp-1 text-sm font-bold">${esc(m.name)}</p><p class="text-xs text-secondary-700">${money(m.price)}</p></div>
+                        <div class="min-w-0"><p class="line-clamp-1 text-sm font-bold">${esc(m.name).toLocaleUpperCase()}</p><p class="text-xs text-secondary-700">${money(m.price)}</p></div>
                         <div class="flex items-center gap-2">
                             <button type="button" data-act="dec" data-id="${m.id}" aria-label="Giảm ${esc(m.name)}" class="flex size-7 cursor-pointer items-center justify-center rounded-full border-2 border-primary-200 text-primary-700 transition-all hover:scale-90">−</button>
                             <span data-qty="${m.id}" class="w-6 text-center text-sm font-bold">0</span>

@@ -1,14 +1,23 @@
 import '../components/PrimaryButton.js';
 import { openDialog, bindActions, toast } from '../utils/dialog.js';
-import { INPUT_CLS } from '../utils/format.js';
-import { createShop } from '../services/ShopService.js';
+import { INPUT_CLS, esc, titleCase } from '../utils/format.js';
+import { createShop, updateShop } from '../services/ShopService.js';
 
 const FIELD = 'mb-3';
 const LABEL = 'mb-1.5 block text-sm font-semibold';
+const hhmm = t => (t ? String(t).slice(0, 5) : '');
 
-export function shopCreateDialog() {
+export function shopFormDialog({ shop = null } = { }) {
+    const isNew = !shop;
+    const val = {
+        name: shop ? titleCase(shop.name) : '',
+        address: shop?.address ?? '',
+        phoneNumber: shop?phoneNumber : '',
+        openTime: shop ? hhmm(shop.openTime) : '08:00',
+        closeTime: shop ? hhmm(shop.closeTime) : '22:00',
+    };
     return openDialog({
-        title: 'Tạo cửa hàng mới', width: 480,
+        title: isNew ? 'Tạo cửa hàng mới' : 'Chỉnh sửa cửa hàng', width: 480,
         render(body, close) {
             body.innerHTML = `
                 <form data-form novalidate>
@@ -52,21 +61,29 @@ export function shopCreateDialog() {
                 const d = Object.fromEntries(new FormData(form));
                 const name = d.name.trim();
                 err.textContent = '';
-                if (!name) { err.textContent = 'Vui lòng nhập tên cửa hàng'; form.name.focus(); return; }
-                if (d.openTime && d.closeTime && d.openTime >= d.closeTime) { err.textContent = 'Giờ đóng cửa phải sau giờ mở cửa'; return; }
+                if (!name) {
+                    err.textContent = 'Vui lòng nhập tên cửa hàng';
+                    form.name.focus();
+                    return;
+                }
+                if (d.openTime && d.closeTime && d.openTime === d.closeTime) {
+                    err.textContent = 'Giờ mở cửa và giờ đóng cửa không được trùng nhau';
+                    return;
+                }
                 busy = true; okBtn.toggleAttribute('disabled', true);
                 try {
-                    const shop = await createShop({
+                    const payload = await createShop({
                         name,
                         address: d.address.trim() || null,
                         phoneNumber: d.phoneNumber.trim() || null,
                         openTime: d.openTime || null,
                         closeTime: d.closeTime || null,
                     });
-                    toast('Đã tạo cửa hàng', 'success');
-                    close(shop);
+                    const saved = isNew ? await createShop(payload) : await updateShop(shop.id, payload);
+                    toast(isNew ? 'Đã tạo cửa hàng' : 'Đã lưu thay đổi cửa hàng', 'success');
+                    close(saved);
                 } catch (e) {
-                    err.textContent = e.message || 'Không tạo được cửa hàng';
+                    err.textContent = e.message || (isNew ? 'Không tạo được cửa hàng' : 'Không lưu được cửa hàng');
                     busy = false; okBtn.toggleAttribute('disabled', false);
                 }
             };
@@ -77,3 +94,6 @@ export function shopCreateDialog() {
         },
     });
 }
+
+export const shopCreateDialog = () => shopFormDialog();
+export const shopEditDialog = shop => shopFormDialog({ shop });

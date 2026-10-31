@@ -11,7 +11,7 @@ const info = (label, value) => `<p class="${LABEL}">${label}: <b class="text-tex
 
 const header = (table, status) => `
     <div class="mb-2 flex items-start justify-between gap-2">
-        <h3 class="text-xl font-bold text-primary-700">${esc(table.name)}</h3>
+        <h3 class="text-xl font-bold text-primary-700">${esc(table.name).toLocaleUpperCase()}</h3>
         <span class="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${STATUS[status].badge}">${STATUS[status].panel}</span>
     </div>`;
 
@@ -38,7 +38,7 @@ export function detailHtml({ table, area, pay }) {
             return `${title}
                 <div class="${CARD}">
                     ${header(table, 'empty')}
-                    <div class="space-y-1">${info('Khu vực', esc(area.name))}${info('Số khách tối đa', maxGuests)}</div>
+                    <div class="space-y-1">${info('Khu vực', esc(area.name).toLocaleUpperCase())}${info('Số khách tối đa', maxGuests)}</div>
                     <div class="mt-3"><p-button data-act="open-table" label="Sử dụng bàn" icon="utensils"></p-button></div>
                 </div>
                 ${DIVIDER}${closeBtn}`;
@@ -48,7 +48,7 @@ export function detailHtml({ table, area, pay }) {
                 <div class="${CARD}">
                     ${header(table, 'reserved')}
                     <div class="space-y-1">
-                        ${info('Khu vực', esc(area.name))}
+                        ${info('Khu vực', esc(area.name).toLocaleUpperCase())}
                         <div class="flex flex-wrap gap-x-4">${info('Giờ đặt bàn', hhmm(table.reservedAt))}${info('Giờ hết hạn', hhmm(table.reservedUntil))}</div>
                         ${info('Số khách tối đa', maxGuests)}
                     </div>
@@ -66,7 +66,7 @@ export function detailHtml({ table, area, pay }) {
                 <div class="${CARD}">
                     ${header(table, 'merged')}
                     <div class="space-y-1">
-                        ${info('Khu vực', esc(area.name))}
+                        ${info('Khu vực', esc(area.name).toLocaleUpperCase())}
                         ${info('Đã gộp vào', esc(primary?.name ?? '—'))}
                     </div>
                     ${primary ? '<div class="mt-3"><p-button data-act="goto-primary" label="Xem bàn chính" icon="merge"></p-button></div>' : ''}
@@ -80,7 +80,7 @@ export function detailHtml({ table, area, pay }) {
                 <div class="${CARD}">
                     ${header(table, 'serving')}
                     <div class="space-y-1">
-                        ${info('Khu vực', esc(area.name))}
+                        ${info('Khu vực', esc(area.name).toLocaleUpperCase())}
                         ${info('Giờ vào', `${hhmm(table.startedAt)} <span class="font-normal">(Đã dùng ${minutesSince(table.startedAt)} phút)</span>`)}
                         ${info('Số khách đang có', table.guests)}
                         ${info('Số khách tối đa', maxGuests)}
@@ -116,7 +116,7 @@ export function detailHtml({ table, area, pay }) {
                 <div class="${CARD}">
                     ${header(table, 'paying')}
                     <div class="grid grid-cols-2 gap-x-3 gap-y-1">
-                        ${info('Số khách', table.guests)}${info('Khu vực', esc(area.name))}
+                        ${info('Số khách', table.guests)}${info('Khu vực', esc(area.name).toLocaleUpperCase())}
                         ${info('Giờ ra', hhmm(Date.now()))}${info('Giờ vào', hhmm(table.startedAt))}
                     </div>
                 </div>
