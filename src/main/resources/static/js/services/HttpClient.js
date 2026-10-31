@@ -1,18 +1,6 @@
 import { SPRING_BASE, LOGIN_URL } from '../config.js';
 import { auth } from './AuthStore.js';
 
-/**
- * Client gọi backend Spring Boot.
- *  - Gửi header `Authorization: Bearer <accessToken>` (BE dùng JWT header, KHÔNG dùng cookie).
- *  - BE guwir kết quả: { code, message, data, timeStamp } → hàm trả về thẳng `data`.
- *  - Lỗi: ném Error(message của BE).
- *  - 401 → thử refresh token 1 lần rồi gọi lại; nếu vẫn lỗi → về trang đăng nhập.
- *
- * http(method, path, body?, { query, auth = true, text = false })
- *   path  : bắt đầu bằng "/" (vd "/area/shop/1")
- *   query : object → ?a=1&b=2 (bỏ qua undefined/null)
- *   text  : gửi body là chuỗi thô (text/plain) – dùng cho @RequestBody String
- */
 const buildUrl = (path, query) => {
     const qs = new URLSearchParams();
     for (const [k, v] of Object.entries(query ?? {})) {
@@ -74,8 +62,9 @@ export async function http(method,
     } = {}
 ) {
     const headers = { Accept: 'application/json' };
-    if (body !== undefined) {
-        headers['Content-Type'] = text ? 'text/plain;charset=UFT-8' : 'application/json';
+    const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
+    if (body !== undefined && !isForm) {
+        headers['Content-Type'] = text ? 'text/plain;charset=UTF-8' : 'application/json';
     }
     if (useAuth && auth.accessToken) {
         headers.Authorization = `Bearer ${auth.accessToken}`;
@@ -86,7 +75,7 @@ export async function http(method,
         res = await fetch(buildUrl(path, query), {
             method,
             headers,
-            body: body === undefined ? undefined : text ? String(body) : JSON.stringify(body),
+            body: body === undefined ? undefined : isForm ? body : text ? String(body) : JSON.stringify(body),
         });
     } catch (e) {
         throw new Error(`Bug ${e} - Không kết nối được máy chủ, vui lòng thử lại`);

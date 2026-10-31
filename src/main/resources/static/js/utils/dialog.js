@@ -10,7 +10,7 @@ export function openDialog({ title, width = 480, render }) {
             <header class="relative bg-primary-50 px-10 py-2 text-center text-sm font-bold uppercase text-primary-800">
                 ${esc(title)}
             </header>
-            <div data-body class="p-5"></div>
+            <div data-body class="min-h-0 max-h-[70vh] p-5 overflow-x-hidden overflow-y-auto scrollbar-thin scroll-smooth scrollbar-thumb-primary-200"></div>
         `;
 
         let result;
