@@ -78,6 +78,7 @@
     --color-secondary-800: #436550;
     --color-accent-900: #021917;
     --color-support-50: #F5F7F7;
+    --color-support-100: #EEF1F2;
     --color-support-600: #B7BEC0;
     --color-support-800: #6F7374;
     --color-support-900: #484B4C;
@@ -275,6 +276,9 @@
   .top-0 {
     top: 0px;
   }
+  .top-0\.5 {
+    top: calc(var(--spacing) * 0.5);
+  }
   .top-1 {
     top: var(--spacing);
   }
@@ -296,11 +300,17 @@
   .left-0 {
     left: 0px;
   }
+  .left-0\.5 {
+    left: calc(var(--spacing) * 0.5);
+  }
   .left-3 {
     left: calc(var(--spacing) * 3);
   }
   .left-8 {
     left: calc(var(--spacing) * 8);
+  }
+  .left-\[22px\] {
+    left: 22px;
   }
   .z-50 {
     z-index: 50;
@@ -523,14 +533,17 @@
   .w-10 {
     width: calc(var(--spacing) * 10);
   }
+  .w-11 {
+    width: calc(var(--spacing) * 11);
+  }
   .w-13 {
     width: calc(var(--spacing) * 13);
   }
   .w-15 {
     width: calc(var(--spacing) * 15);
   }
-  .w-25 {
-    width: calc(var(--spacing) * 25);
+  .w-56 {
+    width: calc(var(--spacing) * 56);
   }
   .w-full {
     width: 100%;
@@ -570,6 +583,9 @@
   }
   .shrink-0 {
     flex-shrink: 0;
+  }
+  .border-collapse {
+    border-collapse: collapse;
   }
   .-translate-y-1\/2 {
     --tw-translate-y: calc(calc(1 / 2 * 100%) * -1);
@@ -849,6 +865,9 @@
   }
   .bg-sky-100 {
     background-color: var(--color-sky-100);
+  }
+  .bg-support-100 {
+    background-color: var(--color-support-100);
   }
   .bg-transparent {
     background-color: transparent;
@@ -1133,6 +1152,10 @@
   .opacity-70 {
     opacity: 70%;
   }
+  .shadow {
+    --tw-shadow: 0 1px 3px 0 var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 1px 2px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
   .shadow-\[0_4px_8px_var\(--color-secondary-100\)\] {
     --tw-shadow: 0 4px 8px var(--tw-shadow-color, var(--color-secondary-100));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
@@ -1178,6 +1201,11 @@
   }
   .transition-all {
     transition-property: all;
+    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+    transition-duration: var(--tw-duration, var(--default-transition-duration));
+  }
+  .transition-colors {
+    transition-property: color, background-color, border-color, outline-color, text-decoration-color, fill, stroke, --tw-gradient-from, --tw-gradient-via, --tw-gradient-to;
     transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
     transition-duration: var(--tw-duration, var(--default-transition-duration));
   }
@@ -1373,6 +1401,12 @@
   }
   .\[\&_button\]\:pointer-events-none button {
     pointer-events: none;
+  }
+  .\[\&\>svg\]\:h-auto > svg {
+    height: auto;
+  }
+  .\[\&\>svg\]\:w-full > svg {
+    width: 100%;
   }
 }
 @layer base {

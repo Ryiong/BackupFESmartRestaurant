@@ -7,6 +7,16 @@ const DIVIDER = '<hr class="my-3 border-primary-200">';
 const title = '<h2 class="mb-3 text-xl font-bold text-text">Chi tiết bàn</h2>';
 const closeBtn = '<p-button data-act="close-detail" label="Đóng" icon="close" variant="danger"></p-button>';
 
+const qrBlock = table => `
+    <div class="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-primary-200 bg-white p-3">
+        <span class="text-sm font-semibold">QR gọi món</span>
+        <button type="button" role="switch" aria-checked="${!!table.qrEnabled}" aria-label="Bật/tắt QR gọi món" data-act="toggle-qr"
+            class="relative h-6 w-11 cursor-pointer rounded-full transition-colors ${table.qrEnabled ? 'bg-primary-700' : 'bg-primary-200'}">
+            <span class="absolute top-0.5 size-5 rounded-full bg-white shadow transition-all ${table.qrEnabled ? 'left-[22px]' : 'left-0.5'}"></span>
+        </button>
+        ${table.qrEnabled ? '<p-button data-act="show-qr" label="Xem QR" icon="qr"></p-button>' : '<span class="text-xs text-secondary-700">Đang tắt</span>'}
+    </div>`;
+
 const info = (label, value) => `<p class="${LABEL}">${label}: <b class="text-text">${value}</b></p>`;
 
 const header = (table, status) => `
@@ -40,6 +50,7 @@ export function detailHtml({ table, area, pay }) {
                     ${header(table, 'empty')}
                     <div class="space-y-1">${info('Khu vực', esc(titleCase(area.name)))}${info('Số khách tối đa', maxGuests)}</div>
                     <div class="mt-3"><p-button data-act="open-table" label="Sử dụng bàn" icon="utensils"></p-button></div>
+                    ${qrBlock(table)}
                 </div>
                 ${DIVIDER}${closeBtn}`;
 
@@ -82,7 +93,7 @@ export function detailHtml({ table, area, pay }) {
                     <div class="space-y-1">
                         ${info('Khu vực', esc(titleCase(area.name)))}
                         ${info('Giờ vào', `${hhmm(table.startedAt)} <span class="font-normal">(Đã dùng ${minutesSince(table.startedAt)} phút)</span>`)}
-                        ${info('Số khách đang có', table.guests)}
+                        ${table.guests > 0 ? info('Số khách đang có', table.guests) : ''}
                         ${info('Số khách tối đa', maxGuests)}
                         ${merged.length ? info('Bàn đã gộp', esc(merged.join(', '))) : ''}
                     </div>
@@ -90,6 +101,7 @@ export function detailHtml({ table, area, pay }) {
                         <p-button data-act="merge" label="Gộp bàn" icon="merge"></p-button>
                         <p-button data-act="move" label="Chuyển bàn" icon="swap"></p-button>
                     </div>
+                    ${qrBlock(table)}
                 </div>
                 <h4 class="mb-2 mt-4 text-[15px] font-bold">Danh sách đặt món (${table.orders.length} món)</h4>
                 ${orderList(table.orders)}
@@ -111,12 +123,12 @@ export function detailHtml({ table, area, pay }) {
             const methodBtn = (v, label) => `
                 <button type="button" data-act="pay-method" data-v="${v}" aria-pressed="${pay.method === v}"
                     class="flex-1 cursor-pointer rounded-lg border-2 px-3 py-2 text-sm font-bold transition-all hover:scale-95 ${pay.method === v
-                        ? 'border-primary-700 bg-primary-700 text-white' : 'border-primary-200 bg-white text-primary-700'}">${label}</button>`;
+                    ? 'border-primary-700 bg-primary-700 text-white' : 'border-primary-200 bg-white text-primary-700'}">${label}</button>`;
             return `${title}
                 <div class="${CARD}">
                     ${header(table, 'paying')}
                     <div class="grid grid-cols-2 gap-x-3 gap-y-1">
-                        ${info('Số khách', table.guests)}${info('Khu vực', esc(titleCase(area.name)))}
+                        ${table.guests > 0 ? info('Số khách', table.guests) : ''}${info('Khu vực', esc(titleCase(area.name)))}
                         ${info('Giờ ra', hhmm(Date.now()))}${info('Giờ vào', hhmm(table.startedAt))}
                     </div>
                 </div>
@@ -141,7 +153,7 @@ export function detailHtml({ table, area, pay }) {
                 </div>
                 <div class="mt-2 flex flex-wrap gap-1.5">
                     ${[total, 500000, 200000, 100000].filter((v, i, a) => v > 0 && a.indexOf(v) === i).map(v =>
-                        `<button type="button" data-act="quick-cash" data-v="${v}" class="cursor-pointer rounded-full border border-primary-200 bg-white px-2.5 py-1 text-xs font-bold text-primary-700 transition-all hover:scale-95">${v === total ? 'Đủ ' : ''}${moneyK(v)}</button>`).join('')}
+                `<button type="button" data-act="quick-cash" data-v="${v}" class="cursor-pointer rounded-full border border-primary-200 bg-white px-2.5 py-1 text-xs font-bold text-primary-700 transition-all hover:scale-95">${v === total ? 'Đủ ' : ''}${moneyK(v)}</button>`).join('')}
                 </div>` : `
                 <p class="mt-3 rounded-xl bg-neutral-100 p-3 text-sm text-secondary-700">Xác nhận sau khi nhận được ${money(total)} vào tài khoản của cửa hàng.</p>`}
                 <div class="mt-4 flex flex-wrap gap-2.5">

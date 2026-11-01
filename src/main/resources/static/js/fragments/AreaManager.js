@@ -5,7 +5,7 @@ import { areaService } from '../services/AreaService.js';
 import { bindActions, confirmDialog, toast } from '../utils/dialog.js';
 import { esc, money, orderTotal, effectiveCapacity, titleCase } from '../utils/format.js';
 import { detailHtml, emptyDetailHtml } from './AreaTemplates.js';
-import { areaEditorDialog, guestsDialog, orderDialog, pickTableDialog } from './AreaDialogs.js';
+import { areaEditorDialog, orderDialog, pickTableDialog, qrDialog } from './AreaDialogs.js';
 
 const FILTERS = [
     { v: 'all', label: 'Tất cả', match: () => true },
@@ -77,6 +77,11 @@ class AreaManager extends HTMLElement {
             toast(err.message || 'Không tải được dữ liệu');
         }
         this.renderAll();
+    }
+
+    async loadMenu() {
+        try { this.menu ??= await areaService.listMenu(); return this.menu; }
+        catch (err) { toast(err.message || 'Không tải được thực đơn'); return null; }
     }
 
     async run(fn, successMsg, patch) {
@@ -211,17 +216,33 @@ class AreaManager extends HTMLElement {
 
             /* bàn */
             'open-table': async () => {
-                const { table, area } = this;
+                const table = this.table;
                 if (!table) return;
-                const guests = await guestsDialog({ tableName: titleCase(table.name), max: effectiveCapacity(table, area.tables) });
-                if (guests) this.run(() => areaService.openTable(table.id, guests), `Đã mở ${titleCase(table.name)}`);
+                const menu = await this.loadMenu();
+                if (!menu) return;
+                const name = titleCase(table.name);
+                const items = await orderDialog({ tableName: name, menu, title: `Chọn món — ${name}`, confirmLabel: 'Xác nhận & sử dụng bàn' });
+                if (items?.length) this.run(() => areaService.addOrder(table.id, items), `Đã mở ${name}`);
             },
             order: async () => {
                 const table = this.table;
                 if (!table) return;
-                this.menu ??= await areaService.listMenu();
-                const items = await orderDialog({ tableName: titleCase(table.name), menu: this.menu });
+                const menu = await this.loadMenu();
+                if (!menu) return;
+                const items = await orderDialog({ tableName: titleCase(table.name), menu });
                 if (items?.length) this.run(() => areaService.addOrder(table.id, items), 'Đã thêm món vào bàn');
+            },
+            'toggle-qr': () => {
+                const t = this.table;
+                if (t) this.run(() => areaService.setTableQr(t.id, !t.qrEnabled, t.name), t.qrEnabled ? 'Đã tắt QR gọi món' : 'Đã bật QR gọi món');
+            },
+            'show-qr': async () => {
+                const t = this.table;
+                if (!t) return;
+                try {
+                    const url = await areaService.tableOrderUrl(t.id);
+                    qrDialog({ tableName: titleCase(t.name), url });
+                } catch (err) { toast(err.message || 'Không tạo được QR'); }
             },
             pay: () => {
                 const table = this.table;

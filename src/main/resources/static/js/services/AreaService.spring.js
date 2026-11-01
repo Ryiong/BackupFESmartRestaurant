@@ -1,4 +1,5 @@
 import { http, httpAll } from './HttpClient.js';
+import { CUSTOMER_BASE_URL, CUSTOMER_ORDER_PATH } from '../config.js';
 
 export const DEFAULT_CAPACITY = 4;
 
@@ -140,6 +141,16 @@ export const springAreaService = {
     deleteArea: id => http('DELETE', `/area/${id}`),
     setAreaActive: (id, active) => active ? http('PATCH', `/area/${id}/activate`) : http('DELETE', `/area/${id}`),
 
+    setTableQr: (tableId, enabled, name) => http('PUT', `/tables/${tableId}`, { name, qrEnabled: !!enabled }),
+
+    async tableOrderUrl(tableId) {
+        const shopId = await getShopId();
+        const u = new URL(CUSTOMER_ORDER_PATH, CUSTOMER_BASE_URL || location.origin);
+        u.searchParams.set('shop', shopId);
+        u.searchParams.set('table', tableId);
+        return u.toString();
+    },
+    
     openTable: async () => { throw new Error('Bàn sẽ tự chuyển sang "Đang phục vụ" khi bạn gọi món đầu tiên'); },
 
     addOrder: async (tableId, items) => http('POST', `/order/${await getShopId()}`, {

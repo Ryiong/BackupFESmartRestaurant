@@ -2,34 +2,10 @@ import '../components/PrimaryButton.js';
 import '../components/TableCard.js';
 import { openDialog, confirmDialog, bindActions, toast } from '../utils/dialog.js';
 import { esc, money, INPUT_CLS, titleCase } from '../utils/format.js';
+import qrcode from '../utils/qrcode.js';
 import { areaService } from '../services/AreaService.js';
 
 const BTN_ROW = 'mt-6 flex flex-wrap justify-center gap-3';
-
-export function guestsDialog({ tableName, max }) {
-    return openDialog({
-        title: `Sử dụng ${titleCase(tableName)}`, width: 360,
-        render(body, close) {
-            body.innerHTML = `
-                <label for="g-guests" class="mb-1.5 block text-sm font-semibold">Số khách</label>
-                <input id="g-guests" type="number" min="1" max="${max}" value="${Math.min(2, max)}" class="${INPUT_CLS}">
-                <p class="mt-1 text-xs text-secondary-700">Tối đa ${max} khách</p>
-                <div class="${BTN_ROW}">
-                    <p-button data-act="ok" label="Xác nhận" icon="check" variant="solid"></p-button>
-                    <p-button data-act="cancel" label="Huỷ"></p-button>
-                </div>`;
-            const input = body.querySelector('input');
-            const submit = () => {
-                const n = Number(input.value);
-                if (!Number.isInteger(n) || n < 1 || n > max) return toast(`Số khách phải từ 1 đến ${max}`);
-                close(n);
-            };
-            input.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
-            bindActions(body, { ok: submit, cancel: () => close() });
-            setTimeout(() => input.select(), 0);
-        },
-    });
-}
 
 export function pickTableDialog({ title, subtitle, tables, reasonFor }) {
     return openDialog({
@@ -64,9 +40,9 @@ export function pickTableDialog({ title, subtitle, tables, reasonFor }) {
     });
 }
 
-export function orderDialog({ tableName, menu }) {
+export function orderDialog({ tableName, menu, title = `Đặt món — ${tableName}`, confirmLabel = 'Thêm vào bàn' }) {
     return openDialog({
-        title: `Đặt món — ${tableName}`, width: 520,
+        title, width: 520,
         render(body, close) {
             const qty = Object.fromEntries(menu.map(m => [m.id, 0]));
             const total = () => menu.reduce((s, m) => s + m.price * qty[m.id], 0);
@@ -74,6 +50,7 @@ export function orderDialog({ tableName, menu }) {
 
             body.innerHTML = `
                 <ul class="max-h-80 divide-y divide-primary-100 overflow-y-auto pr-1">
+                    ${menu.length ? '' : '<li class="py-8 text-center text-sm text-secondary-700">Chưa có món nào đang bán. Hãy thêm món ở trang Thực đơn.</li>'}
                     ${menu.map(m => `
                     <li class="flex items-center justify-between gap-3 py-2">
                         <div class="min-w-0"><p class="line-clamp-1 text-sm font-bold">${esc(titleCase(m.name))}</p><p class="text-xs text-secondary-700">${money(m.price)}</p></div>
@@ -88,7 +65,7 @@ export function orderDialog({ tableName, menu }) {
                     <span class="font-bold">Tạm tính</span><b data-total class="text-lg text-primary-700">0 đ</b>
                 </div>
                 <div class="${BTN_ROW}">
-                    <p-button data-act="ok" label="Thêm vào bàn" icon="check" variant="solid" disabled></p-button>
+                    <p-button data-act="ok" label="${esc(confirmLabel)}" icon="check" variant="solid" disabled></p-button>
                     <p-button data-act="cancel" label="Huỷ"></p-button>
                 </div>`;
 
@@ -104,6 +81,53 @@ export function orderDialog({ tableName, menu }) {
                 dec: el => step(el.dataset.id, -1),
                 ok: () => close(menu.filter(m => qty[m.id] > 0).map(m => ({ id: m.id, name: m.name, price: m.price, qty: qty[m.id] }))),
                 cancel: () => close(),
+            });
+        },
+    });
+}
+
+function makeQr(url) {
+    const qr = qrcode(0, 'M');
+    qr.addData(url, 'Byte');
+    qr.make();
+    return qr;
+}
+
+export function qrDialog({ tableName, url }) {
+    return openDialog({
+        title: `QR gọi món — ${tableName}`, width: 380,
+        render(body, close) {
+            const qr = makeQr(url);
+            const local = /^(localhost|127\.|0\.0\.0\.0)/.test(new URL(url).hostname);
+            body.innerHTML = `
+                <div class="mx-auto w-56 rounded-2xl border border-primary-200 bg-white p-3 [&>svg]:h-auto [&>svg]:w-full">${qr.createSvgTag({ cellSize: 4, margin: 0, scalable: true })}</div>
+                <p class="mt-2 text-center text-sm font-bold">${esc(tableName)}</p>
+                <input readonly value="${esc(url)}" aria-label="Đường dẫn gọi món" class="${INPUT_CLS} mt-3 text-xs">
+                ${local ? '<p class="mt-2 rounded-lg bg-support-100 p-2 text-xs text-secondary-700">Địa chỉ đang là localhost nên điện thoại khách sẽ không quét vào được. Hãy đặt CUSTOMER_BASE_URL trong config.js.</p>' : ''}
+                <div class="${BTN_ROW}">
+                    <p-button data-act="copy" label="Sao chép link" icon="check"></p-button>
+                    <p-button data-act="download" label="Tải PNG" variant="solid"></p-button>
+                </div>`;
+            bindActions(body, {
+                copy: async () => {
+                    try { await navigator.clipboard.writeText(url); toast('Đã sao chép link', 'success'); }
+                    catch { body.querySelector('input').select(); toast('Hãy nhấn Ctrl+C để sao chép'); }
+                },
+                download: () => {
+                    const n = qr.getModuleCount(), cell = 10, quiet = 4, size = (n + quiet * 2) * cell, cap = 56;
+                    const c = document.createElement('canvas');
+                    c.width = size; c.height = size + cap;
+                    const g = c.getContext('2d');
+                    g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+                    g.fillStyle = '#000';
+                    for (let r = 0; r < n; r++) for (let k = 0; k < n; k++) if (qr.isDark(r, k)) g.fillRect((k + quiet) * cell, (r + quiet) * cell, cell, cell);
+                    g.textAlign = 'center'; g.font = 'bold 28px sans-serif';
+                    g.fillText(tableName, size / 2, size + 20);
+                    const a = document.createElement('a');
+                    a.href = c.toDataURL('image/png');
+                    a.download = `qr-${tableName.replace(/\s+/g, '-').toLowerCase()}.png`;
+                    a.click();
+                },
             });
         },
     });
