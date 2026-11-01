@@ -42,7 +42,7 @@ export const menuService = {
 
     createProduct: (categoryId, data) => http('POST', `/product/${categoryId}`, toForm(data)),
 
-    updateProduct: (id, data) => http('PUT' `/product/${id}`, toForm(data)),
+    updateProduct: (id, data) => http('PUT', `/product/${id}`, toForm(data)),
 
     setProductActive: (id, active) => active
         ? http('PATCH', `/product/${id}/activate`)

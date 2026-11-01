@@ -45,6 +45,23 @@ const loadOrders = () => {
 const openOrders = loadOrders();
 const saveOrders = () => store.set(ORDERS_KEY, JSON.stringify(Object.fromEntries(openOrders)));
 
+/*
+ * Sổ doanh thu: GET /order?date= luôn trả totalPrice = null, chỉ response của /payment mới có tổng tiền.
+ * Ghi lại tổng tiền từng đơn lúc thanh toán (localStorage, bền qua tab/ngày) để trang Doanh thu dùng.
+ */
+const LEDGER_KEY = 'sr:paidLedger';
+const readLedger = () => {
+    try { return JSON.parse(localStorage.getItem(LEDGER_KEY) ?? '{}'); } catch { return {}; }
+};
+const recordPaid = (orderId, total) => {
+    try {
+        const l = readLedger();
+        l[sid(orderId)] = total;
+        localStorage.setItem(LEDGER_KEY, JSON.stringify(l));
+    } catch { }
+};
+export const paidTotalOf = orderId => Number(readLedger()[sid(orderId)]) || 0;
+
 const sid = v => String(v);
 const localDate = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
@@ -243,9 +260,11 @@ export const springAreaService = {
         const orderId = await orderIdOfTable(tableId);
         const res = await http('POST', `/order/${shopId}/payment/${orderId}`);
         const tid = sid(tableId);
+        const localTotal = (openOrders.get(tid)?.items ?? []).reduce((s, i) => s + i.price * i.qty, 0);
+        const total = Number(res?.totalPrice) || localTotal;
+        recordPaid(orderId, total);
         paying.delete(tid); savePaying();
         openOrders.delete(tid); saveOrders();
-        const total = Number(res?.totalPrice) || 0;
         return { total, change: Math.max(0, received - total) };
     },
 

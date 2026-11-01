@@ -1,5 +1,5 @@
 import { http } from './HttpClient.js';
-import { getShopId } from './AreaService.spring.js';
+import { getShopId, paidTotalOf } from './AreaService.spring.js';
 
 const key = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const sum = list => list.reduce((s, t) => s + t.total, 0);
@@ -11,7 +11,7 @@ function paidOrders(shopId, date) {
     const hit = cache.get(k);
     if (hit && Date.now() - hit.at < TTL) return hit.promise;
     const promise = http('GET', `/order/${shopId}`, undefined, { query: { date: k } })
-        .then(list => (list ?? []).filter(o => o.orderStatus === 'PAID' || o.paymentStatus === 'PAID'))
+        .then(list => (list ?? []).filter(o => o.orderStatus === 'PAID' || o.paymentStatus === 'COMPLETED'))
         .catch(err => { cache.delete(k); throw err; });
     cache.set(k, { at: Date.now(), promise });
     return promise;
@@ -23,7 +23,8 @@ const toTx = o => ({
     tableName: o.table?.name ?? '',
     areaName: '',
     method: o.paymentMethod === 'BANKING' ? 'transfer' : 'cash',
-    total: Number(o.totalPrice) || 0,
+    // Backend không trả totalPrice ở GET /order -> lấy từ sổ ghi lúc thanh toán
+    total: Number(o.totalPrice) || paidTotalOf(o.id),
 });
 
 export const springRevenue = {
