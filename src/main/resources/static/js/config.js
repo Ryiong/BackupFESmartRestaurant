@@ -12,4 +12,4 @@ export const ADMIN_URL = `${BASE_URL}/admin/index.html`;
  */
 
 export const CUSTOMER_BASE_URL = '';
-export const CUSTOMER_ORDER_PATH = '/customer/order.html';
+export const CUSTOMER_ORDER_PATH = `${BASE_URL}/customer/order.html`;

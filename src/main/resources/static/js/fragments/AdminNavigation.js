@@ -7,7 +7,7 @@ const NAV = [
     { href: `${BASE_URL}/admin/index.html`, name: 'Tổng quan', icon: 'dashboard' },
     { href: `${BASE_URL}/admin/area.html`, name: 'Bàn & Khu vực', icon: 'table' },
     { href: `${BASE_URL}/admin/menu.html`, name: 'Thực đơn', icon: 'menu' },
-    { href: '#', name: 'Kho nguyên liệu', icon: 'storage' },
+    { href: `${BASE_URL}/admin/storage.html`, name: 'Kho nguyên liệu', icon: 'storage' },
     { href: '#', name: 'Cài đặt', icon: 'setting' },
 
 ];
