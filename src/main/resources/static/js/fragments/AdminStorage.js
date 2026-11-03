@@ -1,3 +1,3 @@
 import './AdminNavigation.js';
 import './AdminHeader.js';
-import './storage/StorageManager.js';
+import './SettingsHub.js';

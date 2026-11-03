@@ -1,22 +1,8 @@
 import * as cfg from '../config.js';
 import { http } from './HttpClient.js';
+import { getShopId } from './ShopService.js';
 
 export const GRACE_MIN = 5; //chấm công sau 5 phút mới tính à trễ giờ
-
-const crud = (g, extra = []) => ['VIEW', 'CREATE', 'UPDATE', 'DELETE', ...extra].map(a => `PERM_${g}_${a}`);
-const PERM_NAMES = [
-    'PERM_SHOP_SET_LOCATION',
-    ...crud('AREA', ['ACTIVATE']), ...crud('TABLE', ['ACTIVATE']),
-    ...crud('CATEGORY', ['ACTIVATE']), ...crud('PRODUCT', ['ACTIVATE']),
-    ...crud('RECIPE_INGREDIENT').slice(0, 4),
-    ...crud('INGREDIENT', ['ACTIVATE']),
-    'PERM_EMPLOYMENT_VIEW', 'PERM_EMPLOYMENT_CREATE', 'PERM_EMPLOYMENT_UPDATE', 'PERM_EMPLOYMENT_TERMINATE',
-    'PERM_INVENTORY_VIEW', 'PERM_INVENTORY_CREATE', 'PERM_INVENTORY_APPROVE', 'PERM_INVENTORY_REJECT',
-    ...crud('SHIFT', ['ACTIVATE']),
-    'PERM_WORK_SCHEDULE_CREATE', 'PERM_WORK_SCHEDULE_UPDATE', 'PERM_WORK_SCHEDULE_DELETE', 'PERM_WORK_SCHEDULE_VIEW',
-    'PERM_ORDER_CREATE', 'PERM_ORDER_ITEM_DELETE', 'PERM_ORDER_VIEW', 'PERM_ORDER_TABLE_MERGE', 'PERM_ORDER_TABLE_MOVE', 'PERM_ORDER_PAYMENT',
-    'PERM_HOST_DEVICE_REGISTER',
-];
 
 const P = (...a) => a.map(x => `PERM_${x}`);
 export const PERM_MATRIX = [
@@ -159,35 +145,42 @@ export const workedHours = s => {
     return inn && out ? Math.max(0, Math.round((new Date(out.at) - new Date(inn.at)) / 36e5 * 100) / 100) : 0;
 };
 
-const SHOP_KEY = 'sr:shopId';
-
-export const getShopId = () => {
-    try {
-        const v = localStorage.getItem(SHOP_KEY);
-        if (v) return Number(v);
-    } catch { }
-    return 1;
-};
+export const HR_MODE = cfg.API_MODE;
 
 const pageList = r => Array.isArray(r) ? r : (r?.content ?? []);
-const STAFF_CACHE = () => `sr:staff-cache:${getShopId()}`;
-const readCache = () => {
-    try {
-        return JSON.parse(localStorage.getItem(STAFF_CACHE()) ?? '[]');
-    }
-    catch {
-        return [];
-    }
+
+// Backend chưa có GET employment -> danh sách nhân viên được giữ ở localStorage, theo từng shop.
+const staffKey = sid => `sr:staff-cache:${sid}`;
+const readCache = sid => {
+    try { return JSON.parse(localStorage.getItem(staffKey(sid)) ?? '[]'); } catch { return []; }
 };
-const writeCache = list => {
-    try {
-        localStorage.setItem(STAFF_CACHE(), JSON.stringify(list));
-    }
-    catch { }
+const writeCache = (sid, list) => {
+    try { localStorage.setItem(staffKey(sid), JSON.stringify(list)); } catch { }
 };
 
+/** Chạy fn trên từng phần tử với tối đa `limit` request song song (tránh bắn 31 request cùng lúc khi xem cả tháng). */
+const pool = async (items, fn, limit = 5) => {
+    const out = new Array(items.length);
+    let i = 0;
+    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+        while (i < items.length) {
+            const k = i++;
+            out[k] = await fn(items[k]);
+        }
+    }));
+    return out;
+};
+
+// Nhiều panel cùng gọi listRoles trong một lần tải -> dùng chung một request trong vài giây.
+const ROLE_TTL = 3000;
+let rolesMemo = null;
+
+// Backend duyệt công theo employmentId nên cần nhớ employmentId của từng lịch vừa tải.
+const scheduleIndex = new Map();
+
 const mapEmployment = (e, extra = {}) => ({
-    id: e.id, name: e.user?.name ?? extra.name ?? '',
+    id: e.id,
+    name: e.user?.name ?? extra.name ?? '',
     email: e.user?.email ?? extra.email ?? '',
     phoneNumber: e.user?.phoneNumber ?? extra.phoneNumber ?? '',
     salary: Number(e.salary),
@@ -224,83 +217,100 @@ const mapShift = s => ({
     name: s.name,
     startTime: hm(s.startTime),
     endTime: hm(s.endTime),
-    status: s.status
+    status: s.status,
 });
 
-const spring = {
-    async listPermissions() { 
-        return http('GET', '/permissions'); 
+const mapRole = r => ({
+    id: r.id,
+    name: r.name,
+    status: 'ACTIVE',
+    permissionIds: (r.permissions ?? []).map(p => p.id),
+});
+
+const roleNamesOf = (roles, ids) => ids.map(i => roles.find(r => r.id === i)?.name).filter(Boolean);
+
+export const hr = {
+    listPermissions() {
+        return http('GET', '/permissions');
     },
 
     async listRoles() {
-        const r = pageList(
-            await http('GET', `/role/roles/${getShopId()}`, 
-            undefined, 
-            { query: { 
-                status: 'ACTIVE', 
-                size: 100 
-            }}));
-        return r.map(x => ({ 
-            id: x.id, 
-            name: x.name, 
-            status: 'ACTIVE', 
-            permissionIds: (x.permissions ?? []).map(p => p.id) 
-        }));
+        const sid = await getShopId();
+        if (rolesMemo && rolesMemo.sid === sid && Date.now() - rolesMemo.at < ROLE_TTL) return rolesMemo.p;
+        const p = http('GET', `/role/roles/${sid}`, undefined, { query: { status: 'ACTIVE', size: 100 } })
+            .then(r => pageList(r).map(mapRole));
+        const memo = rolesMemo = { sid, at: Date.now(), p };
+        p.catch(() => { if (rolesMemo === memo) rolesMemo = null; });
+        return p;
     },
 
     async saveRole({ id, name, permissionIds }) {
-        const body = { name, permissionIds };
-        const r = id ? await http('PUT', `/role/${id}`, body) : await http('POST', `/role/${getShopId()}`, body);
-        return { 
-            id: r.id, 
-            name: r.name, 
-            status: 'ACTIVE', 
-            permissionIds: (r.permissions ?? []).map(p => p.id) 
-        };
+        // Backend chỉ chuẩn hoá tên (trim + lowercase) lúc tạo, không làm khi cập nhật -> tự chuẩn hoá để đồng nhất.
+        const body = { name: name.trim().toLowerCase(), permissionIds };
+        const sid = await getShopId();
+        const r = id ? await http('PUT', `/role/${id}`, body) : await http('POST', `/role/${sid}`, body);
+        rolesMemo = null;
+        return mapRole(r);
     },
 
-    async deleteRole(id) { await http('DELETE', `/role/${id}`); },
+    async deleteRole(id) {
+        await http('DELETE', `/role/${id}`);
+        rolesMemo = null;
+    },
 
-    // Backend CHƯA có GET employment: danh sách nhân viên được giữ trong bộ nhớ đệm trình duyệt.
-    async listStaff() { return readCache(); },
+    /** Nhân viên lấy từ cache trình duyệt; tên vai trò được đối chiếu lại với danh sách vai trò hiện tại. */
+    async listStaff() {
+        const sid = await getShopId();
+        const cache = readCache(sid);
+        const roles = await this.listRoles().catch(() => null);
+        if (!roles) return cache;
+        return cache.map(s => {
+            const roleIds = (s.roleIds ?? []).filter(id => roles.some(r => r.id === id));
+            return { ...s, roleIds, roleNames: roleNamesOf(roles, roleIds) };
+        });
+    },
+
     async createStaff({ name, email, phoneNumber, password, salary, workFrom, roleIds }) {
-        const e = await http('POST', `/employment/${getShopId()}`, {
-            registerRequest: { 
-                name, 
-                email, 
-                phoneNumber, 
-                password 
-            }, 
-            salary, 
-            workFrom, 
+        const sid = await getShopId();
+        const e = await http('POST', `/employment/${sid}`, {
+            registerRequest: { name, email, phoneNumber, password },
+            salary,
+            workFrom,
             roleIds,
         });
-        const roles = await this.listRoles();
-        const st = mapEmployment(e, { name, email, phoneNumber, roleIds, roleNames: roleIds.map(i => roles.find(r => r.id === i)?.name).filter(Boolean) });
-        writeCache([...readCache(), st]); return st;
+        // Tài khoản đã được tạo ở backend: dù tra tên vai trò lỗi vẫn phải lưu vào cache, nếu không nhân viên "mất tích".
+        const roles = await this.listRoles().catch(() => []);
+        const st = mapEmployment(e, { name, email, phoneNumber, roleIds, roleNames: roleNamesOf(roles, roleIds) });
+        writeCache(sid, [...readCache(sid).filter(s => s.id !== st.id), st]);
+        return st;
     },
 
     async updateStaff(id, { salary, roleIds }) {
+        const sid = await getShopId();
         const e = await http('PUT', `/employment/${id}`, { salary, roleIds });
-        const roles = await this.listRoles();
-        const list = readCache().map(s => s.id === id
-            ? { ...s, salary: Number(e.salary ?? salary), roleIds, roleNames: roleIds.map(i => roles.find(r => r.id === i)?.name).filter(Boolean) } : s);
-        writeCache(list);
+        const roles = await this.listRoles().catch(() => []);
+        const list = readCache(sid).map(s => s.id === id
+            ? { ...s, salary: Number(e?.salary ?? salary), roleIds, roleNames: roleNamesOf(roles, roleIds) }
+            : s);
+        writeCache(sid, list);
         return list.find(s => s.id === id);
     },
 
     async terminateStaff(id) {
+        const sid = await getShopId();
         await http('DELETE', `/employment/${id}`);
-        writeCache(readCache().map(s => s.id === id ? { ...s, status: 'TERMINATED', endedAt: ymd() } : s));
+        writeCache(sid, readCache(sid).map(s => s.id === id ? { ...s, status: 'TERMINATED', endedAt: ymd() } : s));
     },
 
     async listShifts() {
-        return pageList(await http('GET', `/shift/shop/${getShopId()}`, undefined, { query: { size: 100 } })).map(mapShift);
+        const sid = await getShopId();
+        return pageList(await http('GET', `/shift/shop/${sid}`, undefined, { query: { size: 100 } })).map(mapShift);
     },
 
     async saveShift({ id, name, startTime, endTime }) {
         const body = { name, startTime: hm(startTime), endTime: hm(endTime) };
-        return mapShift(id ? await http('PUT', `/shift/${id}`, body) : await http('POST', `/shift/${getShopId()}`, body));
+        const sid = await getShopId();
+        return mapShift(id ? await http('PUT', `/shift/${id}`, body) : await http('POST', `/shift/${sid}`, body));
     },
 
     async deleteShift(id) { await http('DELETE', `/shift/${id}`); },
@@ -308,36 +318,39 @@ const spring = {
     async activateShift(id) { await http('PATCH', `/shift/${id}/activate`); },
 
     async listSchedule(date) {
-        const staffById = new Map(readCache().map(s => [s.id, s]));
-        const r = await http('GET', `/work-schedule/${getShopId()}`, undefined, { query: { date } });
-        const list = [...(r ?? [])].filter(w => (w.status ?? 'SCHEDULED') === 'SCHEDULED').map(w => mapSchedule(w, staffById));
-        this._lastSchedules ??= new Map();
-        list.forEach(s => this._lastSchedules.set(s.id, s));
+        const sid = await getShopId();
+        const staffById = new Map(readCache(sid).map(s => [s.id, s]));
+        const r = await http('GET', `/work-schedule/${sid}`, undefined, { query: { date } });
+        const list = [...(r ?? [])]
+            .filter(w => (w.status ?? 'SCHEDULED') === 'SCHEDULED')
+            .map(w => mapSchedule(w, staffById));
+        list.forEach(s => scheduleIndex.set(s.id, s));
         return list;
     },
 
     async listScheduleRange(from, to) {
         const days = [];
         for (let d = from; d <= to; d = addDays(d, 1)) days.push(d);
-        return (await Promise.all(days.map(d => this.listSchedule(d)))).flat();
+        return (await pool(days, d => this.listSchedule(d))).flat();
     },
 
     async assign(date, items) {
-        await http('POST', `/work-schedule/${getShopId()}`, items.map(({ shiftId, employmentId }) => ({ shiftId, employmentId })), { query: { date } });
+        const sid = await getShopId();
+        await http('POST', `/work-schedule/${sid}`,
+            items.map(({ shiftId, employmentId }) => ({ shiftId, employmentId })), { query: { date } });
     },
 
     async changeShift(id, shiftId) {
-        await http('PATCH', `/work-schedule/${getShopId()}`, { shiftId }, { query: { workScheduleId: id } });
+        const sid = await getShopId();
+        await http('PATCH', `/work-schedule/${sid}`, { shiftId }, { query: { workScheduleId: id } });
     },
 
     async cancelSchedule(id) { await http('DELETE', `/work-schedule/${id}`); },
 
     async reviewAttendance(id, status, rejectReason) {
-        // Backend duyệt công theo employmentId + danh sách lịch
-        const sch = this._lastSchedules?.get(id);
+        const sch = scheduleIndex.get(id);
         if (!sch) throw new Error('Hãy tải lại danh sách rồi thử lại');
-        await http('POST', `/work-schedule/${getShopId()}/update-attendance-status/${sch.employmentId}`, [{ id, status, rejectReason }]);
+        const sid = await getShopId();
+        await http('POST', `/work-schedule/${sid}/update-attendance-status/${sch.employmentId}`, [{ id, status, rejectReason }]);
     },
-
-    reset() { },
 };

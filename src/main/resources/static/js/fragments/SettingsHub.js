@@ -38,10 +38,23 @@ class SettingsHub extends HTMLElement {
         </div>`;
         this.steps = this.querySelector('[data-steps]');
         this.outlet = this.querySelector('[data-outlet]');
-        window.addEventListener('hashchange', () => this.show());
-        window.addEventListener('hr:changed', () => this.refreshSummary());
+        this.onHash = () => this.show();
+        this.onChanged = () => {
+            // Một thao tác ghi có thể phát nhiều sự kiện; gom lại để không bắn loạt request tính số liệu.
+            clearTimeout(this.timer);
+            this.timer = setTimeout(() => this.refreshSummary(), 300);
+        };
+        window.addEventListener('hashchange', this.onHash);
+        window.addEventListener('hr:changed', this.onChanged);
         this.show();
         this.refreshSummary();
+    }
+
+    disconnectedCallback() {
+        window.removeEventListener('hashchange', this.onHash);
+        window.removeEventListener('hr:changed', this.onChanged);
+        clearTimeout(this.timer);
+        delete this.dataset.ready;
     }
 
     get key() { const k = location.hash.slice(1); return STEPS.some(s => s.key === k) ? k : STEPS[0].key; }

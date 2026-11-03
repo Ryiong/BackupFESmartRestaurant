@@ -185,7 +185,7 @@ class StaffPanel extends HrPanel {
                 const res = await this.form({});
                 if (!res) return;
                 const st = await this.run(() => hr.createStaff(res.data), 'Đã tạo nhân viên');
-                if (st) { window.dispatchEvent(new CustomEvent('hr:changed')); await this.credentials(st, res.data.password); }
+                if (st) await this.credentials(st, res.data.password);
             },
             edit: async el => {
                 const staff = this.state.staff.find(x => x.id === Number(el.dataset.id));

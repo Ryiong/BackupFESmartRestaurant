@@ -168,14 +168,18 @@ class RolePanel extends HrPanel {
                 const s = this.state, d = s.draft;
                 if (!d.name.trim()) return toast('Tên vai trò không được để trống');
                 const ids = [...d.names].map(n => s.permIdByName[n]).filter(Boolean);
-                const saved = await this.run(() => hr.saveRole({ id: d.id, name: d.name, permissionIds: ids }), 'Đã lưu vai trò');
-                if (saved) { s.draft = null; s.selected = saved.id; this.draw(); window.dispatchEvent(new CustomEvent('hr:changed')); }
+                // Cập nhật selection/draft ngay trong fn để lần reload kế tiếp vẽ đúng (không bị lẫn mục "Vai trò mới…").
+                await this.run(async () => {
+                    const saved = await hr.saveRole({ id: d.id, name: d.name, permissionIds: ids });
+                    s.draft = null;
+                    s.selected = saved.id;
+                }, 'Đã lưu vai trò');
             },
             delete: async () => {
                 const r = this.role;
                 if (!r) return;
                 const ok = await confirmDialog({ title: 'Xoá vai trò', message: `Xác nhận xoá vai trò ${cap(r.name)} hay không?`, confirmLabel: 'Xoá', confirmIcon: 'delete', variant: 'danger' });
-                if (ok) { this.state.selected = null; this.run(() => hr.deleteRole(r.id), 'Đã xoá vai trò'); }
+                if (ok) this.run(async () => { await hr.deleteRole(r.id); this.state.selected = null; }, 'Đã xoá vai trò');
             },
         };
     }

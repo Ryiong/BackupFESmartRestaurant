@@ -61,7 +61,14 @@ export class HrPanel extends HTMLElement {
     }
 
     async reload() {
-        try { await this.load(); this.error = null; } catch (err) { this.error = err.message || 'Không tải được dữ liệu'; toast(this.error); }
+        // Đổi ngày/tháng nhanh có thể làm phản hồi cũ về sau phản hồi mới -> chỉ nhận kết quả của lần gọi mới nhất.
+        const seq = this._seq = (this._seq ?? 0) + 1;
+        try { await this.load(); this.error = null; } catch (err) {
+            if (seq !== this._seq) return;
+            this.error = err.message || 'Không tải được dữ liệu';
+            toast(this.error);
+        }
+        if (seq !== this._seq) return;
         this.loading = false;
         this.draw();
     }
@@ -73,6 +80,7 @@ export class HrPanel extends HTMLElement {
         try {
             const r = await fn();
             if (okMsg) toast(typeof okMsg === 'function' ? okMsg(r) : okMsg, 'success');
+            window.dispatchEvent(new CustomEvent('hr:changed'));
             await this.reload();
             return r;
         } catch (err) {
