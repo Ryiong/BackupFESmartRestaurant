@@ -1,6 +1,6 @@
-import { esc, titleCase } from '../utils/format.js';
-import { ICONS } from '../icon.js';
-import { INGREDIENT_TYPES, DOC_TYPES, DOC_STATUS, stockState } from '../services/StorageService.js';
+import { esc, titleCase } from '../../utils/format.js';
+import { ICONS } from '../../icon.js';
+import { INGREDIENT_TYPES, DOC_TYPES, DOC_STATUS, stockState } from '../../services/StorageService.js';
 
 export const FIELD_CLS = 'rounded-xl border border-support-600 bg-white py-2 text-sm text-text focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500';
 export const ICON_BTN = 'cursor-pointer rounded-lg p-1.5 text-primary-700 transition-all hover:scale-90 hover:bg-neutral-100';

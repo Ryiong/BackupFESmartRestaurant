@@ -1,9 +1,9 @@
-import '../components/PrimaryButton.js';
-import '../components/LabelButton.js';
-import '../components/TableCard.js';
-import { areaService } from '../services/AreaService.js';
-import { bindActions, confirmDialog, toast } from '../utils/dialog.js';
-import { esc, money, orderTotal, effectiveCapacity, titleCase } from '../utils/format.js';
+import '../../components/PrimaryButton.js';
+import '../../components/LabelButton.js';
+import '../../components/TableCard.js';
+import { areaService } from '../../services/AreaService.js';
+import { bindActions, confirmDialog, toast } from '../../utils/dialog.js';
+import { esc, money, orderTotal, effectiveCapacity, titleCase } from '../../utils/format.js';
 import { detailHtml, emptyDetailHtml } from './AreaTemplates.js';
 import { areaEditorDialog, orderDialog, pickTableDialog, qrDialog } from './AreaDialogs.js';
 

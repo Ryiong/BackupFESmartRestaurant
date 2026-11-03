@@ -1,9 +1,9 @@
-import '../components/PrimaryButton.js';
-import { onShopChange } from '../services/ShopService.js';
-import { bindActions, confirmDialog, toast } from '../utils/dialog.js';
-import { titleCase } from '../utils/format.js';
-import { storageService, stockState, DOC_TYPES } from '../services/StorageService.js';
-import { menuService } from '../services/MenuService.js';
+import '../../components/PrimaryButton.js';
+import { onShopChange } from '../../services/ShopService.js';
+import { bindActions, confirmDialog, toast } from '../../utils/dialog.js';
+import { titleCase } from '../../utils/format.js';
+import { storageService, stockState, DOC_TYPES } from '../../services/StorageService.js';
+import { menuService } from '../../services/MenuService.js';
 import {
     headHtml, tabsHtml, toolbarHtml, ingredientTable, docTable, recipeTable, stateHtml, skeletonRows,
 } from './StorageTemplates.js';

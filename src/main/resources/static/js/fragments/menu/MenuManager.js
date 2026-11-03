@@ -1,10 +1,10 @@
-import '../components/PrimaryButton.js';
-import { onShopChange } from '../services/ShopService.js';
-import { bindActions, confirmDialog, toast } from '../utils/dialog.js';
-import { esc, titleCase } from '../utils/format.js';
-import { menuService } from '../services/MenuService.js';
+import '../../components/PrimaryButton.js';
+import { onShopChange } from '../../services/ShopService.js';
+import { bindActions, confirmDialog, toast } from '../../utils/dialog.js';
+import { esc, titleCase } from '../../utils/format.js';
+import { menuService } from '../../services/MenuService.js';
 import { productDialog, categoryDialog } from './MenuDialogs.js';
-import { ICONS } from '../icon.js';
+import { ICONS } from '../../icon.js';
 import { productCard, skeletonGrid, stateHtml } from './MenuTemplates.js';
 
 const FIELD_CLS = 'rounded-xl border border-support-600 bg-white py-2 text-sm text-text focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500';

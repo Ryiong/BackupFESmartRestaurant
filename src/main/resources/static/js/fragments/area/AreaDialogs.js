@@ -1,9 +1,9 @@
-import '../components/PrimaryButton.js';
-import '../components/TableCard.js';
-import { openDialog, confirmDialog, bindActions, toast } from '../utils/dialog.js';
-import { esc, money, INPUT_CLS, titleCase } from '../utils/format.js';
-import qrcode from '../utils/qrcode.js';
-import { areaService } from '../services/AreaService.js';
+import '../../components/PrimaryButton.js';
+import '../../components/TableCard.js';
+import { openDialog, confirmDialog, bindActions, toast } from '../../utils/dialog.js';
+import { esc, money, INPUT_CLS, titleCase } from '../../utils/format.js';
+import qrcode from '../../utils/qrcode.js';
+import { areaService } from '../../services/AreaService.js';
 
 const BTN_ROW = 'mt-6 flex flex-wrap justify-center gap-3';
 

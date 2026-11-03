@@ -23,7 +23,7 @@ export function openDialog({ title, width = 480, render }) {
             resolve(result);
         });
         dlg.addEventListener('click', e => {
-            if (e.target == dlg) close;
+            if (e.target === dlg) close();
         });
 
         document.body.append(dlg);
@@ -75,8 +75,8 @@ export function toast(message, type = 'error') {
 
     const el = document.createElement('div');
     el.setAttribute('role', 'status');
-    el.className = 'max-w-sm rounded-xl border-2 bg-white px-4 py-2.5 text-sm font-semibold shadow-lg ' + 
-        (type === 'error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-primary-50 text-primary-800');
+    el.className = 'max-w-sm rounded-xl border-2 px-4 py-2.5 text-sm font-semibold shadow-lg ' + 
+        (type === 'error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-primary-200 bg-primary-50 text-primary-800');
     el.textContent = message;
     host.append(el);
 

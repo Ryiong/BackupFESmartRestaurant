@@ -1,5 +1,5 @@
-import { esc, money, titleCase } from "../utils/format";
-import { ICONS } from "../icon";
+import { esc, money, titleCase } from "../../utils/format";
+import { ICONS } from "../../icon";
 
 const BADGE = 'shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase';
 const ICON_BTN = 'cursor-pointer rounded-lg p-1.5 text-primary-700 transition-all hover:scale-90 hover:bg-white';

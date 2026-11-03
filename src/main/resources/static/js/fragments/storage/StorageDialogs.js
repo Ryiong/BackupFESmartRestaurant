@@ -1,7 +1,7 @@
-import '../components/PrimaryButton.js';
-import { openDialog, confirmDialog, bindActions, toast } from '../utils/dialog.js';
-import { INPUT_CLS, esc, titleCase } from '../utils/format.js';
-import { storageService, INGREDIENT_TYPES, DOC_TYPES, DOC_STATUS } from '../services/StorageService.js';
+import '../../components/PrimaryButton.js';
+import { openDialog, confirmDialog, bindActions, toast } from '../../utils/dialog.js';
+import { INPUT_CLS, esc, titleCase } from '../../utils/format.js';
+import { storageService, INGREDIENT_TYPES, DOC_TYPES, DOC_STATUS } from '../../services/StorageService.js';
 import { num, parseNum, fmtDateTime, DOC_STATUS_CLS, ICON_BTN } from './StorageTemplates.js';
 
 const FIELD = 'mb-3';

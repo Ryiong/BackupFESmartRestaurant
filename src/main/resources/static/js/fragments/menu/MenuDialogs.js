@@ -1,8 +1,8 @@
-import '../components/PrimaryButton.js';
-import { openDialog, confirmDialog, bindActions, toast } from '../utils/dialog.js';
-import { INPUT_CLS, esc, titleCase } from '../utils/format.js';
-import { menuService } from '../services/MenuService.js';
-import { ICONS } from '../icon.js';
+import '../../components/PrimaryButton.js';
+import { openDialog, confirmDialog, bindActions, toast } from '../../utils/dialog.js';
+import { INPUT_CLS, esc, titleCase } from '../../utils/format.js';
+import { menuService } from '../../services/MenuService.js';
+import { ICONS } from '../../icon.js';
 
 const FIELD = 'mb-3';
 const LABEL = 'mb-1.5 block text-sm font-semibold';

@@ -1,4 +1,4 @@
-import { esc, money, moneyK, hhmm, minutesSince, orderTotal, effectiveCapacity, STATUS, INPUT_CLS, titleCase } from '../utils/format.js';
+import { esc, money, moneyK, hhmm, minutesSince, orderTotal, effectiveCapacity, STATUS, INPUT_CLS, titleCase } from '../../utils/format.js';
 
 const CARD = 'rounded-2xl bg-neutral-100 p-4';
 const LABEL = 'text-sm text-secondary-700';
