@@ -1,6 +1,6 @@
 // Bước 2 — Nhân viên: đăng ký nhân viên, cấp tài khoản + mật khẩu, gán vai trò, lương.
 
-import { hr, HR_MODE, cap, ymd } from '../../services/HrService.js';
+import { hr, cap, ymd } from '../../services/HrService.js';
 import { openDialog, confirmDialog } from '../../utils/dialog.js';
 import { HrPanel, esc, INPUT_CLS, CARD, TH, chip, field, notice, emptyState, SELECT_CLS, bindActions, toast, fmtMoney, copyText } from './ui.js';
 import { ICONS } from '../../icon.js';
@@ -13,7 +13,7 @@ const genPassword = () => {
 };
 
 class StaffPanel extends HrPanel {
-    state = { staff: [], roles: [], q: '', status: 'ACTIVE', role: '' };
+    state = { staff: [], roles: [], staffError: null, q: '', status: 'ACTIVE', role: '' };
 
     build() {
         this.innerHTML = `
@@ -38,8 +38,12 @@ class StaffPanel extends HrPanel {
     }
 
     async load() {
-        const [staff, roles] = await Promise.all([hr.listStaff(), hr.listRoles()]);
-        Object.assign(this.state, { staff, roles });
+        // Tải riêng: lỗi khi xem danh sách nhân viên (vd 403 thiếu PERM_EMPLOYMENT_VIEW) không được làm mất danh sách vai trò,
+        // nếu không nút "Thêm nhân viên" bị khoá và banner báo sai là chưa có vai trò.
+        const roles = await hr.listRoles();
+        let staff = [], staffError = null;
+        try { staff = await hr.listStaff(); } catch (err) { staffError = err.message || 'Không tải được danh sách nhân viên'; toast(staffError); }
+        Object.assign(this.state, { staff, roles, staffError });
     }
 
     draw() {
@@ -48,13 +52,13 @@ class StaffPanel extends HrPanel {
         sel.innerHTML = `<option value="">Mọi vai trò</option>${s.roles.map(r => `<option value="${r.id}" ${String(r.id) === s.role ? 'selected' : ''}>${esc(cap(r.name))}</option>`).join('')}`;
 
         this.querySelector('[data-banner]').innerHTML = [
+            s.staffError ? notice(`Không tải được danh sách nhân viên: ${esc(s.staffError)}. Bạn vẫn có thể thêm nhân viên mới nếu có quyền tạo; nếu lỗi là thiếu quyền, hãy kiểm tra quyền <code>PERM_EMPLOYMENT_VIEW</code> của vai trò Owner ở backend rồi đăng nhập lại.`) : '',
             !s.roles.length ? notice('Chưa có vai trò nào. Hãy <a href="#roles" class="font-bold underline">tạo vai trò ở bước 1</a> trước khi thêm nhân viên.') : '',
-            HR_MODE === 'spring' ? notice('Backend chưa có API liệt kê nhân viên (<code>GET /employment</code>) nên danh sách đang lấy từ bộ nhớ trình duyệt — chỉ hiện những nhân viên tạo trên máy này.') : '',
         ].filter(Boolean).join('<div class="h-3"></div>');
         this.querySelector('[data-act="add"]').toggleAttribute('disabled', !s.roles.length);
 
         const q = s.q.trim().toLowerCase();
-        const list = s.staff.filter(x =>
+        const list = s.staff.slice().sort((a, b) => a.name.localeCompare(b.name, 'vi')).filter(x =>
             (!s.status || x.status === s.status) &&
             (!s.role || x.roleIds.includes(Number(s.role))) &&
             (!q || [x.name, x.email, x.phoneNumber].some(v => String(v ?? '').toLowerCase().includes(q))));
@@ -195,7 +199,7 @@ class StaffPanel extends HrPanel {
             terminate: async el => {
                 const st = this.state.staff.find(x => x.id === Number(el.dataset.id));
                 if (!st) return;
-                const ok = await confirmDialog({ title: 'Xoá nhân viên', message: `Xác nhận cho nhân viên ${st.name} nghỉ việc hay không? Tài khoản bị gỡ vai trò và các ca chưa làm sẽ bị huỷ.`, confirmLabel: 'Xoá', confirmIcon: 'delete', variant: 'danger' });
+                const ok = await confirmDialog({ title: 'Xoá nhân viên', message: `Xác nhận cho nhân viên ${st.name} nghỉ việc hay không? Nhân viên sẽ bị gỡ toàn bộ vai trò tại cửa hàng này. Các ca đã xếp không tự bị huỷ, hãy xoá chúng ở bước Xếp lịch.`, confirmLabel: 'Xoá', confirmIcon: 'delete', variant: 'danger' });
                 if (ok) this.run(() => hr.terminateStaff(st.id), 'Đã cho nghỉ việc');
             },
         };

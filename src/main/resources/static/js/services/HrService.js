@@ -1,5 +1,5 @@
 import * as cfg from '../config.js';
-import { http } from './HttpClient.js';
+import { http, httpAll } from './HttpClient.js';
 import { getShopId } from './ShopService.js';
 
 export const GRACE_MIN = 5; //chấm công sau 5 phút mới tính à trễ giờ
@@ -149,15 +149,6 @@ export const HR_MODE = cfg.API_MODE;
 
 const pageList = r => Array.isArray(r) ? r : (r?.content ?? []);
 
-// Backend chưa có GET employment -> danh sách nhân viên được giữ ở localStorage, theo từng shop.
-const staffKey = sid => `sr:staff-cache:${sid}`;
-const readCache = sid => {
-    try { return JSON.parse(localStorage.getItem(staffKey(sid)) ?? '[]'); } catch { return []; }
-};
-const writeCache = (sid, list) => {
-    try { localStorage.setItem(staffKey(sid), JSON.stringify(list)); } catch { }
-};
-
 /** Chạy fn trên từng phần tử với tối đa `limit` request song song (tránh bắn 31 request cùng lúc khi xem cả tháng). */
 const pool = async (items, fn, limit = 5) => {
     const out = new Array(items.length);
@@ -174,26 +165,35 @@ const pool = async (items, fn, limit = 5) => {
 // Nhiều panel cùng gọi listRoles trong một lần tải -> dùng chung một request trong vài giây.
 const ROLE_TTL = 3000;
 let rolesMemo = null;
+let staffMemo = null;
 
 // Backend duyệt công theo employmentId nên cần nhớ employmentId của từng lịch vừa tải.
 const scheduleIndex = new Map();
 
-const mapEmployment = (e, extra = {}) => ({
-    id: e.id,
-    name: e.user?.name ?? extra.name ?? '',
-    email: e.user?.email ?? extra.email ?? '',
-    phoneNumber: e.user?.phoneNumber ?? extra.phoneNumber ?? '',
-    salary: Number(e.salary),
-    workFrom: e.workFrom,
-    endedAt: e.endedAt ?? null,
-    status: e.status,
-    roleIds: extra.roleIds ?? [],
-    roleNames: extra.roleNames ?? [],
-});
+// UserResponse.roleResponses chứa vai trò của user ở MỌI shop -> chỉ giữ vai trò thuộc shop hiện tại (shopRoles).
+const rolesOfUser = (user, shopRoles) => {
+    const own = new Set((user?.roleResponses ?? []).map(r => r.id));
+    return shopRoles.filter(r => own.has(r.id));
+};
 
-const mapSchedule = (w, staffById) => {
+const mapEmployment = (e, shopRoles = []) => {
+    const roles = rolesOfUser(e.user, shopRoles);
+    return {
+        id: e.id,
+        name: e.user?.name ?? '',
+        email: e.user?.email ?? '',
+        phoneNumber: e.user?.phoneNumber ?? '',
+        salary: Number(e.salary ?? 0),
+        workFrom: e.workFrom,
+        endedAt: e.endedAt ?? null,
+        status: e.status,
+        roleIds: roles.map(r => r.id),
+        roleNames: roles.map(r => r.name),
+    };
+};
+
+const mapSchedule = (w, shopRoles) => {
     const e = w.employmentResponse ?? w.employment ?? {};
-    const c = staffById.get(e.id) ?? {};
     return {
         id: w.id,
         date: w.date,
@@ -202,8 +202,8 @@ const mapSchedule = (w, staffById) => {
         rejectReason: null,
         explanation: null,
         employmentId: e.id,
-        staffName: e.user?.name ?? c.name ?? `NV #${e.id}`,
-        roleNames: c.roleNames ?? [],
+        staffName: e.user?.name ?? `NV #${e.id}`,
+        roleNames: rolesOfUser(e.user, shopRoles).map(r => r.name),
         shiftId: w.shift?.id,
         shiftName: w.shift?.name ?? '',
         startTime: hm(w.shift?.startTime),
@@ -244,30 +244,42 @@ export const hr = {
         return p;
     },
 
+    /** Vai trò đã xoá (INACTIVE). RoleResponse không có trường status nên phải lọc theo status rồi tự gắn trạng thái. */
+    async listInactiveRoles() {
+        const sid = await getShopId();
+        const r = await http('GET', `/role/roles/${sid}`, undefined, { query: { status: 'INACTIVE', size: 100 } });
+        return pageList(r).map(x => ({ ...mapRole(x), status: 'INACTIVE' }));
+    },
+
     async saveRole({ id, name, permissionIds }) {
         // Backend chỉ chuẩn hoá tên (trim + lowercase) lúc tạo, không làm khi cập nhật -> tự chuẩn hoá để đồng nhất.
         const body = { name: name.trim().toLowerCase(), permissionIds };
         const sid = await getShopId();
         const r = id ? await http('PUT', `/role/${id}`, body) : await http('POST', `/role/${sid}`, body);
-        rolesMemo = null;
+        rolesMemo = staffMemo = null;
         return mapRole(r);
     },
 
     async deleteRole(id) {
         await http('DELETE', `/role/${id}`);
-        rolesMemo = null;
+        rolesMemo = staffMemo = null;
     },
 
-    /** Nhân viên lấy từ cache trình duyệt; tên vai trò được đối chiếu lại với danh sách vai trò hiện tại. */
+    /**
+     * Danh sách nhân viên của shop. Backend lọc theo `status` bằng so sánh bằng, nếu bỏ trống status sẽ không ra dòng nào
+     * -> luôn gọi riêng ACTIVE và TERMINATED rồi gộp lại.
+     */
     async listStaff() {
         const sid = await getShopId();
-        const cache = readCache(sid);
-        const roles = await this.listRoles().catch(() => null);
-        if (!roles) return cache;
-        return cache.map(s => {
-            const roleIds = (s.roleIds ?? []).filter(id => roles.some(r => r.id === id));
-            return { ...s, roleIds, roleNames: roleNamesOf(roles, roleIds) };
-        });
+        if (staffMemo && staffMemo.sid === sid && Date.now() - staffMemo.at < ROLE_TTL) return staffMemo.p;
+        const p = Promise.all([
+            this.listRoles(),
+            httpAll(`/employment/shop/${sid}`, { status: 'ACTIVE' }),
+            httpAll(`/employment/shop/${sid}`, { status: 'TERMINATED' }),
+        ]).then(([roles, active, ended]) => [...active, ...ended].map(e => mapEmployment(e, roles)));
+        const memo = staffMemo = { sid, at: Date.now(), p };
+        p.catch(() => { if (staffMemo === memo) staffMemo = null; });
+        return p;
     },
 
     async createStaff({ name, email, phoneNumber, password, salary, workFrom, roleIds }) {
@@ -278,28 +290,19 @@ export const hr = {
             workFrom,
             roleIds,
         });
-        // Tài khoản đã được tạo ở backend: dù tra tên vai trò lỗi vẫn phải lưu vào cache, nếu không nhân viên "mất tích".
-        const roles = await this.listRoles().catch(() => []);
-        const st = mapEmployment(e, { name, email, phoneNumber, roleIds, roleNames: roleNamesOf(roles, roleIds) });
-        writeCache(sid, [...readCache(sid).filter(s => s.id !== st.id), st]);
-        return st;
+        staffMemo = null;
+        return mapEmployment(e, await this.listRoles());
     },
 
     async updateStaff(id, { salary, roleIds }) {
-        const sid = await getShopId();
         const e = await http('PUT', `/employment/${id}`, { salary, roleIds });
-        const roles = await this.listRoles().catch(() => []);
-        const list = readCache(sid).map(s => s.id === id
-            ? { ...s, salary: Number(e?.salary ?? salary), roleIds, roleNames: roleNamesOf(roles, roleIds) }
-            : s);
-        writeCache(sid, list);
-        return list.find(s => s.id === id);
+        staffMemo = null;
+        return mapEmployment(e, await this.listRoles());
     },
 
     async terminateStaff(id) {
-        const sid = await getShopId();
         await http('DELETE', `/employment/${id}`);
-        writeCache(sid, readCache(sid).map(s => s.id === id ? { ...s, status: 'TERMINATED', endedAt: ymd() } : s));
+        staffMemo = null;
     },
 
     async listShifts() {
@@ -319,12 +322,14 @@ export const hr = {
 
     async listSchedule(date) {
         const sid = await getShopId();
-        const staffById = new Map(readCache(sid).map(s => [s.id, s]));
-        const r = await http('GET', `/work-schedule/${sid}`, undefined, { query: { date } });
+        const [roles, r] = await Promise.all([
+            this.listRoles().catch(() => []),
+            http('GET', `/work-schedule/${sid}`, undefined, { query: { date } }),
+        ]);
         const list = [...(r ?? [])]
             .filter(w => (w.status ?? 'SCHEDULED') === 'SCHEDULED')
-            .map(w => mapSchedule(w, staffById));
-        list.forEach(s => scheduleIndex.set(s.id, s));
+            .map(w => mapSchedule(w, roles));
+        list.forEach(x => scheduleIndex.set(x.id, x));
         return list;
     },
 
@@ -336,13 +341,18 @@ export const hr = {
 
     async assign(date, items) {
         const sid = await getShopId();
-        await http('POST', `/work-schedule/${sid}`,
+        const created = await http('POST', `/work-schedule/${sid}`,
             items.map(({ shiftId, employmentId }) => ({ shiftId, employmentId })), { query: { date } });
+        // Thành công thật sự là 201 kèm danh sách lịch vừa tạo. Body rỗng nghĩa là backend lỗi nhưng vẫn trả 2xx.
+        if (!Array.isArray(created) || created.length !== items.length) {
+            throw new Error('Backend phản hồi nhưng không trả về lịch đã tạo. Hãy kiểm tra log backend (vd lỗi check constraint của bảng tbl_work_schedule).');
+        }
     },
 
     async changeShift(id, shiftId) {
         const sid = await getShopId();
-        await http('PATCH', `/work-schedule/${sid}`, { shiftId }, { query: { workScheduleId: id } });
+        const updated = await http('PATCH', `/work-schedule/${sid}`, { shiftId }, { query: { workScheduleId: id } });
+        if (!updated?.id) throw new Error('Backend phản hồi nhưng không trả về lịch đã đổi. Hãy kiểm tra log backend.');
     },
 
     async cancelSchedule(id) { await http('DELETE', `/work-schedule/${id}`); },

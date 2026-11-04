@@ -9,7 +9,7 @@ const COLS = [['view', 'Xem'], ['create', 'Thêm mới'], ['update', 'Sửa'], [
 const OWNER = 'owner';
 
 class RolePanel extends HrPanel {
-    state = { roles: [], permIdByName: {}, selected: null, draft: null };
+    state = { roles: [], inactive: [], permIdByName: {}, selected: null, draft: null };
 
     build() {
         this.innerHTML = `
@@ -26,16 +26,19 @@ class RolePanel extends HrPanel {
     }
 
     async load() {
-        const [roles, perms] = await Promise.all([hr.listRoles(), hr.listPermissions()]);
+        // Vai trò đã xoá chỉ để xem: lỗi khi tải chúng không được làm hỏng danh sách vai trò đang dùng.
+        const [roles, inactive, perms] = await Promise.all([hr.listRoles(), hr.listInactiveRoles().catch(() => []), hr.listPermissions()]);
         const s = this.state;
         s.roles = roles;
+        s.inactive = inactive;
         s.permIdByName = Object.fromEntries(perms.map(p => [p.name, p.id]));
         s.permNameById = Object.fromEntries(perms.map(p => [p.id, p.name]));
-        if (s.selected !== 'new' && s.selected !== OWNER && !roles.some(r => r.id === s.selected)) { s.selected = roles[0]?.id ?? OWNER; s.draft = null; }
+        if (s.selected !== 'new' && s.selected !== OWNER && !roles.some(r => r.id === s.selected) && !inactive.some(r => r.id === s.selected)) { s.selected = roles[0]?.id ?? OWNER; s.draft = null; }
         s.selected ??= roles[0]?.id ?? OWNER;
     }
 
-    get role() { return this.state.roles.find(r => r.id === this.state.selected); }
+    get role() { return this.state.roles.find(r => r.id === this.state.selected) ?? this.state.inactive.find(r => r.id === this.state.selected); }
+    get isGone() { return this.role?.status === 'INACTIVE'; }
     /** Tập permission đang hiển thị: bản nháp khi đang sửa, ngược lại là của vai trò. */
     get names() {
         const s = this.state;
@@ -50,22 +53,26 @@ class RolePanel extends HrPanel {
             this.item(OWNER, 'Chủ cửa hàng (Owner)', true),
             ...s.roles.map(r => this.item(r.id, cap(r.name))),
             ...(s.selected === 'new' ? [this.item('new', s.draft?.name?.trim() ? cap(s.draft.name) : 'Vai trò mới…')] : []),
+            // Vai trò đã xoá luôn nằm cuối danh sách, mờ đi và chỉ xem được.
+            ...(s.inactive.length ? ['<p class="mt-2 px-3.5 text-xs font-bold uppercase tracking-wide text-secondary-700 xl:w-full">Đã xoá</p>'] : []),
+            ...s.inactive.map(r => this.item(r.id, cap(r.name), false, true)),
         ].join('');
         this.drawDetail();
     }
 
-    item(id, label, locked = false) {
+    item(id, label, locked = false, gone = false) {
         const on = this.state.selected === id;
         return `<button type="button" data-act="select" data-id="${esc(id)}" aria-pressed="${on}"
             class="flex cursor-pointer items-center justify-between gap-3 rounded-xl xl:w-full border px-3.5 py-2.5 text-left text-sm font-semibold transition-all hover:scale-[0.99]
-            ${on ? 'border-primary-300 bg-primary-50 text-primary-800' : 'border-transparent text-secondary-800 hover:bg-neutral-50'}">
-            <span>${esc(label)}</span>${locked ? `<span class="text-primary-500">${ICONS.lock}</span>` : ''}</button>`;
+            ${on ? 'border-primary-300 bg-primary-50 text-primary-800' : 'border-transparent text-secondary-800 hover:bg-neutral-50'} ${gone ? 'opacity-60' : ''}">
+            <span class="${gone ? 'line-through' : ''}">${esc(label)}</span>${locked ? `<span class="text-primary-500">${ICONS.lock}</span>` : ''}</button>`;
     }
 
     drawDetail() {
         const s = this.state;
         const box = this.querySelector('[data-detail]');
         const editing = Boolean(s.draft);
+        const gone = this.isGone;
         const owner = s.selected === OWNER;
         const names = this.names;
         const title = owner ? 'Chủ cửa hàng (Owner)' : (s.draft ? s.draft.name : cap(this.role?.name ?? ''));
@@ -88,7 +95,7 @@ class RolePanel extends HrPanel {
                     <h2 class="text-lg font-bold">Quyền hạn</h2>
                     <p class="text-sm text-secondary-700">Chức năng quản trị và điều phối nghiệp vụ theo từng vai trò trong cửa hàng</p>
                 </div>
-                <div class="flex flex-wrap gap-2">${owner ? '' : editing ? `
+                <div class="flex flex-wrap gap-2">${owner || gone ? '' : editing ? `
                     <p-button data-act="save" label="Lưu thay đổi" icon="check" variant="solid"></p-button>
                     <p-button data-act="cancel" label="Huỷ"></p-button>` : `
                     <p-button data-act="edit" label="Chỉnh sửa" icon="edit"></p-button>
@@ -101,6 +108,7 @@ class RolePanel extends HrPanel {
                     value="${esc(editing ? s.draft.name : title)}" ${editing ? '' : 'disabled'}>
             </div>
             ${owner ? `<div class="mt-4">${notice('Chủ cửa hàng luôn có <b>toàn quyền</b> và không thể chỉnh sửa hay xoá.', 'green')}</div>` : ''}
+            ${gone ? `<div class="mt-4">${notice('Vai trò này đã bị xoá nên chỉ xem được, không chỉnh sửa hay gán cho nhân viên. Backend chưa có chức năng khôi phục vai trò.')}</div>` : ''}
             <div class="mt-4 overflow-x-auto rounded-xl border border-primary-50">
                 <table class="w-full min-w-170 text-sm">
                     <thead class="bg-secondary-50"><tr>
@@ -157,7 +165,7 @@ class RolePanel extends HrPanel {
                 this.draw();
             },
             new: () => { this.state.selected = 'new'; this.startEdit(null); this.draw(); this.querySelector('[data-name]')?.focus(); },
-            edit: () => { this.startEdit(this.role); this.drawDetail(); },
+            edit: () => { if (this.isGone) return; this.startEdit(this.role); this.drawDetail(); },
             cancel: () => {
                 const s = this.state;
                 s.draft = null;
@@ -177,7 +185,7 @@ class RolePanel extends HrPanel {
             },
             delete: async () => {
                 const r = this.role;
-                if (!r) return;
+                if (!r || this.isGone) return;
                 const ok = await confirmDialog({ title: 'Xoá vai trò', message: `Xác nhận xoá vai trò ${cap(r.name)} hay không?`, confirmLabel: 'Xoá', confirmIcon: 'delete', variant: 'danger' });
                 if (ok) this.run(async () => { await hr.deleteRole(r.id); this.state.selected = null; }, 'Đã xoá vai trò');
             },

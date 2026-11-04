@@ -5,6 +5,11 @@ import { openDialog, confirmDialog } from '../../utils/dialog.js';
 import { HrPanel, esc, INPUT_CLS, CARD, TH, field, notice, emptyState, bindActions, toast, WEEKDAY, dayLabel, clock, isToday, cap } from './ui.js';
 import { ICONS } from '../../icon.js';
 
+// Khớp ca theo id; nếu backend không trả id của ca trong lịch thì khớp theo tên + giờ.
+const sameShift = (sch, sh) => sch.shiftId != null
+    ? sch.shiftId === sh.id
+    : sch.shiftName === sh.name && sch.startTime === hm(sh.startTime) && sch.endTime === hm(sh.endTime);
+
 const weekStart = s => { const d = parseYmd(s); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return ymd(d); };
 
 class SchedulePanel extends HrPanel {
@@ -34,6 +39,15 @@ class SchedulePanel extends HrPanel {
         const from = weekStart(s.date), to = addDays(from, 6);
         const [staff, shifts, week] = await Promise.all([hr.listStaff(), hr.listShifts(), hr.listScheduleRange(from, to)]);
         s.staff = staff.filter(x => x.status === 'ACTIVE');
+        // Nhân viên đã nghỉ việc vẫn có thể còn ca đã xếp (backend không tự huỷ) -> vẫn hiện hàng của họ để quản lý xoá ca.
+        const known = new Set(s.staff.map(x => x.id));
+        for (const w of week) {
+            if (w.employmentId != null && !known.has(w.employmentId)) {
+                known.add(w.employmentId);
+                const gone = staff.find(x => x.id === w.employmentId);
+                s.staff.push({ id: w.employmentId, name: `${w.staffName}${gone ? ' (đã nghỉ)' : ''}`, roleNames: gone?.roleNames ?? [], status: 'ACTIVE', roleIds: [], gone: Boolean(gone) });
+            }
+        }
         s.shifts = shifts.filter(x => x.status === 'ACTIVE').sort((a, b) => hm(a.startTime).localeCompare(hm(b.startTime)));
         s.week = week;
     }
@@ -44,8 +58,12 @@ class SchedulePanel extends HrPanel {
         const s = this.state;
         this.querySelector('[data-date]').textContent = dayLabel(s.date);
         this.querySelector('[data-pick]').value = s.date;
-        const ready = s.staff.length && s.shifts.length;
-        this.querySelector('[data-banner]').innerHTML = !s.staff.length
+        const ready = s.staff.some(x => !x.gone) && s.shifts.length;
+        const orphan = this.today.filter(x => x.employmentId == null || !s.shifts.some(sh => sameShift(x, sh)));
+        if (orphan.length) console.warn('[Schedule] Lịch không khớp được nhân viên/ca, dữ liệu backend trả về:', orphan);
+        this.querySelector('[data-banner]').innerHTML = orphan.length
+            ? notice(`Có ${orphan.length} ca trong ngày nhưng backend không trả đủ <code>employmentResponse.id</code> hoặc <code>shift.id</code> (hoặc ca đã ngưng dùng) nên không vẽ được lên lưới. Mở tab Network, xem response của <code>GET /work-schedule/…?date=</code>.`)
+            : !s.staff.some(x => !x.gone)
             ? notice('Chưa có nhân viên đang làm. <a href="#staff" class="font-bold underline">Thêm nhân viên ở bước 2</a> trước khi xếp lịch.')
             : !s.shifts.length ? notice('Chưa có ca kíp. <a href="#shifts" class="font-bold underline">Tạo ca ở bước 3</a> trước khi xếp lịch.') : '';
         this.querySelector('[data-act="assign"]').toggleAttribute('disabled', !ready);
@@ -83,7 +101,7 @@ class SchedulePanel extends HrPanel {
 
     cell(st, sh, sch, editable) {
         const label = `${sh.name} (${hm(sh.startTime)} - ${hm(sh.endTime)})`;
-        if (sch?.shiftId === sh.id) {
+        if (sch && sameShift(sch, sh)) {
             const a = attState(sch);
             const bad = a.code === 'LATE' || (a.code === 'DONE' && a.late) || a.code === 'ABSENT';
             const note = a.code === 'ABSENT' ? 'Vắng' : a.late ? `Đi muộn (${clock(a.inAt)})` : a.code === 'DONE' ? `Ra ca ${clock(a.outAt)}` : a.code === 'ONTIME' ? `Vào ca ${clock(a.inAt)}` : '';
@@ -91,7 +109,7 @@ class SchedulePanel extends HrPanel {
                 <span>${bad && a.late ? esc(note) : esc(label)}</span>${note && !(bad && a.late) ? `<span class="font-medium opacity-80">${esc(note)}</span>` : ''}</div>`;
         }
         const swap = sch && editable && !sch.attendances.length;
-        if ((!sch && editable) || swap) {
+        if (!st.gone && ((!sch && editable) || swap)) {
             return `<button type="button" data-act="quick" data-emp="${st.id}" data-shift="${sh.id}" ${swap ? `data-sch="${sch.id}"` : ''}
                 title="${swap ? 'Đổi sang' : 'Xếp'} ${esc(label)}" aria-label="${swap ? 'Đổi' : 'Xếp'} ${esc(st.name)} vào ${esc(sh.name)}"
                 class="group grid min-h-12 w-full cursor-pointer place-items-center rounded-xl bg-neutral-100 px-2 py-1.5 text-xs font-bold text-secondary-700 transition-all hover:bg-primary-50 hover:text-primary-700">
@@ -105,7 +123,8 @@ class SchedulePanel extends HrPanel {
     onChange(e) { if (e.target.matches('[data-pick]') && e.target.value) this.go(e.target.value); }
 
     assignDialog() {
-        const { staff, shifts } = this.state;
+        const { shifts } = this.state;
+        const staff = this.state.staff.filter(x => !x.gone);
         return openDialog({
             title: 'Phân ca làm mới', width: 520,
             render: (body, close) => {

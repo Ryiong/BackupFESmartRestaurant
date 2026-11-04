@@ -68,7 +68,7 @@ class PayrollPanel extends HrPanel {
         const s = this.state;
         this.querySelector('[data-month]').textContent = `Tháng ${s.m + 1}/${s.y}`;
         this.querySelector('[data-banner]').innerHTML = HR_MODE === 'spring'
-            ? notice('Bảng công cần API xem giờ vào/ra theo nhân viên (đang bị chặn quyền ở backend) và danh sách nhân viên. Khi backend bổ sung, màn hình này tự có số liệu.') : '';
+            ? notice('Giờ vào/ra và duyệt công đang bị chặn quyền ở backend (quyền chấm công chưa được seed) nên số giờ làm và lương ước tính chưa có số liệu. Danh sách nhân viên và lương cơ bản đã lấy từ backend.') : '';
         const rows = this.rows();
         const total = rows.reduce((t, r) => t + r.pay, 0);
         this.querySelector('[data-table]').innerHTML = rows.length ? `
