@@ -41,7 +41,7 @@ class ShiftPanel extends HrPanel {
                 <div class="mt-4 flex gap-2">${off
                     ? `<p-button data-act="activate" data-id="${s.id}" label="Bật lại" icon="check"></p-button>`
                     : `<p-button data-act="edit" data-id="${s.id}" label="Sửa" icon="edit"></p-button>
-                       <p-button data-act="delete" data-id="${s.id}" label="Xoá" icon="delete" variant="danger"></p-button>`}</div>
+                       <p-button data-act="delete" data-id="${s.id}" label="Tạm ngưng" icon="pause" variant="danger"></p-button>`}</div>
             </article>`;
         }).join('') : `<div class="${CARD} col-span-full">${emptyState(this.loading ? 'Đang tải…' : 'Chưa có ca kíp nào', 'Tạo các ca như Ca Sáng, Ca Chiều, Ca Tối để dùng khi xếp lịch.')}</div>`;
     }
@@ -94,8 +94,8 @@ class ShiftPanel extends HrPanel {
             delete: async el => {
                 const s = find(el);
                 if (!s) return;
-                const ok = await confirmDialog({ title: 'Xoá ca kíp', message: `Xác nhận xoá ${s.name} hay không? Ca sẽ ngưng dùng, có thể bật lại sau.`, confirmLabel: 'Xoá', confirmIcon: 'delete', variant: 'danger' });
-                if (ok) this.run(() => hr.deleteShift(s.id), 'Đã xoá ca kíp');
+                const ok = await confirmDialog({ title: 'Tạm ngưng ca kíp', message: `Xác nhận tạm ngưng ${s.name} hay không? Ca sẽ ngưng dùng, có thể bật lại sau.`, confirmLabel: 'Tạm ngưng', confirmIcon: 'pause', variant: 'danger' });
+                if (ok) this.run(() => hr.deleteShift(s.id), 'Đã tạm ngưng ca kíp');
             },
             activate: el => this.run(() => hr.activateShift(Number(el.dataset.id)), 'Đã bật lại ca kíp'),
         };

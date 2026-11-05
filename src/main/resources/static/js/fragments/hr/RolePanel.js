@@ -54,7 +54,7 @@ class RolePanel extends HrPanel {
             ...s.roles.map(r => this.item(r.id, cap(r.name))),
             ...(s.selected === 'new' ? [this.item('new', s.draft?.name?.trim() ? cap(s.draft.name) : 'Vai trò mới…')] : []),
             // Vai trò đã xoá luôn nằm cuối danh sách, mờ đi và chỉ xem được.
-            ...(s.inactive.length ? ['<p class="mt-2 px-3.5 text-xs font-bold uppercase tracking-wide text-secondary-700 xl:w-full">Đã xoá</p>'] : []),
+            ...(s.inactive.length ? ['<p class="mt-2 px-3.5 text-xs font-bold uppercase tracking-wide text-secondary-700 xl:w-full">Ngưng hoạt động</p>'] : []),
             ...s.inactive.map(r => this.item(r.id, cap(r.name), false, true)),
         ].join('');
         this.drawDetail();
@@ -99,7 +99,7 @@ class RolePanel extends HrPanel {
                     <p-button data-act="save" label="Lưu thay đổi" icon="check" variant="solid"></p-button>
                     <p-button data-act="cancel" label="Huỷ"></p-button>` : `
                     <p-button data-act="edit" label="Chỉnh sửa" icon="edit"></p-button>
-                    <p-button data-act="delete" label="Xoá" icon="delete" variant="danger"></p-button>`}
+                    <p-button data-act="delete" label="Tạm ngưng" icon="pause" variant="danger"></p-button>`}
                 </div>
             </div>
             <div class="mt-4 flex flex-wrap items-center gap-3">
@@ -107,8 +107,8 @@ class RolePanel extends HrPanel {
                 <input id="role-name" data-name class="${INPUT_CLS} !w-72" maxlength="50" placeholder="VD: Thu ngân"
                     value="${esc(editing ? s.draft.name : title)}" ${editing ? '' : 'disabled'}>
             </div>
-            ${owner ? `<div class="mt-4">${notice('Chủ cửa hàng luôn có <b>toàn quyền</b> và không thể chỉnh sửa hay xoá.', 'green')}</div>` : ''}
-            ${gone ? `<div class="mt-4">${notice('Vai trò này đã bị xoá nên chỉ xem được, không chỉnh sửa hay gán cho nhân viên. Backend chưa có chức năng khôi phục vai trò.')}</div>` : ''}
+            ${owner ? `<div class="mt-4">${notice('Chủ cửa hàng luôn có <b>toàn quyền</b> và không thể chỉnh sửa hay tạm ngừng.', 'green')}</div>` : ''}
+            ${gone ? `<div class="mt-4">${notice('Vai trò này đã tạm ngừng hoạt động nên chỉ xem được, không chỉnh sửa hay gán cho nhân viên. Backend chưa có chức năng bật lại vai trò.')}</div>` : ''}
             <div class="mt-4 overflow-x-auto rounded-xl border border-primary-50">
                 <table class="w-full min-w-170 text-sm">
                     <thead class="bg-secondary-50"><tr>
@@ -186,8 +186,8 @@ class RolePanel extends HrPanel {
             delete: async () => {
                 const r = this.role;
                 if (!r || this.isGone) return;
-                const ok = await confirmDialog({ title: 'Xoá vai trò', message: `Xác nhận xoá vai trò ${cap(r.name)} hay không?`, confirmLabel: 'Xoá', confirmIcon: 'delete', variant: 'danger' });
-                if (ok) this.run(async () => { await hr.deleteRole(r.id); this.state.selected = null; }, 'Đã xoá vai trò');
+                const ok = await confirmDialog({ title: 'Tạm ngừng vai trò', message: `Xác nhận tạm ngừng vai trò ${cap(r.name)}? Backend chưa có chức năng bật lại vai trò nên sau khi tạm ngừng chỉ xem được.`, confirmLabel: 'Tạm ngừng', confirmIcon: 'pause', variant: 'danger' });
+                if (ok) this.run(async () => { await hr.deleteRole(r.id); this.state.selected = null; }, 'Đã tạm ngừng vai trò');
             },
         };
     }

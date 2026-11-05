@@ -142,7 +142,9 @@ export function areaEditorDialog({ area }) {
         id: area?.id,
         name: titleCase(area?.name),
         tables: (area?.tables ?? []).map(t => ({ _k: t.id, id: t.id, name: t.name, capacity: t.capacity, status: t.status })),
+        paused: (area?.pausedTables ?? []).map(t => ({ ...t })),
     };
+    let dirty = false;
     let editing = null;
     let seq = 0;
     let busy = false;
@@ -157,11 +159,11 @@ export function areaEditorDialog({ area }) {
                 </div>
                 <h3 class="mb-2 mt-4 text-sm font-bold">Sơ đồ bàn</h3>
                 <div data-grid class="grid max-h-72 min-h-28 grid-cols-2 content-start gap-3 overflow-y-auto p-1 sm:grid-cols-3 md:grid-cols-4"></div>
+                <div data-paused></div>
                 <div data-form></div>
                 <div class="mt-5 flex flex-wrap items-center justify-end gap-2.5">
                     <p-button data-act="add-table" label="Thêm bàn" icon="addBox" variant="solid"></p-button>
-                    ${isNew ? '' : '<p-button data-act="pause-area" label="Tạm ngưng" icon="pause"></p-button>'}
-                    ${isNew ? '' : '<p-button data-act="delete-area" label="Xoá" icon="delete" variant="danger"></p-button>'}
+                    ${isNew ? '' : '<p-button data-act="pause-area" label="Tạm ngưng" icon="pause" variant="danger"></p-button>'}
                     <p-button data-act="save-area" label="Xác nhận" icon="check" variant="solid"></p-button>
                     <p-button data-act="cancel" label="Huỷ"></p-button>
                 </div>`;
@@ -175,6 +177,19 @@ export function areaEditorDialog({ area }) {
                 grid.innerHTML = draft.tables.length
                     ? draft.tables.map(t => `<table-card data-key="${esc(t._k)}" name="${esc(titleCase(t.name))}" capacity="${t.capacity}" status="${t.status}" variant="edit"></table-card>`).join('')
                     : '<p class="col-span-full py-8 text-center text-sm text-secondary-700">Chưa có bàn nào. Nhấn “Thêm bàn” để bắt đầu.</p>';
+            };
+
+            const drawPaused = () => {
+                const box = body.querySelector('[data-paused]');
+                box.innerHTML = draft.paused.length ? `
+                    <div class="mt-4 rounded-2xl border border-dashed border-primary-200 p-3">
+                       <p class="mb-2 text-sm font-bold text-secondary-700">Bàn Ä‘ã táº¡m ngÆ°ng</p>
+                       <ul class="grid gap-2 sm:grid-cols-2">${draft.paused.map(t => `
+                            <li class="flex items-center justify-between gap-2 rounded-xl bg-neutral-50 px-3 py-2 text-sm">
+                                <span class="line-clamp-1 font-semibold text-secondary-700">${esc(titleCase(t.name))}</span>
+                                <p-button data-act="table-resume" data-id="${esc(t.id)}" label="Má»Ÿ láº¡i bàn" icon="check"></p-button>
+                            </li>`).join('')}</ul>
+                    </div>` : '';
             };
 
             const drawForm = () => {
@@ -193,7 +208,7 @@ export function areaEditorDialog({ area }) {
                         </div>
                         <div class="mt-4 flex flex-wrap gap-2.5">
                             <p-button data-act="table-save" label="Lưu" icon="check" variant="solid"></p-button>
-                            ${editing.isNew ? '' : '<p-button data-act="table-delete" label="Xoá" icon="delete" variant="danger"></p-button>'}
+                            ${editing.isNew ? '' : '<p-button data-act="table-pause" label="Tạm ngưng" icon="pause" variant="danger"></p-button>'}
                             <p-button data-act="table-cancel" label="Huỷ"></p-button>
                         </div>
                     </div>`;
@@ -203,7 +218,7 @@ export function areaEditorDialog({ area }) {
             const removeTable = key => {
                 const t = byKey(key);
                 if (!t) return;
-                if (t.status !== 'empty') return toast(`${titleCase(t.name)} đang được sử dụng hoặc đã đặt trước, không thể xoá`);
+                if (t.status !== 'empty') return toast(`${titleCase(t.name)} đang được sử dụng hoặc đã đặt trước, không thể tạm ngưng.`);
                 draft.tables = draft.tables.filter(x => x._k !== key);
                 if (editing?.key === key) editing = null;
                 drawGrid(); drawForm();
@@ -248,8 +263,18 @@ export function areaEditorDialog({ area }) {
                         drawForm();
                     }
                 },
-                'delete-table': el => removeTable(el.dataset.key),
-                'table-delete': () => removeTable(editing?.key),
+                'pause-table': el => removeTable(el.dataset.key),
+                'table-pause': () => removeTable(editing?.key),
+                'table-resume': el => guard(async () => {
+                    const t = draft.paused.find(x => String(x.id) === el.dataset.id);
+                    if (!t) return;
+                    await areaService.setTableActive(t.id, true);
+                    draft.paused = draft.paused.filter(x => x !== t);
+                    draft.tables.push({ _k: t.id, id: t.id, name: t.name, capacity: t.capacity, status: 'empty' });
+                    dirty = true;
+                    drawGrid(); drawPaused();
+                    toast('Đã mở lại bàn', 'success');
+                }),
                 'table-cancel': () => { editing = null; drawForm(); },
                 'table-save': () => {
                     const name = editing.name.trim();

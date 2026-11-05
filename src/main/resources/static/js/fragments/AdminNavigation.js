@@ -2,6 +2,7 @@ import { ICONS, LOGO } from '../icon.js';
 import { http, logoutRedirect, requireLogin } from '../services/HttpClient.js';
 import { auth } from '../services/AuthStore.js';
 import { BASE_URL } from '../config.js';
+import { listShops, onShopChange } from '../services/ShopService.js';
 
 const NAV = [
     { href: `${BASE_URL}/admin/index.html`, name: 'Tổng quan', icon: 'dashboard' },
@@ -29,7 +30,7 @@ class AppNavigation extends HTMLElement {
             const active = current === n.href;
             if (active) document.title = n.name;
             return `
-        <li class="${LINK_BASE} ${active ? LINK_ACTIVE : LINK_IDLE}">
+        <li data-nav="${n.href}" data-name="${n.name}" class="${LINK_BASE} ${active ? LINK_ACTIVE : LINK_IDLE}">
           <a href="${n.href}" title="${n.name}" aria-label="${n.name}"
              ${active ? 'aria-current="page"' : ''} class="p-2.5">
             ${ICONS[n.icon]}
@@ -61,6 +62,43 @@ class AppNavigation extends HTMLElement {
         this.logoutBtn = this.querySelector('#navigation__footer-button');
 
         this.logoutBtn.addEventListener('click', e => this.onClick(e));
+
+        this.applyShopGate();
+        onShopChange(() => this.applyShopGate());
+    }
+
+    async applyShopGate() {
+        let shops;
+        try {
+            shops = await listShops();
+        }
+        catch { 
+            return;
+        }
+        const locked = Array.isArray(shops) && shops.length === 0;
+        const index = NAV[0].href;
+        this.querySelectorAll('li[data-nav]').forEach(li => {
+            const a = li.querySelector('a');
+            const lock = locked && li.dataset.nav !== index;
+            li.classList.toggle('opacity-40', lock);
+            li.classList.toggle('cursor-not-allowed', lock);
+            if (lock) {
+                a.removeAttribute('href');
+                a.setAttribute('aria-disabled', 'true');
+                a.tabIndex = -1;
+                a.title = `${li.dataset.name} (Hiện tại không khả dụng vì bạn chưa có cửa hàng nào. Vui lòng tạo cửa hàng trước khi truy cập trang này.)`;
+                a.classList.add('pointer-events-none');
+            } else {
+                a.setAttribute('href', li.dataset.nav);
+                a.removeAttribute('aria-disabled');
+                a.removeAttribute('tabindex');
+                a.title = li.dataset.name;
+                a.classList.remove('pointer-events-none');
+            }
+        });
+        if (locked && location.pathname !== index) {
+            location.replace(index);
+        }
     }
 
     async onClick(e) {

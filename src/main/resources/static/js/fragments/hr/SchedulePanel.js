@@ -93,7 +93,7 @@ class SchedulePanel extends HrPanel {
                         <th scope="row" class="px-3 py-3 text-left"><span class="block font-bold">${esc(st.name)}</span>
                             <span class="text-xs font-medium text-secondary-700">${esc((st.roleNames ?? []).map(cap).join(', ') || '—')}</span></th>
                         ${s.shifts.map(sh => `<td class="px-1.5 py-2">${this.cell(st, sh, sch, editable)}</td>`).join('')}
-                        <td class="px-3 py-3 text-right"><p-button data-act="remove" data-id="${sch?.id ?? ''}" label="Xoá" icon="delete" variant="danger"
+                        <td class="px-3 py-3 text-right"><p-button data-act="remove" data-id="${sch?.id ?? ''}" label="Huỷ ca" icon="close" variant="danger"
                             ${!sch || !editable || sch.attendances.length ? 'disabled' : ''}></p-button></td></tr>`;
                 }).join('')}</tbody>
             </table>` : emptyState(this.loading ? 'Đang tải…' : 'Chưa thể xếp lịch', 'Cần có ít nhất 1 nhân viên đang làm và 1 ca kíp.');
@@ -199,8 +199,8 @@ class SchedulePanel extends HrPanel {
             remove: async el => {
                 const sch = this.today.find(x => x.id === Number(el.dataset.id));
                 if (!sch) return;
-                const ok = await confirmDialog({ title: 'Xoá ca làm', message: `Xác nhận xoá ca làm của ${sch.staffName} hay không?`, confirmLabel: 'Xoá', confirmIcon: 'delete', variant: 'danger' });
-                if (ok) this.run(() => hr.cancelSchedule(sch.id), 'Đã xoá ca làm');
+                const ok = await confirmDialog({ title: 'Huỷ ca làm', message: `Xác nhận huỷ ca làm của ${sch.staffName}?`, confirmLabel: 'Huỷ ca', confirmIcon: 'close', variant: 'danger' });
+                if (ok) this.run(() => hr.cancelSchedule(sch.id), 'Đã huỷ ca làm');
             },
         };
     }

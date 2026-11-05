@@ -163,6 +163,8 @@ async function listAreas() {
         active: a.status === 'ACTIVE',
         tables: tablesByArea[i].filter(t => t.status === 'ACTIVE')
             .map(t => mapTable(t, pending.get(sid(t.id)), openOrders.get(sid(t.id)), occupiedIds)),
+        pausedTables: tablesByArea[i].filter(t => t.status !== 'ACTIVE')
+            .map(t => ({ id: sid(t.id), name: t.name, capacity: DEFAULT_CAPACITY })),
     }));
     for (const id of [...paying]) if (!occupiedIds.has(id)) paying.delete(id);
     savePaying();
@@ -217,7 +219,6 @@ export const springAreaService = {
     listAreas,
     listMenu,
     saveArea,
-    deleteArea: id => http('DELETE', `/area/${id}`),
     setAreaActive: (id, active) => active ? http('PATCH', `/area/${id}/activate`) : http('DELETE', `/area/${id}`),
 
     setTableQr: (tableId, enabled, name) => http('PUT', `/tables/${tableId}`, { name, qrEnabled: !!enabled }),

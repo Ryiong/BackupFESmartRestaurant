@@ -88,7 +88,7 @@ class StaffPanel extends HrPanel {
                 <button type="button" data-act="edit" data-id="${x.id}" ${off ? 'disabled' : ''} title="Sửa vai trò / lương" aria-label="Sửa ${esc(x.name)}"
                     class="grid size-9 cursor-pointer place-items-center rounded-lg text-primary-600 hover:bg-primary-50 disabled:cursor-not-allowed disabled:opacity-30">${ICONS.edit}</button>
                 <button type="button" data-act="terminate" data-id="${x.id}" ${off ? 'disabled' : ''} title="Cho nghỉ việc" aria-label="Cho ${esc(x.name)} nghỉ việc"
-                    class="grid size-9 cursor-pointer place-items-center rounded-lg text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-30">${ICONS.delete}</button>
+                    class="grid size-9 cursor-pointer place-items-center rounded-lg text-red-500 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-30">${ICONS.pause}</button>
             </div></td></tr>`;
     }
 

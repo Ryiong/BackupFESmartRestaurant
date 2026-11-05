@@ -40,7 +40,7 @@ class AreaManager extends HTMLElement {
                 <div data-tabs class="flex min-w-0 flex-1 flex-wrap gap-2" role="tablist" aria-label="Khu vực"></div>
                 <div class="flex flex-wrap gap-2.5">
                     <p-button data-act="edit-area" label="Chỉnh sửa khu vực" icon="edit"></p-button>
-                    <p-button data-act="delete-area" label="Xoá khu vực" icon="delete" variant="danger"></p-button>
+                    <p-button data-act="pause-area" label="Tạm ngưng khu vực" icon="pause" variant="danger"></p-button>
                     <p-button data-act="add-area" label="Thêm khu vực" icon="add" variant="solid"></p-button>
                 </div>
             </div>
@@ -61,7 +61,7 @@ class AreaManager extends HTMLElement {
             grid: this.querySelector('[data-grid]'),
             detail: this.querySelector('[data-detail]'),
             edit: this.querySelector('[data-act="edit-area"]'),
-            del: this.querySelector('[data-act="delete-area"]'),
+            pause: this.querySelector('[data-act="pause-area"]'),
         };
     }
 
@@ -119,7 +119,7 @@ class AreaManager extends HTMLElement {
     renderToolbar() {
         const none = !this.area;
         this.el.edit.toggleAttribute('disabled', none);
-        this.el.del.toggleAttribute('disabled', none);
+        this.el.pause.toggleAttribute('disabled', none);
     }
 
     renderFilters() {
@@ -204,14 +204,14 @@ class AreaManager extends HTMLElement {
                 const res = await areaEditorDialog({ area: this.area });
                 if (res) this.refresh({ areaId: res.saved ?? null, tableId: res.saved ? this.state.tableId : null });
             },
-            'delete-area': async () => {
+            'pause-area': async () => {
                 const area = this.area;
                 if (!area) return;
                 const ok = await confirmDialog({
-                    title: 'Xoá khu vực', message: 'Xác nhận xoá khu vực và toàn bộ bàn trong khu vực này hay không?',
-                    confirmLabel: 'Xoá', confirmIcon: 'delete', variant: 'danger',
+                    title: 'Tạm ngưng khu vực', message: 'Xác nhận tạm ngưng sử dụng khu vực này? Khu vực và các bàn trong đó sẽ ngừng hoạt động cho đến khi bạn kích hoạt lại.',
+                    confirmLabel: 'Tạm ngưng', confirmIcon: 'pause', variant: 'danger',
                 });
-                if (ok) this.run(() => areaService.deleteArea(area.id), 'Đã xoá khu vực', { areaId: null, tableId: null });
+                if (ok) this.run(() => areaService.setAreaActive(area.id, false), 'Đã tạm ngưng khu vực', { areaId: area.id, tableId: null });
             },
 
             /* bàn */

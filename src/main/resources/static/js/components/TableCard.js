@@ -76,9 +76,9 @@ class TableCard extends HTMLElement {
                         class="flex h-6 w-10 cursor-pointer items-center justify-center rounded bg-primary-700 text-white transition-all hover:scale-95 hover:bg-primary-800">
                         ${ICONS.edit}
                     </button> 
-                    <button type="button" data-act="delete-table" data-key="${key}" aria-label="Xoá ${name}"
+                    <button type="button" data-act="delete-table" data-key="${key}" aria-label="Tạm ngưng ${name}"
                         class="flex h-6 w-10 cursor-pointer items-center justify-center rounded bg-red-400 text-white transition-all hover:scale-95 hover:bg-red-500">
-                        ${ICONS.delete}
+                        ${ICONS.pause}
                     </button>
                 </div>
             `;
