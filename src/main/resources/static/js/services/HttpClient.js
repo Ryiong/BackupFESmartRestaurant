@@ -46,10 +46,23 @@ function refreshAccessToken() {
     return refreshing;
 }
 
+let loggingOut = false;
+
 export function logoutRedirect() {
+    if (loggingOut) return;
+    loggingOut = true;
     auth.clear();
     location.href = LOGIN_URL;
 }
+
+/**
+ * Token còn hạn nhưng tài khoản không còn dùng được: backend (JwtFilter) trả 404 "Người dùng không tồn tại"
+ * khi user trong token đã bị xoá / DB bị reset, hoặc 409 "Trạng thái tài khoản không được chấp thuận" khi tài khoản bị khoá.
+ * Hai trường hợp này không phải 401 nên phải nhận ra riêng, nếu không giao diện cứ ở lại trang cho đến khi token hết hạn.
+ */
+const isDeadSession = (status, message = '') =>
+    (status === 404 && /^Người dùng không tồn tại/i.test(message))
+    || (status === 409 && /^Trạng thái tài khoản không được chấp thuận/i.test(message));
 
 export async function http(method,
     path,
@@ -93,6 +106,11 @@ export async function http(method,
     try {
         payload = await res.json();
     } catch { }
+
+    if (!res.ok && useAuth && isDeadSession(res.status, payload?.message)) {
+        logoutRedirect();
+        throw new Error('Tài khoản không còn hiệu lực, vui lòng đăng nhập lại');
+    }
 
     if (!res.ok) {
         throw new Error(payload?.message || (res.status === 403 ? 'Bạn không có quyền thực hiện thao tác này' : 'Có lỗi xảy ra, vui lòng thử lại'));
