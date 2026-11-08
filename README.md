@@ -4,6 +4,7 @@
 1. Login đã hoạt động (Lỗi cần sửa: Không)
 2. Register đã hoạt động (Lỗi cần sửa: Không)
 3. OTP active đã hoạt động (Lỗi cần sửa: Không)
+4. Đăng nhập trên thiết bị khác bằng QR: Đã hoạt động
 ## Admin
 ### Tổng quan
 1. Tạo cửa hàng: Đã hoạt động (Lỗi cần sửa: Không)
