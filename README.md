@@ -5,7 +5,7 @@
 2. Register đã hoạt động (Lỗi cần sửa: Không)
 3. OTP active đã hoạt động (Lỗi cần sửa: Không)
 4. Đăng nhập trên thiết bị khác bằng QR: Đã hoạt động
-## Admin
+## Owner
 ### Tổng quan
 1. Tạo cửa hàng: Đã hoạt động (Lỗi cần sửa: Không)
 2. Chuyển đổi cửa hàng: Đã hoạt động (Lỗi cần sửa: Không)
@@ -80,7 +80,11 @@
 19. Tính công: Hoàn thành Frontend Backend chưa cấp quyền
 20. Xuất csv tính công: Đã hoạt động
 ## Customer
+1. Menu order cho người dùng
 
+## Admin
+1. Duyệt cửa hàng
+2. Kiểm soát...
 ## UI/UX
 1. Tối ưu giao diện cho điện thoại và màn hình nhỏ
 2. Thay đổi bộ nhận diện
