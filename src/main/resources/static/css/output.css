@@ -101,30 +101,30 @@
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --default-font-family: var(--font-sans);
     --default-mono-font-family: var(--font-mono);
-    --color-primary: #106C56;
-    --color-primary-50: #C6DCD6;
-    --color-primary-100: #9FC4BB;
-    --color-primary-200: #79ADA0;
-    --color-primary-300: #539585;
-    --color-primary-400: #31816E;
-    --color-primary-500: #106C56;
-    --color-primary-600: #0E5D4A;
-    --color-primary-700: #0B4C3C;
-    --color-primary-800: #08382D;
-    --color-secondary-50: #E1F0E7;
-    --color-secondary-100: #CDE7D7;
-    --color-secondary-500: #81C29A;
-    --color-secondary-600: #6FA784;
-    --color-secondary-700: #5A886C;
-    --color-secondary-800: #436550;
-    --color-accent-900: #021917;
-    --color-support-50: #F5F7F7;
-    --color-support-100: #EEF1F2;
-    --color-support-600: #B7BEC0;
-    --color-support-800: #6F7374;
-    --color-support-900: #484B4C;
-    --color-text: #041F25;
-    --color-bug: #B42318;
+    --color-primary: #0B5F73;
+    --color-primary-50: #EAF5F7;
+    --color-primary-100: #CFE7EC;
+    --color-primary-200: #A2CFD9;
+    --color-primary-300: #6FB3C3;
+    --color-primary-400: #3C93A8;
+    --color-primary-500: #137A90;
+    --color-primary-600: #0B5F73;
+    --color-primary-700: #094D5E;
+    --color-primary-800: #073C49;
+    --color-secondary-50: #FEF7E8;
+    --color-secondary-100: #FDEBC6;
+    --color-secondary-500: #D98F1F;
+    --color-secondary-600: #B3730F;
+    --color-secondary-700: #8A560A;
+    --color-secondary-800: #633D07;
+    --color-accent-900: #571E07;
+    --color-support-50: #FAF9F6;
+    --color-support-100: #F5F4F0;
+    --color-support-600: #5F6A65;
+    --color-support-800: #2B3532;
+    --color-support-900: #1B2422;
+    --color-text: #1B2422;
+    --color-bug: #C62F3A;
   }
 }
 @layer base {
@@ -1053,13 +1053,13 @@
     background-color: var(--color-primary-50);
   }
   .bg-primary-50\/40 {
-    background-color: color-mix(in srgb, #C6DCD6 40%, transparent);
+    background-color: color-mix(in srgb, #EAF5F7 40%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-primary-50) 40%, transparent);
     }
   }
   .bg-primary-50\/60 {
-    background-color: color-mix(in srgb, #C6DCD6 60%, transparent);
+    background-color: color-mix(in srgb, #EAF5F7 60%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-primary-50) 60%, transparent);
     }
