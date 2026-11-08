@@ -4,13 +4,14 @@ import '../components/PrimaryButton.js';
 import { REGISTER_URL } from '../config.js';
 import { http } from '../services/HttpClient.js';
 import { auth } from '../services/AuthStore.js';
-import { landingUrl, parseLoginQr, signInWithRefreshToken } from '../services/Session.js';
+import { landingUrl, parseLoginQr, safeNext, signInWithRefreshToken } from '../services/Session.js';
 
 class AppLogin extends HTMLElement {
   async connectedCallback() {
     if (this.dataset.ready) return;
     this.dataset.ready = '1';
 
+    // Mở từ QR đăng nhập: token nằm ở #qr=..., xoá ngay khỏi thanh địa chỉ rồi đổi lấy phiên mới.
     const qrHash = location.hash.includes('qr=') ? location.href : null;
     if (qrHash) history.replaceState(null, '', location.pathname + location.search);
 
@@ -28,6 +29,7 @@ class AppLogin extends HTMLElement {
         <div class="w-full max-w-md">
         <form id="login-form" class="w-full" novalidate>
             <h1 class="mb-2">Welcome</h1>
+            ${(safeNext() ?? '').includes('/staff/attendance') ? '<p role="status" class="mb-4 rounded-xl bg-primary-50 p-3 text-sm font-semibold text-primary-800">Đăng nhập tài khoản nhân viên để chấm công. Sau khi đăng nhập bạn sẽ quay lại màn hình chấm công.</p>' : ''}
             <form-field id-input="login-form-username" label="Email" name="email" type="email" autocomplete="email" placeholder="example@email.com"></form-field>
 
             <div id="login-form__field" class="mb-4.5" data-field="">

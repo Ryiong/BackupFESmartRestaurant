@@ -20,4 +20,4 @@ export const CUSTOMER_ORDER_PATH = `${BASE_URL}/customer/order.html`;
  * '' thì dùng địa chỉ trang đang mở; khi chạy thật thì đổi sang domain thật.
  * Lưu ý: điện thoại chỉ mở được camera/GPS khi trang chạy bằng HTTPS (hoặc localhost).
  */
-export const STAFF_BASE_URL = 'https://bf0b-2001-ee0-4041-3d66-ecc4-849e-1e27-efd7.ngrok-free.app';
+export const STAFF_BASE_URL = 'https://pgfdc9sw-5173.asse.devtunnels.ms';

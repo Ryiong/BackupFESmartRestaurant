@@ -11,6 +11,13 @@ const store = {
     get: () => { try { return Number(localStorage.getItem(SHOP_KEY)) || null; } catch { return null; } },
     set: v => { try { localStorage.setItem(SHOP_KEY, String(v)); } catch { /* bỏ qua */ } },
 };
+const LAST_KEY = 'sr:lastCheck';
+const lastStore = {
+    get: () => { try { return JSON.parse(localStorage.getItem(LAST_KEY) ?? 'null'); } catch { return null; } },
+    set: v => { try { localStorage.setItem(LAST_KEY, JSON.stringify(v)); } catch { /* bỏ qua */ } },
+};
+const fmtTime = ms => new Date(ms).toLocaleTimeString('vi-VN');
+const fmtDate = ms => new Date(ms).toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
 const TYPE_LABEL = { CHECK_IN: 'Vào ca', CHECK_OUT: 'Ra ca' };
 const hhmm = d => d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
@@ -24,6 +31,8 @@ class StaffAttendance extends HTMLElement {
         this.pending = null; // { shopId, exp } đã quét, chờ xác nhận
         this.shifts = [];
         this.notice = null;  // { ok, text }
+        this.result = null;  // kết quả chấm công vừa xong { type, at, shift }
+        this.last = lastStore.get();
 
         // Mở thẳng từ QR (camera hệ điều hành): ?shop=&exp=
         const qs = location.search;
@@ -80,20 +89,57 @@ class StaffAttendance extends HTMLElement {
                 <p class="mt-1 text-sm opacity-90">${new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
             </section>
 
+            ${this.resultCard()}
+
             ${this.notice ? `<p role="status" class="rounded-xl p-3 text-sm font-semibold ${this.notice.ok ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-700'}">${esc(this.notice.text)}</p>` : ''}
 
             ${this.pending ? this.confirmCard(open) : ''}
+            ${this.pending ? this.checklist(open) : ''}
 
             <section class="rounded-2xl border border-primary-100 bg-white p-4">
                 <h2 class="mb-2 text-sm font-bold">Ca làm hôm nay</h2>
                 ${this.shopId ? this.shiftList(now) : '<p class="text-sm text-secondary-700">Quét mã QR chấm công tại quán để bắt đầu.</p>'}
             </section>
 
+            <details class="rounded-xl border border-primary-100 bg-white p-3 text-sm">
+                <summary class="cursor-pointer font-semibold text-primary-700">Không quét được? Dán link QR</summary>
+                <div class="mt-2 grid gap-2">
+                    <input data-link type="url" inputmode="url" placeholder="https://…/staff/attendance.html?shop=…" class="w-full rounded-lg border border-primary-200 px-3 py-2">
+                    <button data-act="paste" class="min-h-11 cursor-pointer rounded-lg border-2 border-primary-100 font-bold text-primary-600">Dùng link này</button>
+                </div>
+            </details>
             <button data-act="scan" class="flex min-h-14 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-primary-700 text-base font-bold text-white shadow hover:bg-primary-800">Quét QR chấm công</button>
             <button data-act="loginqr" class="min-h-11 cursor-pointer text-sm font-semibold text-primary-600">Đăng nhập trên thiết bị khác (tạo QR)</button>
         `;
         this.bind();
         if (this.pending) this.renderExp();
+    }
+
+    resultCard() {
+        const r = this.result ?? (this.last && this.last.day === new Date().toDateString() ? { ...this.last, old: true } : null);
+        if (!r) return '';
+        const out = r.type === 'CHECK_OUT';
+        return `<section role="status" class="rounded-2xl border-2 ${out ? 'border-sky-500 bg-sky-50' : 'border-green-600 bg-green-50'} p-4 text-center">
+            <p class="text-xs font-bold uppercase text-secondary-700">${r.old ? 'Lần chấm công gần nhất' : 'Chấm công thành công'}</p>
+            <p class="mt-1 text-xl font-bold">${TYPE_LABEL[r.type] ?? 'Chấm công'}</p>
+            <p class="text-3xl font-bold tabular-nums">${fmtTime(r.at)}</p>
+            <p class="text-sm">${fmtDate(r.at)}</p>
+            ${r.shift ? `<p class="mt-1 text-sm font-semibold">${esc(r.shift)}</p>` : ''}</section>`;
+    }
+
+    checklist(open) {
+        const row = (ok, text) => `<li class="flex gap-2"><span class="${ok === false ? 'text-red-600' : ok ? 'text-green-700' : 'text-amber-600'} font-bold">${ok === false ? '✗' : ok ? '✓' : '…'}</span><span>${text}</span></li>`;
+        const expired = new Date(this.pending.exp) <= Date.now();
+        const u = auth.user;
+        return `<section class="rounded-2xl border border-primary-100 bg-white p-4 text-sm">
+            <h2 class="mb-2 font-bold">Kiểm tra trước khi chấm công</h2>
+            <ul class="grid gap-1.5">
+                ${row(true, `Đã đăng nhập: <b>${esc(u?.name || u?.email || '')}</b>${u?.type ? ` (${esc(u.type)})` : ''}`)}
+                ${row(!expired, `Mã QR cửa hàng #${esc(this.pending.shopId)}: ${expired ? 'đã hết hạn, hãy quét lại' : 'còn hiệu lực'}`)}
+                ${this.loading ? row(null, 'Đang tải ca làm…') : this.loadError ? row(false, esc(this.loadError))
+                    : row(open.length > 0, open.length ? `Có ${open.length} ca trong khung giờ chấm công` : (this.shifts.length ? 'Có ca hôm nay nhưng chưa tới (hoặc đã quá) khung giờ chấm công' : `Không tìm thấy ca nào của <b>${esc(u?.email ?? '')}</b> hôm nay${u?.type && u.type !== 'STAFF' ? ' — hãy đăng nhập bằng tài khoản nhân viên được xếp ca' : ''}`))}
+                ${row(null, 'Vị trí: sẽ xin khi bạn bấm chấm công (cần bật GPS)')}
+            </ul></section>`;
     }
 
     shiftList(now) {
@@ -106,7 +152,8 @@ class StaffAttendance extends HTMLElement {
                     : now < s.opens ? 'Chưa đến giờ' : now > s.closes ? 'Đã qua giờ' : 'Có thể chấm công';
             return `<li class="flex items-center justify-between gap-2 rounded-xl bg-primary-50/60 p-3">
                 <div><p class="font-semibold">${esc(s.shiftName)}</p><p class="text-sm tabular-nums text-secondary-700">${esc(s.startTime)} – ${esc(s.endTime)}</p></div>
-                <span class="text-xs font-bold text-primary-700">${state}</span></li>`;
+                <div class="text-right"><span class="text-xs font-bold text-primary-700">${state}</span>
+                ${s.attendances.length ? `<p class="mt-0.5 text-xs tabular-nums text-secondary-700">${s.attendances.map(a => `${a.type === 'CHECK_OUT' ? 'Ra' : 'Vào'} ${esc(String(a.at ?? '').slice(11, 16) || '—')}`).join(' · ')}</p>` : ''}</div></li>`;
         }).join('')}</ul>`;
     }
 
@@ -132,8 +179,18 @@ class StaffAttendance extends HTMLElement {
             if (act === 'logout') return logout();
             if (act === 'loginqr') return (await import('../auth/LoginQrDialog.js')).loginQrDialog();
             if (act === 'scan') return this.scan();
+            if (act === 'paste') return this.usePasted();
             if (act === 'submit') return this.submit(Number(el.dataset.id));
         };
+    }
+
+    async usePasted() {
+        const v = this.querySelector('[data-link]')?.value ?? '';
+        try {
+            const res = parseAttendanceQr(v);
+            this.pending = res; this.notice = null; this.shopId = res.shopId;
+            await this.load();
+        } catch (e) { this.notice = { ok: false, text: e.message }; this.render(); }
     }
 
     async scan() {
@@ -161,6 +218,10 @@ class StaffAttendance extends HTMLElement {
             });
             store.set(this.pending.shopId);
             const label = TYPE_LABEL[res?.type] ?? 'Chấm công';
+            const shift = this.shifts.find(s => s.id === workScheduleId);
+            const at = Date.now();
+            this.result = { type: res?.type, at, shift: shift ? `${shift.shiftName} (${shift.startTime} – ${shift.endTime})` : '' };
+            lastStore.set({ ...this.result, day: new Date().toDateString() });
             this.notice = { ok: true, text: `${label} thành công lúc ${hhmm(new Date())}.` };
             this.pending = null;
             this.busy = false;
