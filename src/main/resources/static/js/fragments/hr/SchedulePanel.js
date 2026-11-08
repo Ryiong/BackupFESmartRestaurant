@@ -19,7 +19,7 @@ class SchedulePanel extends HrPanel {
         this.innerHTML = `
         <div class="flex flex-col gap-4">
             <div data-banner></div>
-            <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:justify-between">
                 <div class="flex flex-wrap items-center gap-2">
                     <button type="button" data-act="prev" aria-label="Ngày trước" class="grid size-9 cursor-pointer place-items-center rounded-lg border border-primary-100 bg-white text-primary-700 hover:border-primary-500">${ICONS.chevL}</button>
                     <span data-date class="min-w-44 rounded-lg border border-primary-100 bg-white px-4 py-1.5 text-center text-sm font-bold text-primary-800"></span>
@@ -27,7 +27,7 @@ class SchedulePanel extends HrPanel {
                     <p-button data-act="today" label="Hôm nay"></p-button>
                     <input type="date" data-pick aria-label="Chọn ngày" class="${INPUT_CLS} !w-auto !py-1.5 text-sm">
                 </div>
-                <p-button data-act="assign" label="Phân ca làm mới" icon="add" variant="solid"></p-button>
+                <p-button data-act="assign" label="Phân ca làm mới" icon="add" variant="solid" class="block md:inline-block"></p-button>
             </div>
             <div data-week class="grid grid-cols-7 gap-2"></div>
             <section class="${CARD} !p-0 overflow-hidden"><div data-table class="overflow-x-auto"></div></section>
@@ -71,17 +71,26 @@ class SchedulePanel extends HrPanel {
         const start = weekStart(s.date);
         this.querySelector('[data-week]').innerHTML = Array.from({ length: 7 }, (_, i) => {
             const d = addDays(start, i), n = s.week.filter(x => x.date === d).length, on = d === s.date;
-            return `<button type="button" data-act="day" data-d="${d}" aria-pressed="${on}" class="cursor-pointer rounded-xl border px-2 py-2 text-center transition-all hover:scale-[0.98]
+            return `<button type="button" data-act="day" data-d="${d}" aria-pressed="${on}" class="cursor-pointer rounded-xl border px-0.5 py-2 text-center transition-all hover:scale-[0.98] md:px-2
                 ${on ? 'border-primary-600 bg-primary-600 text-white' : 'border-primary-100 bg-white text-secondary-800'}">
                 <span class="block text-xs font-semibold opacity-80">${WEEKDAY[parseYmd(d).getDay()].replace('Chủ nhật', 'CN')}</span>
                 <span class="block text-base font-bold">${parseYmd(d).getDate()}</span>
-                <span class="block text-xs ${on ? 'text-white/80' : 'text-secondary-700'}">${n ? `${n} ca` : 'Trống'}</span></button>`;
+                <span class="block whitespace-nowrap text-[10px] md:text-xs ${on ? 'text-white/80' : 'text-secondary-700'}">${n ? `${n} ca` : 'Trống'}</span></button>`;
         }).join('');
 
         const byEmp = new Map(this.today.map(x => [x.employmentId, x]));
         const editable = s.date >= ymd();
         this.querySelector('[data-table]').innerHTML = ready ? `
-            <table class="w-full min-w-170 text-sm">
+            <ul class="divide-y divide-primary-50 md:hidden">${s.staff.map(st => {
+                const sch = byEmp.get(st.id);
+                return `<li class="grid gap-2 p-4">
+                    <div><p class="font-bold">${esc(st.name)}</p>
+                        <p class="text-xs font-medium text-secondary-700">${esc((st.roleNames ?? []).map(cap).join(', ') || '—')}</p></div>
+                    ${s.shifts.map(sh => `<div><p class="mb-1 text-xs font-bold text-secondary-700">${esc(sh.name)} · ${hm(sh.startTime)} - ${hm(sh.endTime)}</p>${this.cell(st, sh, sch, editable, true)}</div>`).join('')}
+                    <p-button data-act="remove" data-id="${sch?.id ?? ''}" label="Huỷ ca" icon="close" variant="danger" class="mt-1 block"
+                        ${!sch || !editable || sch.attendances.length ? 'disabled' : ''}></p-button></li>`;
+            }).join('')}</ul>
+            <table class="hidden w-full min-w-170 text-sm md:table">
                 <thead class="bg-secondary-50"><tr>
                     <th class="${TH}">Nhân viên</th>
                     ${s.shifts.map(sh => `<th class="${TH} text-center">${esc(sh.name)}</th>`).join('')}
@@ -99,7 +108,7 @@ class SchedulePanel extends HrPanel {
             </table>` : emptyState(this.loading ? 'Đang tải…' : 'Chưa thể xếp lịch', 'Cần có ít nhất 1 nhân viên đang làm và 1 ca kíp.');
     }
 
-    cell(st, sh, sch, editable) {
+    cell(st, sh, sch, editable, mobile = false) {
         const label = `${sh.name} (${hm(sh.startTime)} - ${hm(sh.endTime)})`;
         if (sch && sameShift(sch, sh)) {
             const a = attState(sch);
@@ -113,7 +122,7 @@ class SchedulePanel extends HrPanel {
             return `<button type="button" data-act="quick" data-emp="${st.id}" data-shift="${sh.id}" ${swap ? `data-sch="${sch.id}"` : ''}
                 title="${swap ? 'Đổi sang' : 'Xếp'} ${esc(label)}" aria-label="${swap ? 'Đổi' : 'Xếp'} ${esc(st.name)} vào ${esc(sh.name)}"
                 class="group grid min-h-12 w-full cursor-pointer place-items-center rounded-xl bg-neutral-100 px-2 py-1.5 text-xs font-bold text-secondary-700 transition-all hover:bg-primary-50 hover:text-primary-700">
-                <span class="group-hover:hidden">${swap ? '—' : 'Nghỉ'}</span><span class="hidden group-hover:inline">+ ${swap ? 'Đổi sang ca này' : 'Xếp ca này'}</span></button>`;
+                ${mobile ? `<span>+ ${swap ? 'Đổi sang ca này' : 'Xếp ca này'}</span>` : `<span class="group-hover:hidden">${swap ? '—' : 'Nghỉ'}</span><span class="hidden group-hover:inline">+ ${swap ? 'Đổi sang ca này' : 'Xếp ca này'}</span>`}</button>`;
         }
         return `<div class="grid min-h-12 place-items-center rounded-xl bg-neutral-100 px-2 py-1.5 text-xs font-bold text-secondary-700">${sch ? '—' : 'Nghỉ'}</div>`;
     }

@@ -2,7 +2,8 @@
 // Công thức: lương/giờ = lương cơ bản ÷ (số ngày công chuẩn × số giờ/ngày); thực nhận = giờ làm đã duyệt × lương/giờ.
 
 import { hr, HR_MODE, attState, workedHours, parseYmd, ymd } from '../../services/HrService.js';
-import { HrPanel, esc, INPUT_CLS, CARD, TH, notice, emptyState, fmtMoney } from './ui.js';
+import { openDialog } from '../../utils/dialog.js';
+import { HrPanel, esc, INPUT_CLS, CARD, TH, notice, emptyState, fmtMoney, bindActions } from './ui.js';
 import { ICONS } from '../../icon.js';
 
 const PKEY = 'sr:payroll:params';
@@ -18,7 +19,7 @@ class PayrollPanel extends HrPanel {
         this.innerHTML = `
         <div class="flex flex-col gap-4">
             <div data-banner></div>
-            <div class="flex flex-wrap items-end justify-between gap-3">
+            <div class="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-end md:justify-between">
                 <div class="flex flex-wrap items-center gap-2">
                     <button type="button" data-act="prev" aria-label="Tháng trước" class="grid size-9 cursor-pointer place-items-center rounded-lg border border-primary-100 bg-white text-primary-700 hover:border-primary-500">${ICONS.chevL}</button>
                     <span data-month class="min-w-32 rounded-lg border border-primary-100 bg-white px-4 py-1.5 text-center text-sm font-bold text-primary-800"></span>
@@ -29,7 +30,7 @@ class PayrollPanel extends HrPanel {
                         <input data-p="days" type="number" min="1" max="31" class="${INPUT_CLS} !w-28 !py-1.5 text-sm"></label>
                     <label class="grid gap-1 text-xs font-bold">Giờ/ngày công
                         <input data-p="hours" type="number" min="1" max="24" step="0.5" class="${INPUT_CLS} !w-28 !py-1.5 text-sm"></label>
-                    <p-button data-act="csv" label="Xuất CSV" icon="check"></p-button>
+                    <p-button data-act="csv" label="Xuất CSV" icon="check" class="block md:inline-block"></p-button>
                 </div>
             </div>
             <section class="${CARD} !p-0 overflow-hidden"><div data-table class="overflow-x-auto"></div></section>
@@ -71,8 +72,16 @@ class PayrollPanel extends HrPanel {
             ? notice('Giờ vào/ra và duyệt công đang bị chặn quyền ở backend (quyền chấm công chưa được seed) nên số giờ làm và lương ước tính chưa có số liệu. Danh sách nhân viên và lương cơ bản đã lấy từ backend.') : '';
         const rows = this.rows();
         const total = rows.reduce((t, r) => t + r.pay, 0);
+        this.rowsCache = rows;
         this.querySelector('[data-table]').innerHTML = rows.length ? `
-            <table class="w-full min-w-205 text-sm">
+            <ul class="divide-y divide-primary-50 md:hidden">${rows.map(r => `
+                <li class="flex items-center justify-between gap-3 p-4">
+                    <div class="min-w-0"><p class="truncate font-bold">${esc(r.st.name)}</p>
+                        <p class="text-sm font-bold tabular-nums text-primary-700">${fmtMoney(r.pay)}</p></div>
+                    <button type="button" data-act="view" data-id="${r.st.id}" title="Xem chi tiết" aria-label="Xem chi tiết ${esc(r.st.name)}"
+                        class="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg border border-primary-100 text-primary-600 hover:bg-primary-50">${ICONS.eye}</button></li>`).join('')}
+                <li class="flex items-center justify-between gap-3 bg-neutral-50 p-4"><span class="font-bold">Tổng chi lương ước tính</span><b class="tabular-nums text-primary-800">${fmtMoney(total)}</b></li></ul>
+            <table class="hidden w-full min-w-205 text-sm md:table">
                 <thead class="bg-secondary-50"><tr>
                     <th class="${TH}">Nhân viên</th><th class="${TH} text-right">Lương cơ bản</th><th class="${TH} text-center">Số ca</th>
                     <th class="${TH} text-center">Giờ làm</th><th class="${TH} text-center">Đi muộn</th><th class="${TH} text-center">Chờ duyệt</th><th class="${TH} text-right">Ước tính nhận</th>
@@ -113,7 +122,33 @@ class PayrollPanel extends HrPanel {
 
     shift(n) { const s = this.state, d = new Date(s.y, s.m + n, 1); s.y = d.getFullYear(); s.m = d.getMonth(); this.reload(); }
 
-    actions() { return { prev: () => this.shift(-1), next: () => this.shift(1), csv: () => this.csv() }; }
+    view(r) {
+        return openDialog({
+            title: 'Chi tiết công', width: 400,
+            render: (body, close) => {
+                const row = (k, v, cls = '') => `<dt class="font-semibold text-secondary-700">${k}</dt><dd class="text-right font-medium tabular-nums ${cls}">${v}</dd>`;
+                body.innerHTML = `
+                <p class="mb-3 text-center text-base font-bold">${esc(r.st.name)} · Tháng ${this.state.m + 1}/${this.state.y}</p>
+                <dl class="grid grid-cols-[1fr_auto] gap-x-3 gap-y-3 text-sm">
+                    ${row('Lương cơ bản', r.st.salary ? fmtMoney(r.st.salary) : '—')}
+                    ${row('Số ca', r.shifts)}
+                    ${row('Giờ làm', hrs(r.hours))}
+                    ${row('Đi muộn', r.late, r.late ? 'font-bold text-red-600' : '')}
+                    ${row('Chờ duyệt', r.pending, r.pending ? 'font-bold text-amber-700' : '')}
+                    ${row('Ước tính nhận', fmtMoney(r.pay), 'font-bold text-primary-700')}
+                </dl>
+                <div class="mt-6 flex justify-center"><p-button data-act="close" label="Đóng" class="block w-full md:w-auto"></p-button></div>`;
+                bindActions(body, { close: () => close() });
+            },
+        });
+    }
+
+    actions() {
+        return {
+            prev: () => this.shift(-1), next: () => this.shift(1), csv: () => this.csv(),
+            view: el => { const r = this.rowsCache?.find(x => x.st.id === Number(el.dataset.id)); if (r) this.view(r); },
+        };
+    }
 }
 
 customElements.define('hr-payroll', PayrollPanel);

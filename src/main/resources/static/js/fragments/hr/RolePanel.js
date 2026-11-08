@@ -109,7 +109,18 @@ class RolePanel extends HrPanel {
             </div>
             ${owner ? `<div class="mt-4">${notice('Chủ cửa hàng luôn có <b>toàn quyền</b> và không thể chỉnh sửa hay tạm ngừng.', 'green')}</div>` : ''}
             ${gone ? `<div class="mt-4">${notice('Vai trò này đã tạm ngừng hoạt động nên chỉ xem được, không chỉnh sửa hay gán cho nhân viên. Backend chưa có chức năng bật lại vai trò.')}</div>` : ''}
-            <div class="mt-4 overflow-x-auto rounded-xl border border-primary-50">
+            <ul class="mt-4 grid gap-2 md:hidden">${PERM_MATRIX.map(row => `
+                <li class="rounded-xl border border-primary-50 p-3">
+                    <p class="font-bold">${esc(row.label)}</p>
+                    <div class="mt-1 grid divide-y divide-primary-50">
+                        ${COLS.filter(([c]) => row[c].length).map(([c, l]) => `
+                        <label class="flex min-h-11 items-center justify-between gap-3 text-sm font-semibold ${editing ? 'cursor-pointer' : ''}"><span>${l}</span>${cell(row, c)}</label>`).join('')}
+                        ${row.other.map(n => `
+                        <label class="flex min-h-11 items-center justify-between gap-3 text-sm font-semibold ${editing ? 'cursor-pointer' : ''}"><span>${esc(PERM_LABEL[n] ?? n)}</span>
+                            <input type="checkbox" data-perm="${n}" ${names.has(n) ? 'checked' : ''} ${editing ? '' : 'disabled'} class="size-5 accent-primary"></label>`).join('')}
+                    </div>
+                </li>`).join('')}</ul>
+            <div class="mt-4 hidden overflow-x-auto rounded-xl border border-primary-50 md:block">
                 <table class="w-full min-w-170 text-sm">
                     <thead class="bg-secondary-50"><tr>
                         <th class="${TH}">Chức năng hệ thống</th>
@@ -142,8 +153,10 @@ class RolePanel extends HrPanel {
         if (t.dataset.cell) {
             const [key, col] = t.dataset.cell.split('|');
             PERM_MATRIX.find(r => r.key === key)[col].forEach(n => t.checked ? d.names.add(n) : d.names.delete(n));
+            this.querySelectorAll(`[data-cell="${t.dataset.cell}"]`).forEach(o => { o.checked = t.checked; });
         } else if (t.dataset.perm) {
             t.checked ? d.names.add(t.dataset.perm) : d.names.delete(t.dataset.perm);
+            this.querySelectorAll(`[data-perm="${t.dataset.perm}"]`).forEach(o => { o.checked = t.checked; });
         }
     }
 

@@ -19,19 +19,19 @@ class StaffPanel extends HrPanel {
         this.innerHTML = `
         <div class="flex flex-col gap-4">
             <div data-banner></div>
-            <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center md:justify-between">
                 <div class="flex flex-wrap items-center gap-2.5">
-                    <label class="relative">
+                    <label class="relative w-full md:w-auto">
                         <span class="sr-only">Tìm nhân viên</span>
                         <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-primary-300">${ICONS.search}</span>
-                        <input data-q type="search" placeholder="Tìm tên, email, số điện thoại…" class="${INPUT_CLS} !w-72 !pl-10 text-sm">
+                        <input data-q type="search" placeholder="Tìm tên, email, số điện thoại…" class="${INPUT_CLS} !w-full md:!w-72 !pl-10 text-sm">
                     </label>
                     <select data-status class="${SELECT_CLS}" aria-label="Lọc theo trạng thái">
                         <option value="">Tất cả</option><option value="ACTIVE" selected>Đang làm</option><option value="TERMINATED">Đã nghỉ</option>
                     </select>
                     <select data-role class="${SELECT_CLS}" aria-label="Lọc theo vai trò"></select>
                 </div>
-                <p-button data-act="add" label="Thêm nhân viên mới" icon="add" variant="solid"></p-button>
+                <p-button data-act="add" label="Thêm nhân viên mới" icon="add" variant="solid" class="block md:inline-block"></p-button>
             </div>
             <section class="${CARD} !p-0 overflow-hidden"><div data-table class="overflow-x-auto"></div></section>
         </div>`;
@@ -64,7 +64,8 @@ class StaffPanel extends HrPanel {
             (!q || [x.name, x.email, x.phoneNumber].some(v => String(v ?? '').toLowerCase().includes(q))));
 
         this.querySelector('[data-table]').innerHTML = list.length ? `
-            <table class="w-full min-w-190 text-sm">
+            <ul class="divide-y divide-primary-50 md:hidden">${list.map(x => this.card(x)).join('')}</ul>
+            <table class="hidden w-full min-w-190 text-sm md:table">
                 <thead><tr class="border-b border-primary-100">
                     <th class="${TH}">Nhân viên</th><th class="${TH}">Vai trò</th><th class="${TH}">Email</th>
                     <th class="${TH}">Số điện thoại</th><th class="${TH} text-right">Lương cơ bản</th><th class="${TH} text-center">Trạng thái</th><th class="${TH}"><span class="sr-only">Thao tác</span></th>
@@ -73,6 +74,41 @@ class StaffPanel extends HrPanel {
             </table>` : emptyState(
             this.loading ? 'Đang tải…' : s.staff.length ? 'Không có nhân viên phù hợp' : 'Chưa có nhân viên nào',
             s.staff.length ? 'Thử đổi bộ lọc hoặc từ khoá tìm kiếm.' : 'Nhấn “Thêm nhân viên mới” để đăng ký nhân viên và cấp tài khoản đăng nhập.');
+    }
+
+    card(x) {
+        const off = x.status !== 'ACTIVE';
+        return `<li class="flex items-center justify-between gap-3 p-4 ${off ? 'text-secondary-700' : ''}">
+            <div class="min-w-0"><p class="truncate font-bold">${esc(x.name)}</p>
+                <div class="mt-1 flex flex-wrap gap-1">${(x.roleNames ?? []).map(n => chip(cap(n), off ? 'gray' : 'green')).join('') || '<span class="text-xs">Chưa có vai trò</span>'}</div></div>
+            <button type="button" data-act="view" data-id="${x.id}" title="Xem chi tiết" aria-label="Xem chi tiết ${esc(x.name)}"
+                class="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg border border-primary-100 text-primary-600 hover:bg-primary-50">${ICONS.eye}</button></li>`;
+    }
+
+    detail(x) {
+        const off = x.status !== 'ACTIVE';
+        return openDialog({
+            title: 'Chi tiết nhân viên', width: 440,
+            render: (body, close) => {
+                const row = (k, v) => `<dt class="font-semibold text-secondary-700">${k}</dt><dd class="min-w-0 break-words font-medium">${v}</dd>`;
+                body.innerHTML = `
+                <dl class="grid grid-cols-[7.5rem_1fr] gap-x-3 gap-y-3 text-sm">
+                    ${row('Họ tên', esc(x.name))}
+                    ${row('Vai trò', (x.roleNames ?? []).map(n => chip(cap(n), off ? 'gray' : 'green')).join(' ') || '—')}
+                    ${row('Email', esc(x.email))}
+                    ${row('Số điện thoại', esc(x.phoneNumber || '—'))}
+                    ${row('Lương cơ bản', fmtMoney(x.salary))}
+                    ${x.workFrom ? row('Ngày vào làm', esc(x.workFrom)) : ''}
+                    ${row('Trạng thái', `<b class="${off ? 'text-red-500' : 'text-primary-700'}">${off ? 'Đã nghỉ' : 'Đang làm'}</b>`)}
+                </dl>
+                <div class="mt-6 grid gap-3 md:flex md:justify-center">
+                    <p-button data-act="edit" label="Sửa" icon="edit" ${off ? 'disabled' : ''} class="block md:inline-block"></p-button>
+                    <p-button data-act="terminate" label="Tạm ngưng" icon="pause" variant="danger" ${off ? 'disabled' : ''} class="block md:inline-block"></p-button>
+                    <p-button data-act="close" label="Đóng" class="block md:inline-block"></p-button>
+                </div>`;
+                bindActions(body, { edit: () => close('edit'), terminate: () => close('terminate'), close: () => close() });
+            },
+        });
     }
 
     row(x) {
@@ -184,7 +220,12 @@ class StaffPanel extends HrPanel {
     }
 
     actions() {
-        return {
+        const acts = {
+            view: async el => {
+                const st = this.state.staff.find(x => x.id === Number(el.dataset.id));
+                const next = st && await this.detail(st);
+                if (next) acts[next]({ dataset: { id: st.id } });
+            },
             add: async () => {
                 const res = await this.form({});
                 if (!res) return;
@@ -203,6 +244,7 @@ class StaffPanel extends HrPanel {
                 if (ok) this.run(() => hr.terminateStaff(st.id), 'Đã cho nghỉ việc');
             },
         };
+        return acts;
     }
 }
 
