@@ -8,6 +8,7 @@ import './hr/PayrollPanel.js';
 import { hr, ymd, addDays } from '../services/HrService.js';
 import { esc } from './hr/ui.js';
 import { ICONS } from '../icon.js';
+import { logout } from '../services/HttpClient.js';
 
 const STEPS = [
     { key: 'roles', tag: 'hr-roles', icon: 'shield', label: 'Vai trò & phân quyền', desc: 'Tạo các vai trò của cửa hàng và chọn quyền cho từng vai trò.' },
@@ -27,17 +28,19 @@ class SettingsHub extends HTMLElement {
         this.classList.add('block');
         this.innerHTML = `
         <div class="grid items-start gap-4 pb-6 2xl:grid-cols-[250px_minmax(0,1fr)]">
-            <nav aria-label="Các bước thiết lập" class="rounded-2xl bg-white p-3 shadow-sm 2xl:sticky 2xl:top-4">
-                <p class="px-3 pt-2 pb-3 text-xs font-bold uppercase tracking-wide text-secondary-700">Thiết lập nhân sự</p>
-                <ol data-steps class="flex gap-1 overflow-x-auto 2xl:flex-col"></ol>
+            <nav aria-label="Các bước thiết lập" class="min-w-0 rounded-2xl bg-white p-2 shadow-sm md:p-3 2xl:sticky 2xl:top-4">
+                <p class="hidden px-3 pt-2 pb-3 text-xs md:block font-bold uppercase tracking-wide text-secondary-700">Thiết lập nhân sự</p>
+                <ol data-steps class="flex gap-1 overflow-x-auto scroll-smooth pb-1 [scrollbar-width:none] 2xl:flex-col 2xl:overflow-visible"></ol>
             </nav>
             <div class="min-w-0">
-                <div class="mb-4"><h2 data-title class="text-lg font-bold"></h2><p data-desc class="text-sm text-secondary-700"></p></div>
+                <div class="mb-3 md:mb-4"><h2 data-title class="text-lg font-bold"></h2><p data-desc class="text-sm text-secondary-700"></p></div>
                 <div data-outlet></div>
+                <p-button data-act="logout" label="Đăng xuất" icon="logout" variant="danger" class="mt-6 block md:hidden"></p-button>
             </div>
         </div>`;
         this.steps = this.querySelector('[data-steps]');
         this.outlet = this.querySelector('[data-outlet]');
+        this.addEventListener('click', e => { if (e.target.closest('[data-act=logout]')) logout(); });
         this.onHash = () => this.show();
         this.onChanged = () => {
             // Một thao tác ghi có thể phát nhiều sự kiện; gom lại để không bắn loạt request tính số liệu.
@@ -83,11 +86,12 @@ class SettingsHub extends HTMLElement {
         this.steps.innerHTML = STEPS.map((s, i) => {
             const on = s.key === this.key, n = this.summary[s.key], done = n > 0;
             return `<li class="shrink-0 grow 2xl:grow-0"><a href="#${s.key}" ${on ? 'aria-current="step"' : ''}
-                class="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all hover:bg-neutral-50 ${on ? 'bg-primary-50 text-primary-800' : 'text-secondary-800'}">
+                class="flex min-h-11 items-center gap-2 rounded-xl px-2.5 py-2 transition-all md:gap-3 md:px-3 md:py-2.5 hover:bg-neutral-50 ${on ? 'bg-primary-50 text-primary-800' : 'text-secondary-800'}">
                 <span class="grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold ${done ? 'bg-primary-600 text-white' : on ? 'bg-white text-primary-700 ring-2 ring-primary-300' : 'bg-neutral-100 text-secondary-700'}">${done ? '✓' : i + 1}</span>
                 <span class="grid"><span class="text-sm font-bold whitespace-nowrap">${esc(s.label)}</span>
-                ${sub[s.key] && n !== undefined ? `<span class="text-xs font-medium text-secondary-700">${n} ${sub[s.key]}</span>` : ''}</span></a></li>`;
+                ${sub[s.key] && n !== undefined ? `<span class="hidden text-xs md:block font-medium text-secondary-700">${n} ${sub[s.key]}</span>` : ''}</span></a></li>`;
         }).join('');
+        this.steps.querySelector('[aria-current]')?.scrollIntoView({ inline: 'center', block: 'nearest' });
     }
 }
 

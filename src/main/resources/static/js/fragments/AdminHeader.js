@@ -24,9 +24,9 @@ class AppHeader extends HTMLElement {
                     <h4 class="text-text">${title}</h4>
                     <p class="font-extralight text-support-800">${dataTitle}</p>
                 </div>
-                <div class="flex items-center gap-2">
-                    <div class="flex gap-3">
-                        <img class="size-11 rounded-3xl" src="${userImage}" alt="User Image" />
+                <div class="flex w-full flex-wrap items-center gap-2 md:w-auto">
+                    <div class="flex min-w-0 flex-1 items-center gap-3 md:flex-none">
+                        <img class="size-11 shrink-0 rounded-3xl" src="${userImage}" alt="User Image" />
                         <div>
                             <p class="font-bold text-text">${userName}</p>
                             <p class="text-xs text-support-800">${userRole}</p>
@@ -35,9 +35,9 @@ class AppHeader extends HTMLElement {
                     <button type="button" data-loginqr title="Tạo QR đăng nhập trên thiết bị khác" aria-label="Tạo QR đăng nhập trên thiết bị khác"
                         class="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg border border-primary-200 bg-white text-primary-700 hover:border-primary-500">${ICONS.qr}</button>
                     <a data-shop hidden href="${ADMIN_URL}" title="Đổi hoặc chỉnh sửa cửa hàng ở trang Tổng quan"
-                        class="flex mt-2 max-w-full items-center gap-2 rounded-lg border border-primary-200 bg-white px-3 py-1 text-xs text-primary-700">
-                        <span class="text-support-800">Cửa hàng:</span>
-                        <span data-shop-name class="line-clamp-1 font-bold"></span>
+                        class="flex w-full max-w-full items-center gap-2 whitespace-nowrap md:mt-2 md:w-auto rounded-lg border border-primary-200 bg-white px-3 py-1 text-xs text-primary-700">
+                        <span class="shrink-0 text-support-800">Cửa hàng:</span>
+                        <span data-shop-name class="min-w-0 flex-1 truncate font-bold md:flex-none"></span>
                         <span data-shop-status class="shrink-0 rounded-lg px-2 py-0.5 text-[10px] font-bold"></span>
                     </a>
                 </div>

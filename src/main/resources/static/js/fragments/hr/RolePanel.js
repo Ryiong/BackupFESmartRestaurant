@@ -14,14 +14,14 @@ class RolePanel extends HrPanel {
     build() {
         this.innerHTML = `
         <div class="grid items-start gap-4 xl:grid-cols-[260px_minmax(0,1fr)]">
-            <section class="${CARD}" aria-label="Danh sách vai trò">
+            <section class="${CARD} min-w-0" aria-label="Danh sách vai trò">
                 <h2 class="text-base font-bold">Nhóm vai trò của cửa hàng</h2>
                 <div data-list class="mt-3 flex flex-wrap gap-1.5 xl:grid"></div>
                 <div class="mt-4 border-t border-primary-50 pt-4">
                     <p-button data-act="new" label="Tạo nhóm vai trò mới" icon="add" variant="solid"></p-button>
                 </div>
             </section>
-            <section data-detail class="${CARD}" aria-live="polite"></section>
+            <section data-detail class="${CARD} min-w-0" aria-live="polite"></section>
         </div>`;
     }
 
@@ -95,7 +95,7 @@ class RolePanel extends HrPanel {
                     <h2 class="text-lg font-bold">Quyền hạn</h2>
                     <p class="text-sm text-secondary-700">Chức năng quản trị và điều phối nghiệp vụ theo từng vai trò trong cửa hàng</p>
                 </div>
-                <div class="flex flex-wrap gap-2">${owner || gone ? '' : editing ? `
+                <div class="btn-row w-full md:w-auto">${owner || gone ? '' : editing ? `
                     <p-button data-act="save" label="Lưu thay đổi" icon="check" variant="solid"></p-button>
                     <p-button data-act="cancel" label="Huỷ"></p-button>` : `
                     <p-button data-act="edit" label="Chỉnh sửa" icon="edit"></p-button>

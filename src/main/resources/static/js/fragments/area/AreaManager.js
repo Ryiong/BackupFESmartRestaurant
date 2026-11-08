@@ -37,8 +37,8 @@ class AreaManager extends HTMLElement {
         this.innerHTML = `
         <div class="flex flex-col gap-4 pb-6">
             <div class="flex flex-wrap items-start justify-between gap-3">
-                <div data-tabs class="flex min-w-0 flex-1 flex-wrap gap-2" role="tablist" aria-label="Khu vực"></div>
-                <div class="flex flex-wrap gap-2.5">
+                <div data-tabs class="flex min-w-0 w-full flex-wrap gap-2 md:w-auto md:flex-1" role="tablist" aria-label="Khu vực"></div>
+                <div class="btn-row w-full md:w-auto">
                     <p-button data-act="edit-area" label="Chỉnh sửa khu vực" icon="edit"></p-button>
                     <p-button data-act="pause-area" label="Tạm ngưng khu vực" icon="pause" variant="danger"></p-button>
                     <p-button data-act="add-area" label="Thêm khu vực" icon="add" variant="solid"></p-button>

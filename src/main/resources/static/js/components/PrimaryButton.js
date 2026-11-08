@@ -34,10 +34,9 @@ class PrimaryButton extends HTMLElement {
         const type = this.getAttribute('type') ?? 'button'; 
         const variant = VARIANTS[this.getAttribute('variant')] ?? VARIANTS.primary;
 
-        this.classList.add('inline-block');
         this.innerHTML = `
         <button type="${esc(type)}" ${this.disabled ? 'disabled' : ''}
-            class="flex cursor-pointer items-center gap-2 rounded-lg border-2 px-3.5 py-2 transition-all
+            class="flex w-full min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border-2 px-3.5 py-2 transition-all md:min-h-0
                 hover:scale-95 disabled:cursor-not-allowed disabled:opacity-50
                 disabled:hover:scale-100 ${variant}">
                 ${icon}

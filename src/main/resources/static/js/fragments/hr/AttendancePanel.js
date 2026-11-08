@@ -24,10 +24,10 @@ class AttendancePanel extends HrPanel {
                 <button type="button" data-act="next" aria-label="Ngày sau" class="grid size-9 cursor-pointer place-items-center rounded-lg border border-primary-100 bg-white text-primary-700 hover:border-primary-500">${ICONS.chevR}</button>
                 <p-button data-act="today" label="Hôm nay"></p-button>
                 <p-button data-act="qr" label="QR chấm công" icon="qr" variant="solid"></p-button>
-                <input type="date" data-pick aria-label="Chọn ngày" class="${INPUT_CLS} w-auto! py-1.5! text-sm">
+                <input type="date" data-pick aria-label="Chọn ngày" class="${INPUT_CLS} !w-auto !py-1.5 text-sm">
             </div>
-            <div data-sum class="grid gap-3 sm:grid-cols-4"></div>
-            <section class="${CARD} p-0! overflow-hidden"><div data-table class="overflow-x-auto"></div></section>
+            <div data-sum class="grid grid-cols-2 gap-3 sm:grid-cols-4"></div>
+            <section class="${CARD} !p-0 overflow-hidden"><div data-table class="overflow-x-auto"></div></section>
         </div>`;
     }
 
@@ -77,6 +77,7 @@ class AttendancePanel extends HrPanel {
                 ${HR_MODE !== 'spring' && s.attendances.length < 2 && s.date === ymd() ? `<p-button data-act="demo" data-id="${s.id}" label="${s.attendances.length ? 'Chấm ra' : 'Chấm vào'}" icon="plus" title="Mô phỏng nhân viên quét QR (chỉ có ở bản demo)"></p-button>` : ''}
             </div></td></tr>`;
     }
+
     card(s, a) {
         const [stLabel, stTone] = STATE[a.code];
         const [rvLabel, rvTone] = REVIEW[s.attendanceStatus] ?? REVIEW.PENDING;

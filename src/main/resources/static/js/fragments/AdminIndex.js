@@ -41,7 +41,7 @@ function renderShopBar(shops, current) {
             ? '<p class="text-xs text-support-900">Quản trị viên đang xem xét cửa hàng của bạn</p>'
             : '';
     el.bar.innerHTML = `
-        <div class="flex min-w-0 flex-1 flex-col gap-1">
+        <div class="flex min-w-0 flex-1 flex-col gap-1 md:basis-60">
             <div class="flex flex-wrap items-center gap-2.5">
                 ${shops.length > 1
             ? `<label class="sr-only" for="shop-select">Cửa hàng</label>
@@ -54,7 +54,7 @@ function renderShopBar(shops, current) {
             ${meta ? `<p class="text-sm text-support-900">${esc(meta)}</p>` : ''}
             ${note}
         </div>
-        <div class="flex flex-wrap gap-2.5">
+        <div class="btn-row">
             <p-button id="shop-edit" label="Sửa cửa hàng" icon="edit"></p-button>
             <p-button id="shop-create" label="Tạo cửa hàng" icon="add" variant="solid"></p-button>
         </div>`;
