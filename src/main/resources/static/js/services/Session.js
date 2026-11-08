@@ -1,6 +1,6 @@
 import { http } from './HttpClient.js';
 import { auth } from './AuthStore.js';
-import { ADMIN_URL, BASE_URL, LOGIN_URL, STAFF_ATTENDANCE_URL, STAFF_BASE_URL } from '../config.js';
+import { ADMIN_URL, BASE_URL, LOGIN_URL, STAFF_BASE_URL } from '../config.js';
 
 export const publicUrl = path => `${STAFF_BASE_URL || location.origin}${path}`;
 
@@ -18,15 +18,14 @@ export function safeNext(search = location.search) {
 }
 
 export async function landingUrl() {
-    const next = safeNext();
-    if (next) return next;
+    // const next = safeNext();
+    // if (next) return next;
     try {
         const me = await http('GET', '/auth/me');
         auth.setType(me?.type);
-        return me?.type === 'STAFF' ? STAFF_ATTENDANCE_URL : ADMIN_URL;
     } catch {
-        return ADMIN_URL;
     }
+    return ADMIN_URL;
 }
 
 /* ---------- QR đăng nhập sang thiết bị khác ---------- */

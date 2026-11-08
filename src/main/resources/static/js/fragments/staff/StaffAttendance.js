@@ -104,7 +104,7 @@ class StaffAttendance extends HTMLElement {
             <details class="rounded-xl border border-primary-100 bg-white p-3 text-sm">
                 <summary class="cursor-pointer font-semibold text-primary-700">Không quét được? Dán link QR</summary>
                 <div class="mt-2 grid gap-2">
-                    <input data-link type="url" inputmode="url" placeholder="https://…/staff/attendance.html?shop=…" class="w-full rounded-lg border border-primary-200 px-3 py-2">
+                    <input data-link type="url" inputmode="url" placeholder="https:...." class="w-full rounded-lg border border-primary-200 px-3 py-2">
                     <button data-act="paste" class="min-h-11 cursor-pointer rounded-lg border-2 border-primary-100 font-bold text-primary-600">Dùng link này</button>
                 </div>
             </details>

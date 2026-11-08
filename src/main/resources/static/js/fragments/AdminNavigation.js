@@ -22,7 +22,7 @@ class AppNavigation extends HTMLElement {
         if (this.dataset.ready) return;
         if (!requireLogin()) return;
         // Nhân viên không dùng trang quản lý: chuyển sang trang chấm công trên điện thoại.
-        if (auth.user?.type === 'STAFF') { location.replace(STAFF_ATTENDANCE_URL); return; }
+        // if (auth.user?.type === 'STAFF') { location.replace(STAFF_ATTENDANCE_URL); return; }
         this.dataset.ready = '1';
 
         this.classList.add('fixed', 'inset-x-0', 'bottom-0', 'z-50', 'bg-white', 'pb-[env(safe-area-inset-bottom)]',

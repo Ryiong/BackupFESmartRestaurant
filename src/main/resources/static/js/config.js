@@ -1,6 +1,6 @@
 export const API_MODE = 'spring';
 
-export const SPRING_BASE = '/smart-restaurant/v1';
+export const SPRING_BASE = 'http://localhost:8080/smart-restaurant/v1';
 export const BASE_URL = '/main/resources/templates';
 export const LOGIN_URL = `${BASE_URL}/auth/login.html`;
 export const REGISTER_URL = `${BASE_URL}/auth/register.html`;
@@ -20,4 +20,4 @@ export const CUSTOMER_ORDER_PATH = `${BASE_URL}/customer/order.html`;
  * '' thì dùng địa chỉ trang đang mở; khi chạy thật thì đổi sang domain thật.
  * Lưu ý: điện thoại chỉ mở được camera/GPS khi trang chạy bằng HTTPS (hoặc localhost).
  */
-export const STAFF_BASE_URL = 'https://pgfdc9sw-5173.asse.devtunnels.ms';
+export const STAFF_BASE_URL = '';
