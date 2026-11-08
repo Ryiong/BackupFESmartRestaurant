@@ -11,13 +11,13 @@ class AppRegister extends HTMLElement {
   connectedCallback() {
     if (this.dataset.ready) return;
     this.dataset.ready = '1';
-    this.classList.add("w-screen", "flex", "justify-center", "items-center", "h-screen");
+    this.classList.add("w-full", "flex", "justify-center", "items-center", "min-h-dvh", "px-5", "py-8");
     this.renderRegister();
   }
 
   renderRegister() {
     this.innerHTML = `
-        <form id="login-form" class="min-w-md">
+        <form id="login-form" class="w-full max-w-md">
             <h1 class="mb-2">Tạo tài khoản</h1>
             <form-field label="Họ tên" name="name" autocomplete="name" placeholder="Nguyễn Văn A"></form-field>
             <form-field label="Email" name="email" type="email" autocomplete="email" placeholder="example@email.com"></form-field>
@@ -34,7 +34,7 @@ class AppRegister extends HTMLElement {
 
   renderActivate(email) {
     this.innerHTML = `
-        <form id="login-form" class="min-w-md">
+        <form id="login-form" class="w-full max-w-md">
             <h1 class="mb-2">Kích hoạt tài khoản</h1>
             <p class="mb-3">Nhập mã OTP đã gửi tới <b>${email.replace(/[<>&"]/g, '')}</b></p>
             <form-field label="Mã OTP" name="code" autocomplete="one-time-code" placeholder="123456"></form-field>

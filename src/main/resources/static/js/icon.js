@@ -299,6 +299,13 @@ export const ICONS = {
         </g>`,
         'size-5'
     ),
+    qr: icon('0 0 24 24',
+        'none',
+        `<g stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3z"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h3M20 17v4"/>
+        </g>`,
+        'size-5'
+    ),
     name: icon('0 0 24 24',
         'none',
         `<g stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

@@ -1,6 +1,7 @@
 import { auth } from '../services/AuthStore.js';
 import { API_MODE, ADMIN_URL } from '../config.js';
 import { getCurrentShop, onShopChange, STATUS_LABEL } from '../services/ShopService.js';
+import { ICONS } from '../icon.js';
 import { esc, titleCase } from '../utils/format.js';
 
 class AppHeader extends HTMLElement {
@@ -18,7 +19,7 @@ class AppHeader extends HTMLElement {
         this.showShop = API_MODE === 'spring' && !this.hasAttribute('no-shop');
         this.classList.add('block');
         this.innerHTML = `
-            <header class="flex w-full justify-between items-center p-5">
+            <header class="flex w-full flex-wrap justify-between items-center gap-2 p-4 md:p-5">
                 <div>
                     <h4 class="text-text">${title}</h4>
                     <p class="font-extralight text-support-800">${dataTitle}</p>
@@ -31,6 +32,8 @@ class AppHeader extends HTMLElement {
                             <p class="text-xs text-support-800">${userRole}</p>
                         </div>
                     </div>
+                    <button type="button" data-loginqr title="Tạo QR đăng nhập trên thiết bị khác" aria-label="Tạo QR đăng nhập trên thiết bị khác"
+                        class="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg border border-primary-200 bg-white text-primary-700 hover:border-primary-500">${ICONS.qr}</button>
                     <a data-shop hidden href="${ADMIN_URL}" title="Đổi hoặc chỉnh sửa cửa hàng ở trang Tổng quan"
                         class="flex mt-2 max-w-full items-center gap-2 rounded-lg border border-primary-200 bg-white px-3 py-1 text-xs text-primary-700">
                         <span class="text-support-800">Cửa hàng:</span>
@@ -41,6 +44,8 @@ class AppHeader extends HTMLElement {
             </header>
         `;
 
+        this.querySelector('[data-loginqr]').addEventListener('click', async () =>
+            (await import('./auth/LoginQrDialog.js')).loginQrDialog());
         this.chip = this.querySelector('[data-shop]');
         if (API_MODE === 'spring') {
             this.off = onShopChange(() => this.paintShop());
@@ -71,7 +76,7 @@ class AppHeader extends HTMLElement {
         const status = STATUS_LABEL[shop.status];
         badge.hidden = !status;
         if (status) {
-            badge.className = `shrink-0 rounđe-full px-2 py-0.5 text-[10px] font-bold ${status.cls}`;
+            badge.className = `shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${status.cls}`;
             badge.textContent = status.text;
         }
     }

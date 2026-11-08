@@ -23,10 +23,11 @@ class AttendancePanel extends HrPanel {
                 <span data-date class="min-w-44 rounded-lg border border-primary-100 bg-white px-4 py-1.5 text-center text-sm font-bold text-primary-800"></span>
                 <button type="button" data-act="next" aria-label="Ngày sau" class="grid size-9 cursor-pointer place-items-center rounded-lg border border-primary-100 bg-white text-primary-700 hover:border-primary-500">${ICONS.chevR}</button>
                 <p-button data-act="today" label="Hôm nay"></p-button>
-                <input type="date" data-pick aria-label="Chọn ngày" class="${INPUT_CLS} !w-auto !py-1.5 text-sm">
+                <p-button data-act="qr" label="QR chấm công" icon="qr" variant="solid"></p-button>
+                <input type="date" data-pick aria-label="Chọn ngày" class="${INPUT_CLS} w-auto! py-1.5! text-sm">
             </div>
             <div data-sum class="grid gap-3 sm:grid-cols-4"></div>
-            <section class="${CARD} !p-0 overflow-hidden"><div data-table class="overflow-x-auto"></div></section>
+            <section class="${CARD} p-0! overflow-hidden"><div data-table class="overflow-x-auto"></div></section>
         </div>`;
     }
 
@@ -47,7 +48,8 @@ class AttendancePanel extends HrPanel {
             + box('Đi muộn / vắng', st.filter(x => x.late || x.code === 'ABSENT').length, 'text-red-600') + box('Chờ duyệt', pending, 'text-amber-700');
 
         this.querySelector('[data-table]').innerHTML = list.length ? `
-            <table class="w-full min-w-230 text-sm">
+            <ul class="divide-y divide-primary-50 md:hidden">${list.map((s, i) => this.card(s, st[i])).join('')}</ul>
+            <table class="hidden w-full min-w-230 text-sm md:table">
                 <thead class="bg-secondary-50"><tr>
                     <th class="${TH}">Nhân viên</th><th class="${TH}">Ca</th><th class="${TH} text-center">Vào</th><th class="${TH} text-center">Ra</th>
                     <th class="${TH} text-center">Giờ làm</th><th class="${TH}">Chấm công</th><th class="${TH}">Duyệt công</th><th class="${TH}"><span class="sr-only">Thao tác</span></th>
@@ -74,6 +76,21 @@ class AttendancePanel extends HrPanel {
                     <p-button data-act="reject" data-id="${s.id}" label="Từ chối" icon="close" variant="danger"></p-button>` : ''}
                 ${HR_MODE !== 'spring' && s.attendances.length < 2 && s.date === ymd() ? `<p-button data-act="demo" data-id="${s.id}" label="${s.attendances.length ? 'Chấm ra' : 'Chấm vào'}" icon="plus" title="Mô phỏng nhân viên quét QR (chỉ có ở bản demo)"></p-button>` : ''}
             </div></td></tr>`;
+    }
+    card(s, a) {
+        const [stLabel, stTone] = STATE[a.code];
+        const [rvLabel, rvTone] = REVIEW[s.attendanceStatus] ?? REVIEW.PENDING;
+        const pending = s.attendanceStatus === 'PENDING';
+        const full = s.attendances.length >= 2 || s.explanation;
+        return `<li class="grid gap-2 p-4">
+            <div class="flex items-start justify-between gap-2"><div><p class="font-bold">${esc(s.staffName)}</p>
+                <p class="text-xs text-secondary-700">${esc(s.shiftName)} · ${hm(s.startTime)} - ${hm(s.endTime)}</p></div>
+                <div class="flex flex-wrap justify-end gap-1">${chip(stLabel, stTone)}${chip(rvLabel, rvTone)}</div></div>
+            <p class="text-sm tabular-nums">Vào <b class="${a.late ? 'text-red-600' : ''}">${clock(a.inAt)}</b> · Ra <b>${clock(a.outAt)}</b>${workedHours(s) ? ` · ${workedHours(s)} giờ` : ''}</p>
+            ${s.rejectReason ? `<p class="text-xs text-red-600">${esc(s.rejectReason)}</p>` : ''}
+            ${pending ? `<div class="flex gap-2"><p-button data-act="approve" data-id="${s.id}" label="Duyệt" icon="check" ${full ? '' : 'disabled'}></p-button>
+                <p-button data-act="reject" data-id="${s.id}" label="Từ chối" icon="close" variant="danger"></p-button></div>` : ''}
+        </li>`;
     }
 
     go(date) { this.state.date = date; this.reload(); }
@@ -105,6 +122,15 @@ class AttendancePanel extends HrPanel {
             prev: () => this.go(addDays(this.state.date, -1)),
             next: () => this.go(addDays(this.state.date, 1)),
             today: () => this.go(ymd()),
+            qr: async () => {
+                try {
+                    const [{ getShopId, getCurrentShop }, { attendanceQrDialog }] = await Promise.all([
+                        import('../../services/ShopService.js'), import('./AttendanceQrDialog.js')]);
+                    const id = await getShopId();
+                    const shop = await getCurrentShop().catch(() => null);
+                    attendanceQrDialog(id, shop?.name ?? '');
+                } catch (err) { alert(err.message || 'Không mở được QR chấm công.'); }
+            },
             approve: el => { const s = find(el); if (s) this.run(() => hr.reviewAttendance(s.id, 'APPROVED'), 'Đã duyệt công'); },
             reject: async el => {
                 const s = find(el);

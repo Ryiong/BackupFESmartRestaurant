@@ -36,10 +36,16 @@ export const auth = {
     isLoggedIn() {
         return Boolean(get(ACCESS) || get(REFRESH));
     },
-    save({ accessToken, refreshToken, userId, email, name }) {
+    save({ accessToken, refreshToken, userId, email, name, type }) {
         set(ACCESS, accessToken);
         set(REFRESH, refreshToken);
-        set(USER, JSON.stringify({ userId, email, name }));
+        set(USER, JSON.stringify({ userId, email, name, type }));
+    },
+    setType(type) {
+        const u = this.user;
+        if (u) {
+            set(USER, JSON.stringify({ ...u, type }));
+        }
     },
     setAccess(token) {
         set(ACCESS, token);

@@ -64,6 +64,12 @@
 }
 
 @layer base {
+  html { -webkit-tap-highlight-color: transparent; }
+  button, a, [role="button"] { touch-action: manipulation; }
+  /* iOS Safari tự phóng to trang khi ô nhập có chữ nhỏ hơn 16px */
+  @media (max-width: 767px) {
+    input, select, textarea { font-size: 16px; }
+  }
   body {
     background-color: var(--color-support-50);
   }

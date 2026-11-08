@@ -131,9 +131,21 @@ export async function httpAll(path, query = {}, size = 100) {
     return out;
 }
 
+/** Đăng xuất: huỷ refresh token trên máy chủ (nếu được) rồi xoá phiên ở máy này. */
+export async function logout() {
+    try {
+        if (auth.refreshToken) {
+            await http('POST', '/auth/logout', undefined, { query: { refreshToken: auth.refreshToken }, auth: false, retry: false });
+        }
+    }
+    catch { }
+    auth.clear();
+    logoutRedirect();
+}
+
 export function requireLogin() {
     if (!auth.isLoggedIn()) {
-        location.replace(LOGIN_URL);
+        location.replace(`${LOGIN_URL}?next=${encodeURIComponent(location.pathname + location.search)}`);
         return false;
     }
     return true;
