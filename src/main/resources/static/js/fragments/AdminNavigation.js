@@ -99,7 +99,7 @@ class AppNavigation extends HTMLElement {
         const cur = noShop ? null : await getCurrentShop().catch(() => null);
         this.shopStatus = cur?.status ?? null;
         // Chỉ cửa hàng đã được duyệt (ACTIVE) mới dùng được các chức năng.
-        const gated = cur && Boolean(cur.status) && cur.status !== 'ACTIVE'; // backend chưa trả status thì không thể chặn
+        const gated = cur && cur.status !== 'ACTIVE';
         const locked = noShop || Boolean(gated);
         const why = noShop ? 'bạn chưa có cửa hàng nào. Vui lòng tạo cửa hàng trước khi truy cập'
             : cur?.status === 'LOCKED' ? 'cửa hàng đang bị khoá'
