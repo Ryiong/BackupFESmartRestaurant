@@ -5,6 +5,7 @@ export const BASE_URL = '/main/resources/templates';
 export const LOGIN_URL = `${BASE_URL}/auth/login.html`;
 export const REGISTER_URL = `${BASE_URL}/auth/register.html`;
 export const ADMIN_URL = `${BASE_URL}/admin/index.html`;
+export const SYSTEM_URL = `${BASE_URL}/system/shops.html`;
 export const STAFF_ATTENDANCE_URL = `${BASE_URL}/staff/attendance.html`;
 
 /**

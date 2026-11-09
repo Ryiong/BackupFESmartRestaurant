@@ -1,8 +1,8 @@
 import { ICONS, LOGO } from '../icon.js';
 import { requireLogin, logout } from '../services/HttpClient.js';
 import { auth } from '../services/AuthStore.js';
-import { BASE_URL, STAFF_ATTENDANCE_URL } from '../config.js';
-import { listShops, onShopChange } from '../services/ShopService.js';
+import { BASE_URL, STAFF_ATTENDANCE_URL, SYSTEM_URL } from '../config.js';
+import { listShops, getCurrentShop, onShopChange } from '../services/ShopService.js';
 
 const NAV = [
     { href: `${BASE_URL}/admin/index.html`, name: 'Tổng quan', icon: 'dashboard' },
@@ -23,6 +23,7 @@ class AppNavigation extends HTMLElement {
         if (!requireLogin()) return;
         // Nhân viên không dùng trang quản lý: chuyển sang trang chấm công trên điện thoại.
         // if (auth.user?.type === 'STAFF') { location.replace(STAFF_ATTENDANCE_URL); return; }
+        if (auth.user?.type === 'ADMIN') { location.replace(SYSTEM_URL); return; }
         this.dataset.ready = '1';
 
         this.classList.add('fixed', 'inset-x-0', 'bottom-0', 'z-50', 'bg-white', 'pb-[env(safe-area-inset-bottom)]',
@@ -78,7 +79,14 @@ class AppNavigation extends HTMLElement {
         catch { 
             return;
         }
-        const locked = Array.isArray(shops) && shops.length === 0;
+        const noShop = Array.isArray(shops) && shops.length === 0;
+        // Cửa hàng mới tạo ở trạng thái chờ duyệt (hoặc đã bị khoá): chỉ xem được Tổng quan cho tới khi quản trị viên duyệt.
+        const cur = noShop ? null : await getCurrentShop().catch(() => null);
+        const gated = cur && (cur.status === 'PENDING' || cur.status === 'LOCKED');
+        const locked = noShop || Boolean(gated);
+        const why = noShop ? 'bạn chưa có cửa hàng nào. Vui lòng tạo cửa hàng trước khi truy cập'
+            : cur?.status === 'LOCKED' ? 'cửa hàng đang bị khoá'
+                : 'cửa hàng đang chờ quản trị viên phê duyệt';
         const index = NAV[0].href;
         this.querySelectorAll('li[data-nav]').forEach(li => {
             const a = li.querySelector('a');
@@ -89,7 +97,7 @@ class AppNavigation extends HTMLElement {
                 a.removeAttribute('href');
                 a.setAttribute('aria-disabled', 'true');
                 a.tabIndex = -1;
-                a.title = `${li.dataset.name} (Hiện tại không khả dụng vì bạn chưa có cửa hàng nào. Vui lòng tạo cửa hàng trước khi truy cập trang này.)`;
+                a.title = `${li.dataset.name} (Hiện tại không khả dụng vì ${why}.)`;
                 a.classList.add('pointer-events-none');
             } else {
                 a.setAttribute('href', li.dataset.nav);
