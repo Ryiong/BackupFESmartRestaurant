@@ -1,4 +1,5 @@
 import '../../components/PrimaryButton.js';
+import { ADMIN_URL } from '../../config.js';
 import { requireLogin, logout } from '../../services/HttpClient.js';
 import { auth } from '../../services/AuthStore.js';
 import { esc } from '../../utils/format.js';
@@ -52,8 +53,9 @@ class StaffAttendance extends HTMLElement {
     async load() {
         this.loading = true; this.loadError = '';
         this.render();
+        this.noAccess = false;
         try { this.shifts = await listMyShifts(this.shopId); }
-        catch (e) { this.loadError = e.message; this.shifts = []; }
+        catch (e) { this.shifts = []; if (e.noAccess) this.noAccess = true; else this.loadError = e.message; }
         this.loading = false;
         this.render();
     }
@@ -104,11 +106,12 @@ class StaffAttendance extends HTMLElement {
             <details class="rounded-xl border border-primary-100 bg-white p-3 text-sm">
                 <summary class="cursor-pointer font-semibold text-primary-700">Không quét được? Dán link QR</summary>
                 <div class="mt-2 grid gap-2">
-                    <input data-link type="url" inputmode="url" placeholder="https:...." class="w-full rounded-lg border border-primary-200 px-3 py-2">
+                    <input data-link type="url" inputmode="url" placeholder="https://…/staff/attendance.html?shop=…" class="w-full rounded-lg border border-primary-200 px-3 py-2">
                     <button data-act="paste" class="min-h-11 cursor-pointer rounded-lg border-2 border-primary-100 font-bold text-primary-600">Dùng link này</button>
                 </div>
             </details>
             <button data-act="scan" class="flex min-h-14 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-primary-700 text-base font-bold text-white shadow hover:bg-primary-800">Quét QR chấm công</button>
+            <a href="${ADMIN_URL}" class="flex min-h-12 w-full items-center justify-center rounded-2xl border-2 border-primary-100 text-base font-bold text-primary-600 hover:bg-primary-50">Mở trang cửa hàng</a>
             <button data-act="loginqr" class="min-h-11 cursor-pointer text-sm font-semibold text-primary-600">Đăng nhập trên thiết bị khác (tạo QR)</button>
         `;
         this.bind();
@@ -136,16 +139,23 @@ class StaffAttendance extends HTMLElement {
             <ul class="grid gap-1.5">
                 ${row(true, `Đã đăng nhập: <b>${esc(u?.name || u?.email || '')}</b>${u?.type ? ` (${esc(u.type)})` : ''}`)}
                 ${row(!expired, `Mã QR cửa hàng #${esc(this.pending.shopId)}: ${expired ? 'đã hết hạn, hãy quét lại' : 'còn hiệu lực'}`)}
-                ${this.loading ? row(null, 'Đang tải ca làm…') : this.loadError ? row(false, esc(this.loadError))
+                ${this.loading ? row(null, 'Đang tải ca làm…') : this.noAccess ? row(false, 'Không có nội dung: bạn chưa được cấp quyền xem ca làm') : this.loadError ? row(false, esc(this.loadError))
                     : row(open.length > 0, open.length ? `Có ${open.length} ca trong khung giờ chấm công` : (this.shifts.length ? 'Có ca hôm nay nhưng chưa tới (hoặc đã quá) khung giờ chấm công' : `Không tìm thấy ca nào của <b>${esc(u?.email ?? '')}</b> hôm nay${u?.type && u.type !== 'STAFF' ? ' — hãy đăng nhập bằng tài khoản nhân viên được xếp ca' : ''}`))}
                 ${row(null, 'Vị trí: sẽ xin khi bạn bấm chấm công (cần bật GPS)')}
             </ul></section>`;
     }
 
+    empty(text = 'Không có nội dung', sub = '') {
+        return `<div class="grid justify-items-center gap-1 py-6 text-center text-secondary-700">
+            <svg class="size-10 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h8"/></svg>
+            <p class="font-semibold">${esc(text)}</p>${sub ? `<p class="text-xs">${esc(sub)}</p>` : ''}</div>`;
+    }
+
     shiftList(now) {
         if (this.loading) return '<p class="text-sm">Đang tải…</p>';
+        if (this.noAccess) return this.empty('Không có nội dung', 'Bạn chưa được cấp quyền xem mục này.');
         if (this.loadError) return `<p class="text-sm font-semibold text-red-700">${esc(this.loadError)}</p>`;
-        if (!this.shifts.length) return '<p class="text-sm text-secondary-700">Bạn không có ca nào hôm nay.</p>';
+        if (!this.shifts.length) return this.empty('Không có ca làm hôm nay');
         return `<ul class="grid gap-2">${this.shifts.map(s => {
             const state = s.attendances.length >= 2 ? 'Đã xong'
                 : s.attendances.length === 1 ? 'Đã vào ca'
@@ -161,6 +171,7 @@ class StaffAttendance extends HTMLElement {
         const expired = new Date(this.pending.exp) <= Date.now();
         let body;
         if (this.loading) body = '<p class="text-sm">Đang kiểm tra ca làm…</p>';
+        else if (this.noAccess) body = this.empty('Không có nội dung', 'Bạn chưa được cấp quyền xem ca làm nên chưa thể chấm công.');
         else if (!open.length) body = '<p class="text-sm font-semibold text-red-700">Hiện không có ca nào trong khung giờ chấm công (từ 30 phút trước đến 30 phút sau ca).</p>';
         else body = open.map(s => `
             <button data-act="submit" data-id="${s.id}" ${expired || this.busy ? 'disabled' : ''} class="min-h-14 w-full cursor-pointer rounded-xl bg-primary-700 px-4 text-left font-bold text-white disabled:opacity-50">
@@ -227,7 +238,7 @@ class StaffAttendance extends HTMLElement {
             this.busy = false;
             await this.load();
         } catch (err) {
-            this.notice = { ok: false, text: err.message || 'Chấm công thất bại.' };
+            this.notice = { ok: false, text: err.status === 403 ? 'Không có nội dung: bạn chưa được cấp quyền chấm công.' : (err.message || 'Chấm công thất bại.') };
             this.busy = false; this.render();
         }
     }

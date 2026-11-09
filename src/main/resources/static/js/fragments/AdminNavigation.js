@@ -21,8 +21,6 @@ class AppNavigation extends HTMLElement {
     connectedCallback() {
         if (this.dataset.ready) return;
         if (!requireLogin()) return;
-        // Nhân viên không dùng trang quản lý: chuyển sang trang chấm công trên điện thoại.
-        // if (auth.user?.type === 'STAFF') { location.replace(STAFF_ATTENDANCE_URL); return; }
         if (auth.user?.type === 'ADMIN') { location.replace(SYSTEM_URL); return; }
         this.dataset.ready = '1';
 
@@ -30,7 +28,10 @@ class AppNavigation extends HTMLElement {
             'md:inset-x-auto', 'md:top-0', 'md:left-0', 'md:block', 'md:h-screen', 'md:w-min', 'md:pb-0');
         const current = location.pathname;
 
-        const items = NAV.map(n => {
+        // Nhân viên vẫn vào được cửa hàng; thêm lối tắt sang trang chấm công.
+        const nav = auth.user?.type === 'STAFF'
+            ? [...NAV, { href: STAFF_ATTENDANCE_URL, name: 'Chấm công', icon: 'qr', always: true }] : NAV;
+        const items = nav.map(n => {
             const active = current === n.href;
             if (active) document.title = n.name;
             return `
@@ -90,7 +91,7 @@ class AppNavigation extends HTMLElement {
         const index = NAV[0].href;
         this.querySelectorAll('li[data-nav]').forEach(li => {
             const a = li.querySelector('a');
-            const lock = locked && li.dataset.nav !== index;
+            const lock = locked && li.dataset.nav !== index && li.dataset.nav !== STAFF_ATTENDANCE_URL;
             li.classList.toggle('opacity-40', lock);
             li.classList.toggle('cursor-not-allowed', lock);
             if (lock) {

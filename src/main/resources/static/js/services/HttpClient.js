@@ -113,7 +113,10 @@ export async function http(method,
     }
 
     if (!res.ok) {
-        throw new Error(payload?.message || (res.status === 403 ? 'Bạn không có quyền thực hiện thao tác này' : 'Có lỗi xảy ra, vui lòng thử lại'));
+        throw Object.assign(
+            new Error(payload?.message || (res.status === 403 ? 'Bạn không có quyền thực hiện thao tác này' : 'Có lỗi xảy ra, vui lòng thử lại')),
+            { status: res.status },
+        );
     }
 
     return payload && 'data' in payload ? payload.data : payload;
@@ -135,16 +138,15 @@ export async function httpAll(path, query = {}, size = 100) {
 export async function logout() {
     try {
         if (auth.refreshToken) {
-            await http('POST', '/auth/logout', undefined, { query: { refreshToken: auth.refreshToken }, auth: false, retry: false });
+            await http('POST', '/auth/logout', undefined, { query: { refreshToken: auth.refreshToken }, auth: false });
         }
-    }
-    catch { }
-    auth.clear();
+    } catch { /* vẫn đăng xuất phía client */ }
     logoutRedirect();
 }
 
 export function requireLogin() {
     if (!auth.isLoggedIn()) {
+        // Nhớ trang đang mở (vd link QR chấm công) để đăng nhập xong quay lại đúng chỗ.
         location.replace(`${LOGIN_URL}?next=${encodeURIComponent(location.pathname + location.search)}`);
         return false;
     }
