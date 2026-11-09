@@ -22,3 +22,6 @@ export const CUSTOMER_ORDER_PATH = `${BASE_URL}/customer/order.html`;
  * Lưu ý: điện thoại chỉ mở được camera/GPS khi trang chạy bằng HTTPS (hoặc localhost).
  */
 export const STAFF_BASE_URL = '';
+
+/** Chữ hiển thị khi máy chủ từ chối quyền (403): giao diện không báo lỗi mà hiện "không có nội dung". */
+export const NO_CONTENT = 'Không có nội dung';

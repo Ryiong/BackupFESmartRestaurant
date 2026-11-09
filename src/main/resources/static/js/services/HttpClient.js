@@ -1,4 +1,4 @@
-import { SPRING_BASE, LOGIN_URL } from '../config.js';
+import { SPRING_BASE, LOGIN_URL, NO_CONTENT } from '../config.js';
 import { auth } from './AuthStore.js';
 
 const buildUrl = (path, query) => {
@@ -113,6 +113,8 @@ export async function http(method,
     }
 
     if (!res.ok) {
+        // Đã đăng nhập mà bị từ chối quyền: không lộ "Access Denied", báo chung là không có nội dung.
+        if (res.status === 403 && useAuth) throw Object.assign(new Error(NO_CONTENT), { status: 403, noAccess: true });
         throw Object.assign(
             new Error(payload?.message || (res.status === 403 ? 'Bạn không có quyền thực hiện thao tác này' : 'Có lỗi xảy ra, vui lòng thử lại')),
             { status: res.status },

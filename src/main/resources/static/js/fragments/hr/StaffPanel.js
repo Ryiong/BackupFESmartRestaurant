@@ -4,6 +4,7 @@ import { hr, cap, ymd } from '../../services/HrService.js';
 import { openDialog, confirmDialog } from '../../utils/dialog.js';
 import { HrPanel, esc, INPUT_CLS, CARD, TH, chip, field, notice, emptyState, SELECT_CLS, bindActions, toast, fmtMoney, copyText } from './ui.js';
 import { ICONS } from '../../icon.js';
+import { NO_CONTENT } from '../../config.js';
 
 
 const genPassword = () => {
@@ -52,7 +53,7 @@ class StaffPanel extends HrPanel {
         sel.innerHTML = `<option value="">Mọi vai trò</option>${s.roles.map(r => `<option value="${r.id}" ${String(r.id) === s.role ? 'selected' : ''}>${esc(cap(r.name))}</option>`).join('')}`;
 
         this.querySelector('[data-banner]').innerHTML = [
-            s.staffError ? notice(`Không tải được danh sách nhân viên: ${esc(s.staffError)}. Bạn vẫn có thể thêm nhân viên mới nếu có quyền tạo; nếu lỗi là thiếu quyền, hãy kiểm tra quyền <code>PERM_EMPLOYMENT_VIEW</code> của vai trò Owner ở backend rồi đăng nhập lại.`) : '',
+            s.staffError && s.staffError !== NO_CONTENT ? notice(`Không tải được danh sách nhân viên: ${esc(s.staffError)}. Bạn vẫn có thể thêm nhân viên mới nếu có quyền tạo; nếu lỗi là thiếu quyền, hãy kiểm tra quyền <code>PERM_EMPLOYMENT_VIEW</code> của vai trò Owner ở backend rồi đăng nhập lại.`) : '',
             !s.roles.length ? notice('Chưa có vai trò nào. Hãy <a href="#roles" class="font-bold underline">tạo vai trò ở bước 1</a> trước khi thêm nhân viên.') : '',
         ].filter(Boolean).join('<div class="h-3"></div>');
         this.querySelector('[data-act="add"]').toggleAttribute('disabled', !s.roles.length);
@@ -71,7 +72,7 @@ class StaffPanel extends HrPanel {
                     <th class="${TH}">Số điện thoại</th><th class="${TH} text-right">Lương cơ bản</th><th class="${TH} text-center">Trạng thái</th><th class="${TH}"><span class="sr-only">Thao tác</span></th>
                 </tr></thead>
                 <tbody>${list.map(x => this.row(x)).join('')}</tbody>
-            </table>` : emptyState(
+            </table>` : s.staffError === NO_CONTENT && !this.loading ? emptyState(NO_CONTENT) : emptyState(
             this.loading ? 'Đang tải…' : s.staff.length ? 'Không có nhân viên phù hợp' : 'Chưa có nhân viên nào',
             s.staff.length ? 'Thử đổi bộ lọc hoặc từ khoá tìm kiếm.' : 'Nhấn “Thêm nhân viên mới” để đăng ký nhân viên và cấp tài khoản đăng nhập.');
     }

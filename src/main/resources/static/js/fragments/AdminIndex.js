@@ -3,7 +3,7 @@ import './AdminHeader.js';
 import '../components/StatRing.js';
 import '../components/RevenueChart.js';
 import '../components/PrimaryButton.js';
-import { API_MODE } from '../config.js';
+import { API_MODE, NO_CONTENT } from '../config.js';
 import { revenueService } from '../services/RevenueService.js';
 import { getTableStats, getProductStats } from '../services/DashboardService.js';
 import { listShops, getCurrentShop, setCurrentShopId, onShopChange, STATUS_LABEL } from '../services/ShopService.js';
@@ -64,7 +64,7 @@ function renderShopBar(shops, current) {
     el.bar.querySelector('#shop-create').addEventListener('click', createShopFlow);
 }
 
-const fail = (node, what) => set(node, { note: `Không tải được ${what}` });
+const fail = (node, what, err) => set(node, { note: err?.noAccess ? NO_CONTENT : `Không tải được ${what}` });
 
 async function loadRevenue() {
     const now = new Date();
@@ -119,7 +119,7 @@ async function refresh() {
         const results = await Promise.allSettled(jobs.map(([fn]) => fn()));
         const errors = [];
         results.forEach((r, i) => {
-            if (r.status === 'rejected') { fail(jobs[i][1], jobs[i][2]); errors.push(r.reason?.message); }
+            if (r.status === 'rejected') { fail(jobs[i][1], jobs[i][2], r.reason); if (!r.reason?.noAccess) errors.push(r.reason?.message); }
         });
         el.error.hidden = !errors.length;
         el.error.textContent = errors.length ? [...new Set(errors)].join(' · ') : '';
@@ -133,7 +133,10 @@ async function init() {
     if (SPRING) {
         let shops;
         try { shops = await listShops({ force: true }); }
-        catch (err) { el.error.hidden = false; el.error.textContent = err.message; el.dashboard.hidden = false; return; }
+        catch (err) {
+            if (err.noAccess) { el.bar.innerHTML = ''; el.dashboard.hidden = true; el.error.hidden = false; el.error.className = 'mx-5 mb-4 py-16 text-center text-sm font-semibold text-secondary-700'; el.error.textContent = NO_CONTENT; return; }
+            el.error.hidden = false; el.error.textContent = err.message; el.dashboard.hidden = false; return;
+        }
 
         if (!shops.length) {
             el.bar.innerHTML = '';

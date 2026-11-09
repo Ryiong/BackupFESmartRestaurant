@@ -120,10 +120,11 @@ export const recipeTable = list => table(
         <td class="${TD} text-right"><button type="button" data-act="open-recipe" data-id="${esc(p.id)}" class="cursor-pointer font-bold text-text underline hover:text-primary-700">Công thức</button></td>
     </tr>`).join(''));
 
-export const stateHtml = (message, { retry = false } = {}) => `
+import { NO_CONTENT } from '../../config.js';
+export const stateHtml = (message, { retry = false } = {}) => (retry = retry && message !== NO_CONTENT, `
     <div class="flex flex-col items-center gap-3 py-16 text-center">
         <p class="max-w-md text-sm text-secondary-700">${esc(message)}</p>
         ${retry ? '<p-button data-act="retry" label="Thử lại" icon="check"></p-button>' : ''}
-    </div>`;
+    </div>`);
 
 export const skeletonRows = (n = 6) => `<div class="animate-pulse space-y-3 py-3">${Array.from({ length: n }, () => '<div class="h-9 rounded-lg bg-primary-50"></div>').join('')}</div>`;

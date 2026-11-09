@@ -1,5 +1,6 @@
 import '../components/PrimaryButton.js';
 import { esc } from './format.js';
+import { NO_CONTENT } from '../config.js';
 
 export function openDialog({ title, width = 480, render }) {
     return new Promise(resolve => {
@@ -64,6 +65,7 @@ export function confirmDialog({ title, message, confirmLabel = 'Xác nhận', co
 }
 
 export function toast(message, type = 'error') {
+    if (message === NO_CONTENT) return; // thiếu quyền: ẩn đi, không báo lỗi
     let host = document.getElementById('toast-host');
     if (!host) {
         host = document.createElement('div');

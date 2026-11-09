@@ -41,11 +41,10 @@ export const auth = {
         set(REFRESH, refreshToken);
         set(USER, JSON.stringify({ userId, email, name, type }));
     },
+    /** Loại tài khoản (ADMIN / OWNER / STAFF) lấy từ /auth/me, dùng để đưa người dùng về đúng trang. */
     setType(type) {
         const u = this.user;
-        if (u) {
-            set(USER, JSON.stringify({ ...u, type }));
-        }
+        if (u) set(USER, JSON.stringify({ ...u, type }));
     },
     setAccess(token) {
         set(ACCESS, token);

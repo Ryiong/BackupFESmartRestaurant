@@ -2,6 +2,11 @@ import { openDialog, bindActions } from './dialog.js';
 import { startScan, decodeImageFile, canUseCamera } from './qrScan.js';
 import { esc } from './format.js';
 
+/**
+ * Hộp thoại quét QR bằng camera (có thêm cách chọn ảnh khi camera không dùng được).
+ * `accept(text)` kiểm tra mã vừa quét: trả về giá trị hợp lệ, hoặc ném Error / trả null nếu không đúng loại mã.
+ * Resolve giá trị hợp lệ đầu tiên, hoặc undefined nếu người dùng đóng hộp thoại.
+ */
 export function scanQrDialog({ title = 'Quét mã QR', hint = 'Đưa mã QR vào giữa khung hình.', accept = t => t }) {
     return openDialog({
         title,
@@ -28,6 +33,7 @@ export function scanQrDialog({ title = 'Quét mã QR', hint = 'Đưa mã QR vào
                 el.classList.toggle('text-secondary-800', !bad);
             };
 
+            // Trả về true nếu mã hợp lệ (và đã đóng hộp thoại), false nếu là mã khác loại.
             const handle = text => {
                 let value;
                 try { value = accept(text); } catch (err) { msg(err.message || 'Mã QR không hợp lệ', true); return false; }
