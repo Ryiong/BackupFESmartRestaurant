@@ -55,12 +55,12 @@ function renderShopBar(shops, current) {
             ${note}
         </div>
         <div class="btn-row">
-            <p-button id="shop-edit" label="Sửa cửa hàng" icon="edit"></p-button>
+            <p-button id="shop-edit" label="Sửa cửa hàng" icon="edit" ${current.status !== 'ACTIVE' ? 'disabled title="Chỉ sửa được sau khi quản trị viên duyệt cửa hàng"' : ''}></p-button>
             <p-button id="shop-create" label="Tạo cửa hàng" icon="add" variant="solid"></p-button>
         </div>`;
         
     el.bar.querySelector('#shop-select')?.addEventListener('change', e => setCurrentShopId(e.target.value));
-    el.bar.querySelector('#shop-edit').addEventListener('click', () => shopEditDialog(current));
+    el.bar.querySelector('#shop-edit').addEventListener('click', () => { if (current.status === 'ACTIVE') shopEditDialog(current); });
     el.bar.querySelector('#shop-create').addEventListener('click', createShopFlow);
 }
 
@@ -129,6 +129,32 @@ async function refresh() {
     }
 }
 
+/** Cửa hàng chưa được quản trị viên cho phép hoạt động: tắt toàn bộ tính năng, chỉ báo "đang chờ duyệt" hoặc lý do bị từ chối/khoá. */
+function renderGate(shop) {
+    let box = document.getElementById('shop-gate');
+    if (shop.status === 'ACTIVE') { box?.remove(); return false; }
+    if (!box) {
+        box = document.createElement('div');
+        box.id = 'shop-gate';
+        el.bar.after(box);
+    }
+    const reason = String(shop.statusReason ?? '').trim();
+    const locked = shop.status === 'LOCKED';
+    // Backend giữ trạng thái chờ duyệt khi từ chối và chỉ ghi lý do, nên PENDING kèm lý do nghĩa là bị từ chối duyệt.
+    const [tone, title, text] = locked
+        ? ['red', 'Cửa hàng đã bị khoá', 'Toàn bộ chức năng (đặt bàn, thực đơn, kho…) đang tạm tắt.']
+        : reason
+            ? ['red', 'Cửa hàng bị từ chối duyệt', 'Toàn bộ chức năng đang tắt. Hãy chỉnh lại thông tin theo lý do dưới đây rồi liên hệ quản trị viên để được xem xét lại.']
+            : ['amber', 'Đang chờ duyệt', 'Cửa hàng chỉ hoạt động sau khi quản trị viên cho phép. Toàn bộ chức năng (đặt bàn, thực đơn, kho…) sẽ mở sau khi được duyệt.'];
+    box.className = `mx-4 my-4 rounded-2xl border-2 p-5 md:mx-5 ${tone === 'red' ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-900'}`;
+    box.setAttribute('role', 'status');
+    box.innerHTML = `<p class="text-base font-bold">${title}</p><p class="mt-1 text-sm">${text}</p>
+        ${reason ? `<p class="mt-3 rounded-lg bg-white/70 p-3 text-sm"><b>Lý do:</b> ${esc(reason)}</p>` : ''}`;
+    el.onboarding.hidden = true;
+    el.dashboard.hidden = true;
+    return true;
+}
+
 async function init() {
     if (SPRING) {
         let shops;
@@ -144,7 +170,9 @@ async function init() {
             el.onboarding.hidden = false;
             return;
         }
-        renderShopBar(shops, await getCurrentShop());
+        const cur = await getCurrentShop();
+        renderShopBar(shops, cur);
+        if (renderGate(cur)) return;
     }
     el.onboarding.hidden = true;
     el.dashboard.hidden = false;

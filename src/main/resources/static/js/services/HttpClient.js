@@ -87,6 +87,7 @@ export async function http(method,
     try {
         res = await fetch(buildUrl(path, query), {
             method,
+            cache: 'no-store', // không để trình duyệt dùng bản cũ (vd. trạng thái duyệt cửa hàng)
             headers,
             body: body === undefined ? undefined : isForm ? body : text ? String(body) : JSON.stringify(body),
         });
@@ -114,7 +115,10 @@ export async function http(method,
 
     if (!res.ok) {
         // Đã đăng nhập mà bị từ chối quyền: không lộ "Access Denied", báo chung là không có nội dung.
-        if (res.status === 403 && useAuth) throw Object.assign(new Error(NO_CONTENT), { status: 403, noAccess: true });
+        if (res.status === 403 && useAuth) {
+            if (method === 'GET') window.dispatchEvent(new CustomEvent('sr:no-access'));
+            throw Object.assign(new Error(NO_CONTENT), { status: 403, noAccess: true });
+        }
         throw Object.assign(
             new Error(payload?.message || (res.status === 403 ? 'Bạn không có quyền thực hiện thao tác này' : 'Có lỗi xảy ra, vui lòng thử lại')),
             { status: res.status },

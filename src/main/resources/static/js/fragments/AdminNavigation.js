@@ -1,4 +1,5 @@
 import { ICONS, LOGO } from '../icon.js';
+import '../utils/noAccess.js';
 import { requireLogin, logout } from '../services/HttpClient.js';
 import { auth } from '../services/AuthStore.js';
 import { BASE_URL, STAFF_ATTENDANCE_URL, SYSTEM_URL } from '../config.js';
@@ -70,6 +71,19 @@ class AppNavigation extends HTMLElement {
 
         this.applyShopGate();
         onShopChange(() => this.applyShopGate());
+        // Quản trị viên duyệt/khoá khi trang đang mở: quay lại trang (hoặc về tab) thì kiểm tra lại, đổi trạng thái thì tải lại.
+        const recheck = async () => {
+            if (document.hidden || !this.isConnected) return;
+            try {
+                const before = this.shopStatus;
+                await listShops({ force: true });
+                const cur = await getCurrentShop().catch(() => null);
+                if (before !== undefined && (cur?.status ?? null) !== before) location.reload();
+            } catch { /* bỏ qua */ }
+        };
+        document.addEventListener('visibilitychange', recheck);
+        window.addEventListener('focus', recheck);
+        window.addEventListener('pageshow', e => { if (e.persisted) location.reload(); });
     }
 
     async applyShopGate() {
@@ -83,7 +97,9 @@ class AppNavigation extends HTMLElement {
         const noShop = Array.isArray(shops) && shops.length === 0;
         // Cửa hàng mới tạo ở trạng thái chờ duyệt (hoặc đã bị khoá): chỉ xem được Tổng quan cho tới khi quản trị viên duyệt.
         const cur = noShop ? null : await getCurrentShop().catch(() => null);
-        const gated = cur && (cur.status === 'PENDING' || cur.status === 'LOCKED');
+        this.shopStatus = cur?.status ?? null;
+        // Chỉ cửa hàng đã được duyệt (ACTIVE) mới dùng được các chức năng.
+        const gated = cur && cur.status !== 'ACTIVE';
         const locked = noShop || Boolean(gated);
         const why = noShop ? 'bạn chưa có cửa hàng nào. Vui lòng tạo cửa hàng trước khi truy cập'
             : cur?.status === 'LOCKED' ? 'cửa hàng đang bị khoá'
@@ -109,6 +125,8 @@ class AppNavigation extends HTMLElement {
             }
         });
         if (locked && location.pathname !== index) {
+            // Ẩn ngay nội dung trang trong lúc chuyển về Tổng quan để không lộ chức năng khi chưa được duyệt.
+            [...(this.nextElementSibling?.children ?? [])].filter(e => e.tagName !== 'APP-HEADER').forEach(e => { e.style.display = 'none'; });
             location.replace(index);
         }
     }
