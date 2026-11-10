@@ -201,10 +201,6 @@ export function areaEditorDialog({ area }) {
                         <div class="grid grid-cols-[88px_1fr] items-center gap-2.5">
                             <label for="tf-name" class="text-sm font-semibold">Tên bàn</label>
                             <input id="tf-name" data-f="t-name" maxlength="30" autocomplete="off" value="${esc(editing.name)}" class="${INPUT_CLS}">
-                            <label for="tf-cap" class="text-sm font-semibold">Sức chứa</label>
-                            <select id="tf-cap" data-f="t-cap" class="${INPUT_CLS}">
-                                ${caps.map(c => `<option value="${c}" ${c === editing.capacity ? 'selected' : ''}>${c} khách</option>`).join('')}
-                            </select>
                         </div>
                         <div class="mt-4 flex flex-wrap gap-2.5">
                             <p-button data-act="table-save" label="Lưu" icon="check" variant="solid"></p-button>
