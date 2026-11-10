@@ -7,7 +7,7 @@
 4. Đăng nhập trên thiết bị khác bằng QR: Đã hoạt động
 ## Owner
 ### Tổng quan
-1. Tạo cửa hàng: Đã hoạt động (Lỗi cần sửa: Không)
+1. Tạo cửa hàng: Đã hoạt động (API hiện chưa trả lại giá trị status để chuyển đổi sang cửa hàng đã hoạt động)
 2. Chuyển đổi cửa hàng: Đã hoạt động (Lỗi cần sửa: Không)
 3. Sửa cửa hàng: Đã hoạt động (Lỗi cần sửa: Không)
 4. Hiển thị người dùng đăng nhập: Đã hoạt động (Lỗi cần sửa: Không)
@@ -83,7 +83,7 @@
 1. Menu order cho người dùng
 
 ## Admin
-1. Duyệt cửa hàng
+1. Duyệt cửa hàng: Đã hoạt động
 2. Kiểm soát...
 ## UI/UX
 1. Tối ưu giao diện cho điện thoại và màn hình nhỏ
