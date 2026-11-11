@@ -73,10 +73,10 @@
   --color-accent-800: #8a2e2e;
   --color-accent-900: #5c1f1f;
 
-  /* Support: kem / xám trung tính (nền, viền, chữ phụ) */
-  --color-support-50: #ffffff;
+  /* Support:  */
+  --color-support-50: #F5F5F5;
   --color-support-100: #106C56;
-  --color-support-200: #ededed;
+  --color-support-200: #9FC4BB;
   --color-support-300: #e8e5dc;
   --color-support-400: #b0b0b0;
   --color-support-500: #8c8c8c;
@@ -178,6 +178,10 @@
 
   span {
     font-size: var(--text-xs);
+  }
+
+  p, span {
+    color: var(--text);
   }
 }
 

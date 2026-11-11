@@ -38,7 +38,7 @@ function renderShopBar(shops, current) {
     const note = current.status === 'LOCKED' && current.statusReason
         ? `<p class="text-xs font-semibold text-red-700">Lý do khoá: ${esc(current.statusReason)}</p>`
         : current.status === 'PENDING'
-            ? '<p class="text-xs text-support-900">Quản trị viên đang xem xét cửa hàng của bạn</p>'
+            ? '<p class="text-s text-support-900">Quản trị viên đang xem xét cửa hàng của bạn</p>'
             : '';
     el.bar.innerHTML = `
         <div class="flex min-w-0 flex-1 flex-col gap-1 md:basis-60">
@@ -51,7 +51,7 @@ function renderShopBar(shops, current) {
             : `<h2 class="min-w-0 truncate text-lg font-bold text-text">${esc(titleCase(current.name))}</h2>`}
                 ${status ? `<span class="shrink-0 rounded-full px-3 py-1 text-xs font-bold ${status.cls}">${status.text}</span>` : ''}
             </div>
-            ${meta ? `<p class="text-sm text-support-900">${esc(meta)}</p>` : ''}
+            ${meta ? `<p class="text-s text-text font-medium">Thời gian hoạt động: ${esc(meta)}</p>` : ''}
             ${note}
         </div>
         <div class="btn-row">
@@ -146,9 +146,9 @@ function renderGate(shop) {
         : reason
             ? ['red', 'Cửa hàng bị từ chối duyệt', 'Toàn bộ chức năng đang tắt. Hãy chỉnh lại thông tin theo lý do dưới đây rồi liên hệ quản trị viên để được xem xét lại.']
             : ['amber', 'Đang chờ duyệt', 'Cửa hàng chỉ hoạt động sau khi quản trị viên cho phép. Toàn bộ chức năng (đặt bàn, thực đơn, kho…) sẽ mở sau khi được duyệt.'];
-    box.className = `mx-4 my-4 rounded-2xl border-2 p-5 md:mx-5 ${tone === 'red' ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-900'}`;
+    box.className = `mx-4 my-4 rounded-2xl border-2 p-5 md:mx-5 ${tone === 'red' ? 'border-red-200 bg-red-50 text-red-800' : 'border-primary-200 bg-primary-50 text-primary-900'}`;
     box.setAttribute('role', 'status');
-    box.innerHTML = `<p class="text-base font-bold">${title}</p><p class="mt-1 text-sm">${text}</p>
+    box.innerHTML = `<p class="text-base font-bold text-text">${title}</p><p class="mt-1 text-sm text-text">${text}</p>
         ${reason ? `<p class="mt-3 rounded-lg bg-white/70 p-3 text-sm"><b>Lý do:</b> ${esc(reason)}</p>` : ''}`;
     el.onboarding.hidden = true;
     el.dashboard.hidden = true;

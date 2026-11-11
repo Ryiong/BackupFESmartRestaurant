@@ -83,24 +83,24 @@ class RevenueChart extends HTMLElement {
             </div>`).join('');
 
         const labels = rows.map((r, i) => `
-            <span class="flex-1 whitespace-nowrap text-center text-xs text-primary-700">
+            <span class="flex-1 whitespace-nowrap text-center text-xs text-text">
                 ${i % every === 0 || i === rows.length - 1 ? esc(r.label) : ''}
             </span>`).join('');
 
         this.classList.add('block');
 
         this.innerHTML = `
-        <section class="rounded-2xl bg-white p-4 shadow-md">
+        <section class="bg-white p-4 shadow">
             <header class="mb-2 flex items-center justify-between">
-                <h2 class="text-lg font-extrabold text-primary-700">${esc(title)}</h2>
-                <a href="${esc(href)}" class="font-semibold text-primary-700 hover:underline">Xem chi tiết &gt;&gt;</a>
+                <h2 class="text-lg font-extrabold text-text">${esc(title)}</h2>
+                <a href="${esc(href)}" class="font-semibold text-text hover:underline">Xem chi tiết &gt;&gt;</a>
             </header>
             <div class="relative">
                 <div class="flex h-44 flex-col justify-between">${grid}</div>
                 <div class="absolute inset-y-0 right-0 left-8 flex">${bars}</div>
             </div>
             <div class="mt-1 flex pl-8">${labels}</div>
-            <p class="mt-1 text-sm text-primary-700">${esc(unit)}</p>
+            <p class="mt-1 text-sm text-text">${esc(unit)}</p>
         </section>`;
     }
 }

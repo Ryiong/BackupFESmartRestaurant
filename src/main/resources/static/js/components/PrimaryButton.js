@@ -2,9 +2,9 @@ import { ICONS } from '../icon.js';
 import { esc } from '../utils/format.js';
 
 const VARIANTS = {
-    primary: 'border-primary-600 text-text hover:border-primary-500 bg-white',
+    primary: 'border-primary-600 text-primary-600 hover:border-primary-700 hover:text-primary-700',
     danger: 'border-red-200 text-red-500 hover:border-red-500 bg-white',
-    solid: 'border-primary-300 bg-primary-700 text-white hover:bg-primary-400',
+    solid: 'border-primary-300 bg-primary-300 text-text hover:bg-primary-400',
 };
 
 class PrimaryButton extends HTMLElement {

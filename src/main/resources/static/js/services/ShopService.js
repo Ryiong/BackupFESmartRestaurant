@@ -12,7 +12,7 @@ const listeners = new Set();
 
 export const STATUS_LABEL = {
     PENDING: { text: 'Chờ duyệt', cls: 'bg-amber-100 text-amber-800' },
-    ACTIVE: { text: 'Đang hoạt động', cls: 'bg-support-100 text-white' },
+    ACTIVE: { text: 'Đang hoạt động', cls: 'bg-support-200 text-support-100' },
     LOCKED: { text: 'Đã khoá', cls: 'bg-red-100 text-red-700' },
 };
 

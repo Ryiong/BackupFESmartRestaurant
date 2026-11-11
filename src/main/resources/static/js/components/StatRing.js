@@ -32,7 +32,7 @@ class StatRing extends HTMLElement {
 
         this.classList.add('block');
         this.innerHTML = `
-        <div class="flex items-center justify-between gap-4 rounded-2xl bg-white p-4 shadow-md">
+        <div class="flex items-center justify-between gap-4 bg-support-50 p-4 border-b-2 border-primary-500 hover:scale-105 transition-all">
             <div>
                 <p class="text-sm font-bold text-primary-600">${esc(label)}</p>
                 <p class="${isMoney ? 'text-2xl' : 'text-3xl'} font-bold text-text">${esc(shown)}</p>
