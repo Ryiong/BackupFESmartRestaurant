@@ -8,10 +8,10 @@ export function openDialog({ title, width = 480, render }) {
         dlg.className = 'm-auto overflow-hidden rounded-2xl bg-white p-0 text-text shadow-xl backdrop:bg-black/40';
         dlg.style.width = `min(94vw, ${width}px)`;
         dlg.innerHTML = `
-            <header class="relative bg-primary-50 px-10 py-2 text-center text-sm font-bold uppercase text-primary-800">
+            <header class="relative bg-primary-50 px-10 py-2 text-center text-sm font-bold uppercase text-text">
                 ${esc(title)}
             </header>
-            <div data-body class="min-h-0 max-h-[70vh] p-5 overflow-x-hidden overflow-y-auto scrollbar-thin scroll-smooth scrollbar-thumb-primary-200"></div>
+            <div data-body class="min-h-0 max-h-[70vh] p-5 overflow-x-hidden overflow-y-auto scrollbar-thin scroll-smooth scrollbar-thumb-primary-100"></div>
         `;
 
         let result;

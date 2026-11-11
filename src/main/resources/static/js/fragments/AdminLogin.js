@@ -39,13 +39,13 @@ class AppLogin extends HTMLElement {
               </div>
               <p id="login-form-pw__error" data-error="" role="alert" class="flex items-center gap-1.5 mt-1.5 mb-1.5 text-bug font-medium empty:hidden"></p>
             </div>
-            <button id="login-form__submit" type="submit" class="w-full min-h-12.5 border rounded-xl bg-primary-700 text-white font-bold cursor-pointer shadow-[0_8px_20px_-8px_rgba(20,83,45,.6)] hover:bg-primary-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-700">Đăng nhập</button>
+            <button id="login-form__submit" type="submit" class="w-full min-h-12.5 border border-primary-300 rounded-xl bg-primary-300 text-text font-bold cursor-pointer shadow-[0_8px_20px_-8px_rgba(20,83,45,.6)] hover:bg-primary-500 hover:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-700">Đăng nhập</button>
           <div id="login-form__live" role="status" aria-live="polite" data-live=""></div>
         </form>
         <button id="login-qr" type="button" class="mt-3 flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-primary-100 bg-white font-bold text-primary-600 hover:border-primary-600">
           Quét QR đăng nhập
         </button>
-        <p id="login-form__foot" class="mt-6 text-text text-center">Chưa có tài khoản? <a id="login-form__link" href="${REGISTER_URL}" class="text-primary-600 font-medium no-underline rounded-sm">Tạo tài khoản</a></p>
+        <p id="login-form__foot" class="mt-6 text-text text-center">Chưa có tài khoản? <a id="login-form__link" href="${REGISTER_URL}" class="text-primary-600 font-bold hover:underline hover:underline-offset-3 no-underline rounded-sm">Tạo tài khoản</a></p>
         </div>
       `;
     this.form = this.querySelector('#login-form');

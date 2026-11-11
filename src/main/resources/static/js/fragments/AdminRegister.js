@@ -4,7 +4,7 @@ import '../components/HiddenInputWithLabel.js';
 import { LOGIN_URL } from '../config.js';
 import { http } from '../services/HttpClient.js';
 
-const BTN = 'w-full min-h-12.5 border rounded-xl bg-primary-700 text-white font-bold cursor-pointer shadow-[0_8px_20px_-8px_rgba(20,83,45,.6)] hover:bg-primary-800 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-700';
+const BTN = 'w-full min-h-12.5 border rounded-xl border-primary-300 bg-primary-300 text-text font-bold cursor-pointer shadow-[0_8px_20px_-8px_rgba(20,83,45,.6)] hover:bg-primary-500 hover:border-primary-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary-700';
 const ERR = 'flex items-center gap-1.5 mt-1.5 mb-.5 text-bug font-medium empty:hidden';
 
 class AppRegister extends HTMLElement {
@@ -27,7 +27,7 @@ class AppRegister extends HTMLElement {
             </hidden-field>
             <p data-error class="${ERR}"></p>
             <button type="submit" class="${BTN}">Đăng ký</button>
-            <p class="mt-6 text-text text-center">Đã có tài khoản <a href="${LOGIN_URL}" class="text-primary-600 font-medium no-underline hover:underline hover:underline-offset-3 rounded-sm">ĐĂNG NHẬP</a></p>
+            <p class="mt-6 text-text text-center">Đã có tài khoản <a href="${LOGIN_URL}" class="text-primary-600 font-bold no-underline hover:underline hover:underline-offset-3 rounded-sm">ĐĂNG NHẬP</a></p>
         </form>`;
     this.bind(data => this.register(data));
   }

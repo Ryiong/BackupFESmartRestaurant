@@ -19,7 +19,7 @@ export function scanQrDialog({ title = 'Quét mã QR', hint = 'Đưa mã QR vào
                 </div>
                 <p data-msg role="status" aria-live="polite" class="mt-3 min-h-10 text-center text-sm font-medium text-secondary-800">${esc(hint)}</p>
                 <div class="mt-2 flex flex-wrap items-center justify-center gap-3">
-                    <label class="inline-flex min-h-11 cursor-pointer items-center rounded-lg border-2 border-primary-100 bg-white px-3.5 text-sm font-bold text-primary-500 hover:border-primary-600">
+                    <label class="inline-flex min-h-11 cursor-pointer items-center rounded-lg border-2 text-text border-primary-100 bg-primary-100 px-3.5 text-sm font-bold hover:border-primary-600">
                         Chọn ảnh có mã QR
                         <input data-file type="file" accept="image/*" class="sr-only">
                     </label>
