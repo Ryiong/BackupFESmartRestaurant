@@ -30,12 +30,12 @@ class SettingsHub extends HTMLElement {
         <div class="grid items-start gap-4 pb-6 2xl:grid-cols-[250px_minmax(0,1fr)]">
             <nav aria-label="Các bước thiết lập" class="min-w-0 rounded-2xl bg-white p-2 shadow-sm md:p-3 2xl:sticky 2xl:top-4">
                 <p class="hidden px-3 pt-2 pb-3 text-xs md:block font-bold uppercase tracking-wide text-secondary-700">Thiết lập nhân sự</p>
-                <ol data-steps class="flex gap-1 overflow-x-auto scroll-smooth pb-1 [scrollbar-width:none] 2xl:flex-col 2xl:overflow-visible"></ol>
+                <ol data-steps class="flex gap-1 overflow-x-auto scroll-smooth pb-1 scrollbar-width:none 2xl:flex-col 2xl:overflow-visible"></ol>
             </nav>
             <div class="min-w-0">
                 <div class="mb-3 md:mb-4"><h2 data-title class="text-lg font-bold"></h2><p data-desc class="text-sm text-secondary-700"></p></div>
                 <div data-outlet></div>
-                <p-button data-act="logout" label="Đăng xuất" icon="logout" variant="danger" class="mt-6 block md:hidden"></p-button>
+                <p-button data-act="logout" label="Đăng xuất" icon="logout" variant="danger" class="mt-6"></p-button>
             </div>
         </div>`;
         this.steps = this.querySelector('[data-steps]');

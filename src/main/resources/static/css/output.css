@@ -1541,6 +1541,9 @@
   .text-primary-900 {
     color: var(--color-primary-900);
   }
+  .text-red-400 {
+    color: var(--color-red-400);
+  }
   .text-red-500 {
     color: var(--color-red-500);
   }
@@ -1773,6 +1776,12 @@
       --tw-scale-z: 95%;
       scale: var(--tw-scale-x) var(--tw-scale-y);
     }
+    .hover\:scale-102:hover {
+      --tw-scale-x: 102%;
+      --tw-scale-y: 102%;
+      --tw-scale-z: 102%;
+      scale: var(--tw-scale-x) var(--tw-scale-y);
+    }
     .hover\:scale-105:hover {
       --tw-scale-x: 105%;
       --tw-scale-y: 105%;
@@ -1784,6 +1793,15 @@
     }
     .hover\:scale-\[0\.99\]:hover {
       scale: 0.99;
+    }
+    .hover\:rotate-1:hover {
+      rotate: 1deg;
+    }
+    .hover\:rotate-5:hover {
+      rotate: 5deg;
+    }
+    .hover\:rotate-12:hover {
+      rotate: 12deg;
     }
     .hover\:border-primary-500:hover {
       border-color: var(--color-primary-500);
@@ -1806,6 +1824,9 @@
     .hover\:bg-primary-50:hover {
       background-color: var(--color-primary-50);
     }
+    .hover\:bg-primary-100:hover {
+      background-color: var(--color-primary-100);
+    }
     .hover\:bg-primary-400:hover {
       background-color: var(--color-primary-400);
     }
@@ -1826,6 +1847,9 @@
     }
     .hover\:text-primary-700:hover {
       color: var(--color-primary-700);
+    }
+    .hover\:text-red-600:hover {
+      color: var(--color-red-600);
     }
     .hover\:text-white:hover {
       color: var(--color-white);

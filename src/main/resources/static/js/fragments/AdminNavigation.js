@@ -56,18 +56,14 @@ class AppNavigation extends HTMLElement {
                         </ul>
                     </div>
                     <div id="navigation__footer" class="hidden items-center justify-center md:m-3 md:flex">
-                    <button id="navigation__footer-button" class="w-12 h-12 md:w-13 md:h-15 text-primary-600 bg-primary-200 rounded-lg flex items-center justify-center hover:bg-primary-400 hover:text-white hover:scale-90 transition-all cursor-pointer">
-                        ${ICONS.logout}
-                    </button>
+                    
                 </div>
                 </div>
                 
             </nav>
         `;
 
-        this.logoutBtn = this.querySelector('#navigation__footer-button');
-
-        this.logoutBtn.addEventListener('click', e => this.onClick(e));
+        
 
         this.applyShopGate();
         onShopChange(() => this.applyShopGate());
@@ -129,12 +125,6 @@ class AppNavigation extends HTMLElement {
             [...(this.nextElementSibling?.children ?? [])].filter(e => e.tagName !== 'APP-HEADER').forEach(e => { e.style.display = 'none'; });
             location.replace(index);
         }
-    }
-
-    async onClick(e) {
-        e.preventDefault();
-        this.logoutBtn.disabled = true;
-        await logout();
     }
 }
 
