@@ -1,5 +1,5 @@
 import { auth } from '../services/AuthStore.js';
-import { API_MODE, ADMIN_URL } from '../config.js';
+import { API_MODE } from '../config.js';
 import { getCurrentShop, onShopChange, STATUS_LABEL } from '../services/ShopService.js';
 import { ICONS } from '../icon.js';
 import { esc, titleCase } from '../utils/format.js';
@@ -22,24 +22,22 @@ class AppHeader extends HTMLElement {
             <header class="flex w-full flex-wrap justify-between items-center gap-2 p-4 md:p-5">
                 <div>
                     <h4 class="text-text">${title}</h4>
-                    <p class="font-extralight text-support-800">${dataTitle}</p>
+                    <p class="font-extralight text-text">${dataTitle}</p>
                 </div>
                 <div class="flex w-full flex-wrap items-center gap-2 md:w-auto">
                     <div class="flex min-w-0 flex-1 items-center gap-3 md:flex-none">
                         <img class="size-11 shrink-0 rounded-3xl" src="${userImage}" alt="User Image" />
-                        <div>
+                        <div data-shop>
                             <p class="font-bold text-text">${userName}</p>
-                            <p class="text-xs text-support-800">${userRole}</p>
+                            <p class="text-xs text-support-800">${userRole}
+                                <span data-shop-name class="min-w-0 flex-1 truncate font-bold md:flex-none"></span>
+                                <span data-shop-status class="shrink-0 rounded-lg px-2 py-0.5 text-[10px] font-bold"></span>
+                            </p>
                         </div>
                     </div>
                     <button type="button" data-loginqr title="Tạo QR đăng nhập trên thiết bị khác" aria-label="Tạo QR đăng nhập trên thiết bị khác"
-                        class="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg border border-primary-200 bg-white text-primary-700 hover:border-primary-500">${ICONS.qr}</button>
-                    <a data-shop hidden href="${ADMIN_URL}" title="Đổi hoặc chỉnh sửa cửa hàng ở trang Tổng quan"
-                        class="flex w-full max-w-full items-center gap-2 whitespace-nowrap md:mt-2 md:w-auto rounded-lg border border-primary-200 bg-white px-3 py-1 text-xs text-primary-700">
-                        <span class="shrink-0 text-support-800">Cửa hàng:</span>
-                        <span data-shop-name class="min-w-0 flex-1 truncate font-bold md:flex-none"></span>
-                        <span data-shop-status class="shrink-0 rounded-lg px-2 py-0.5 text-[10px] font-bold"></span>
-                    </a>
+                        class="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg bg-white text-support-100 hover:scale-105 transition-all">${ICONS.qr}</button>
+                    
                 </div>
             </header>
         `;

@@ -114,6 +114,7 @@
     --color-primary-600: #d9a800;
     --color-primary-700: #a67f00;
     --color-primary-800: #6b5200;
+    --color-primary-900: #3d2e00;
     --color-secondary-50: #f5f0f0;
     --color-secondary-100: #e6dada;
     --color-secondary-500: #764e4e;
@@ -1520,6 +1521,9 @@
   .text-orange-700 {
     color: var(--color-orange-700);
   }
+  .text-primary-100 {
+    color: var(--color-primary-100);
+  }
   .text-primary-300 {
     color: var(--color-primary-300);
   }
@@ -1534,6 +1538,9 @@
   }
   .text-primary-800 {
     color: var(--color-primary-800);
+  }
+  .text-primary-900 {
+    color: var(--color-primary-900);
   }
   .text-red-500 {
     color: var(--color-red-500);
@@ -1558,6 +1565,9 @@
   }
   .text-sky-900 {
     color: var(--color-sky-900);
+  }
+  .text-support-100 {
+    color: var(--color-support-100);
   }
   .text-support-800 {
     color: var(--color-support-800);
@@ -1762,6 +1772,18 @@
       --tw-scale-x: 95%;
       --tw-scale-y: 95%;
       --tw-scale-z: 95%;
+      scale: var(--tw-scale-x) var(--tw-scale-y);
+    }
+    .hover\:scale-105:hover {
+      --tw-scale-x: 105%;
+      --tw-scale-y: 105%;
+      --tw-scale-z: 105%;
+      scale: var(--tw-scale-x) var(--tw-scale-y);
+    }
+    .hover\:scale-110:hover {
+      --tw-scale-x: 110%;
+      --tw-scale-y: 110%;
+      --tw-scale-z: 110%;
       scale: var(--tw-scale-x) var(--tw-scale-y);
     }
     .hover\:scale-\[0\.98\]:hover {
