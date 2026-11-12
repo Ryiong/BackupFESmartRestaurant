@@ -7,11 +7,6 @@ export const DOC_TYPES = { IMPORT: 'Nhập kho', EXPORT: 'Xuất kho', WASTE: 'H
 export const DOC_STATUS = { PENDING: 'Chờ duyệt', CONFIRMED: 'Đã duyệt', CANCELLED: 'Từ chối' };
 const DOC_PREFIX = { IMPORT: 'PN', EXPORT: 'PX', WASTE: 'PH' };
 
-/**
- * GIẢ ĐỊNH CHƯA XÁC MINH: ProductResponse của backend không có recipeId, nhưng /recipe-ingredients/{recipeId}
- * cần recipeId. Mỗi Product tự có 1 Recipe lúc tạo nên tạm coi recipeId = productId.
- * Nếu thực tế khác (xem Network khi mở "Công thức"), chỉ cần sửa đúng hàm này.
- */
 export const recipeIdOf = productId => productId;
 
 const pad = n => String(n).padStart(3, '0');
