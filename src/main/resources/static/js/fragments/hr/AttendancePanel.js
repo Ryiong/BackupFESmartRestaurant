@@ -24,10 +24,10 @@ class AttendancePanel extends HrPanel {
                 <button type="button" data-act="next" aria-label="Ngày sau" class="grid size-9 cursor-pointer place-items-center rounded-lg border border-primary-100 bg-white text-primary-700 hover:border-primary-500">${ICONS.chevR}</button>
                 <p-button data-act="today" label="Hôm nay"></p-button>
                 <p-button data-act="qr" label="QR chấm công" icon="qr" variant="solid"></p-button>
-                <input type="date" data-pick aria-label="Chọn ngày" class="${INPUT_CLS} !w-auto !py-1.5 text-sm">
+                <input type="date" data-pick aria-label="Chọn ngày" class="${INPUT_CLS} w-auto! py-1.5! text-sm">
             </div>
             <div data-sum class="grid grid-cols-2 gap-3 sm:grid-cols-4"></div>
-            <section class="${CARD} !p-0 overflow-hidden"><div data-table class="overflow-x-auto"></div></section>
+            <section class="${CARD} p-0! overflow-hidden"><div data-table class="overflow-x-auto"></div></section>
         </div>`;
     }
 
@@ -43,7 +43,7 @@ class AttendancePanel extends HrPanel {
         const st = list.map(s => attState(s));
         const count = c => st.filter(x => x.code === c).length;
         const pending = list.filter(s => s.attendanceStatus === 'PENDING').length;
-        const box = (label, v, tone = '') => `<div class="${CARD} !p-4"><p class="text-xs font-bold uppercase text-secondary-700">${label}</p><p class="mt-1 text-2xl font-bold ${tone}">${v}</p></div>`;
+        const box = (label, v, tone = '') => `<div class="${CARD} p-4!"><p class="text-xs font-bold uppercase text-secondary-700">${label}</p><p class="mt-1 text-2xl font-bold ${tone}">${v}</p></div>`;
         this.querySelector('[data-sum]').innerHTML = box('Ca trong ngày', list.length) + box('Đang / đã làm', count('ONTIME') + count('LATE') + count('DONE'), 'text-primary-700')
             + box('Đi muộn / vắng', st.filter(x => x.late || x.code === 'ABSENT').length, 'text-red-600') + box('Chờ duyệt', pending, 'text-amber-700');
 

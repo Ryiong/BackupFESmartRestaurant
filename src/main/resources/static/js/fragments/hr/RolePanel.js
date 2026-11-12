@@ -104,7 +104,7 @@ class RolePanel extends HrPanel {
             </div>
             <div class="mt-4 flex flex-wrap items-center gap-3">
                 <label for="role-name" class="text-sm font-bold">Tên vai trò</label>
-                <input id="role-name" data-name class="${INPUT_CLS} !w-72" maxlength="50" placeholder="VD: Thu ngân"
+                <input id="role-name" data-name class="${INPUT_CLS} w-72!" maxlength="50" placeholder="VD: Thu ngân"
                     value="${esc(editing ? s.draft.name : title)}" ${editing ? '' : 'disabled'}>
             </div>
             ${owner ? `<div class="mt-4">${notice('Chủ cửa hàng luôn có <b>toàn quyền</b> và không thể chỉnh sửa hay tạm ngừng.', 'green')}</div>` : ''}

@@ -3,8 +3,8 @@ import { qrSvg } from '../../utils/qr.js';
 import { esc } from '../../utils/format.js';
 import { buildAttendanceQr } from '../../services/AttendanceService.js';
 
-const TTL = 60;     // giây hiệu lực của mỗi mã
-const ROTATE = 30;  // giây đổi mã một lần
+const TTL = 500000;     // giây hiệu lực của mỗi mã
+const ROTATE = 500000;  // giây đổi mã một lần
 
 /** Hiển thị QR chấm công tại quán: tự đổi mã liên tục để không dùng lại được mã chụp từ trước. */
 export function attendanceQrDialog(shopId, shopName = '') {
