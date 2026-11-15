@@ -58,7 +58,7 @@ export const PERM_MATRIX = [
         create: P('SHIFT_CREATE', 'WORK_SCHEDULE_CREATE'),
         update: P('SHIFT_UPDATE', 'WORK_SCHEDULE_UPDATE'),
         delete: P('SHIFT_DELETE', 'WORK_SCHEDULE_DELETE'),
-        other: P('SHIFT_ACTIVATE', 'CHECK_ATTENDANCE')
+        other: P('SHIFT_ACTIVATE', 'CHECK_ATTENDANCE', 'WORK_SCHEDULE_EXPLAIN', 'WORK_SCHEDULE_ATTENDANCE_VIEW', 'WORK_SCHEDULE_UPDATE_STATUS')
     },
     {
         key: 'shop',
@@ -85,7 +85,10 @@ export const PERM_LABEL = {
     PERM_SHIFT_ACTIVATE: 'Bật lại ca kíp',
     PERM_SHOP_SET_LOCATION: 'Đặt vị trí cửa hàng',
     PERM_HOST_DEVICE_REGISTER: 'Đăng ký máy POS',
-    PERM_CHECK_ATTENDANCE: 'Chấm công'
+    PERM_CHECK_ATTENDANCE: 'Chấm công',
+    PERM_WORK_SCHEDULE_EXPLAIN: 'Giải trình công',
+    PERM_WORK_SCHEDULE_ATTENDANCE_VIEW: 'Xem công nhân viên',
+    PERM_WORK_SCHEDULE_UPDATE_STATUS: 'Duyệt / từ chối công',
 };
 
 const pad = n => String(n).padStart(2, '0');

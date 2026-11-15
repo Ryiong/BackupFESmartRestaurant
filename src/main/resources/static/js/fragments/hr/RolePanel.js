@@ -135,7 +135,7 @@ class RolePanel extends HrPanel {
                         </tr>`).join('')}</tbody>
                 </table>
             </div>
-            <p class="mt-3 text-xs text-secondary-700">Quyền chấm công cho nhân viên chưa có trong danh sách quyền của backend; hiện chỉ chủ cửa hàng thao tác được.</p>`;
+            <p class="mt-3 text-xs text-secondary-700">Nhân viên cần <b>Chấm công</b>, <b>Xem lịch làm việc</b> (cột Xem của “Ca làm &amp; Lịch”) và <b>Giải trình công</b>. Quản lý duyệt công cần thêm <b>Xem công nhân viên</b> và <b>Duyệt / từ chối công</b>. Sau khi đổi quyền, nhân viên phải đăng nhập lại.</p>`;
     }
 
     onInput(e) {
