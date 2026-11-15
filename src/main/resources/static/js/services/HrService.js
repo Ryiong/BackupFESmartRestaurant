@@ -199,9 +199,13 @@ const mapSchedule = (w, shopRoles) => {
         id: w.id,
         date: w.date,
         status: w.status ?? 'SCHEDULED',
-        attendanceStatus: w.attendanceStatus ?? 'PENDING',
-        rejectReason: null,
-        explanation: null,
+        attendanceStatus: w.attendanceStatus ?? null, // null = backend chưa trả về (không tự coi là PENDING)
+        // Các trường dưới đây chỉ có khi backend bổ sung vào WorkScheduleResponse (xem mục 12 tài liệu nghiệp vụ).
+        rejectReason: w.rejectReason ?? null,
+        explanation: (w.explaination ?? w.explanation ?? '').trim() || null,
+        explainedAt: w.explainedAt ?? null,
+        reviewedAt: w.reviewedAt ?? null,
+        reviewedBy: w.reviewedBy?.name ?? w.reviewedBy ?? null,
         employmentId: e.id,
         staffName: e.user?.name ?? `NV #${e.id}`,
         roleNames: rolesOfUser(e.user, shopRoles).map(r => r.name),
@@ -362,6 +366,7 @@ export const hr = {
         const sch = scheduleIndex.get(id);
         if (!sch) throw new Error('Hãy tải lại danh sách rồi thử lại');
         const sid = await getShopId();
-        await http('POST', `/work-schedule/${sid}/update-attendance-status/${sch.employmentId}`, [{ id, status, rejectReason }]);
+        const item = status === 'REJECTED' ? { id, status, rejectReason: String(rejectReason ?? '').trim() } : { id, status };
+        await http('POST', `/work-schedule/${sid}/update-attendance-status/${sch.employmentId}`, [item]);
     },
 };

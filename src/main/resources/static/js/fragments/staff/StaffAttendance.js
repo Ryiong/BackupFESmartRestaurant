@@ -3,8 +3,9 @@ import { ADMIN_URL } from '../../config.js';
 import { requireLogin, logout } from '../../services/HttpClient.js';
 import { auth } from '../../services/AuthStore.js';
 import { esc } from '../../utils/format.js';
+import { openDialog, bindActions } from '../../utils/dialog.js';
 import {
-    parseAttendanceQr, listMyShifts, eligibleShifts, getPosition, checkAttendance,
+    parseAttendanceQr, listMyShifts, eligibleShifts, getPosition, checkAttendance, needsExplanation, explainShift,
 } from '../../services/AttendanceService.js';
 
 const SHOP_KEY = 'sr:staffShop';
@@ -46,9 +47,11 @@ class StaffAttendance extends HTMLElement {
         }
 
         this.render();
-        setInterval(() => this.tick(), 1000);
+        this.clock = setInterval(() => this.tick(), 1000);
         if (this.shopId) this.load();
     }
+
+    disconnectedCallback() { clearInterval(this.clock); delete this.dataset.ready; }
 
     async load() {
         this.loading = true; this.loadError = '';
@@ -163,6 +166,9 @@ class StaffAttendance extends HTMLElement {
             return `<li class="flex items-center justify-between gap-2 rounded-xl bg-primary-50/60 p-3">
                 <div><p class="font-semibold">${esc(s.shiftName)}</p><p class="text-sm tabular-nums text-secondary-700">${esc(s.startTime)} – ${esc(s.endTime)}</p></div>
                 <div class="text-right"><span class="text-xs font-bold text-primary-700">${state}</span>
+                ${needsExplanation(s, now) ? `<button data-act="explain" data-id="${s.id}" class="mt-1 min-h-9 cursor-pointer rounded-lg border border-primary-200 px-2 text-xs font-bold text-primary-700">Gửi giải trình</button>` : ''}
+                ${s.attendanceStatus ? `<p class="mt-0.5 text-xs font-semibold ${s.attendanceStatus === 'REJECTED' ? 'text-red-600' : s.attendanceStatus === 'APPROVED' ? 'text-green-700' : 'text-amber-700'}">${{ PENDING: 'Chờ duyệt công', APPROVED: 'Đã duyệt công', REJECTED: 'Công bị từ chối' }[s.attendanceStatus] ?? ''}</p>` : ''}
+                ${s.rejectReason ? `<p class="mt-0.5 max-w-48 text-xs text-red-600">${esc(s.rejectReason)}</p>` : ''}
                 ${s.attendances.length ? `<p class="mt-0.5 text-xs tabular-nums text-secondary-700">${s.attendances.map(a => `${a.type === 'CHECK_OUT' ? 'Ra' : 'Vào'} ${esc(String(a.at ?? '').slice(11, 16) || '—')}`).join(' · ')}</p>` : ''}</div></li>`;
         }).join('')}</ul>`;
     }
@@ -192,6 +198,7 @@ class StaffAttendance extends HTMLElement {
             if (act === 'scan') return this.scan();
             if (act === 'paste') return this.usePasted();
             if (act === 'submit') return this.submit(Number(el.dataset.id));
+            if (act === 'explain') return this.explain(Number(el.dataset.id));
         };
     }
 
@@ -216,6 +223,40 @@ class StaffAttendance extends HTMLElement {
         const changed = res.shopId !== this.shopId;
         this.shopId = res.shopId;
         if (changed || !this.shifts.length) await this.load(); else this.render();
+    }
+
+    async explain(workScheduleId) {
+        const shift = this.shifts.find(s => s.id === workScheduleId);
+        if (!shift) return;
+        const text = await openDialog({
+            title: 'Giải trình công', width: 420,
+            render: (body, close) => {
+                body.innerHTML = `<form class="grid gap-3" novalidate>
+                    <p class="text-sm">${esc(shift.shiftName)} · ${esc(shift.startTime)} – ${esc(shift.endTime)}</p>
+                    <label class="grid gap-1.5 text-sm font-semibold"><span>Lý do thiếu lượt chấm công</span>
+                        <textarea name="t" rows="4" maxlength="500" required class="w-full rounded-lg border border-primary-200 px-3 py-2 font-normal"></textarea></label>
+                    <p data-err role="alert" class="hidden text-sm font-semibold text-red-600">Vui lòng nhập nội dung giải trình</p>
+                    <div class="flex justify-center gap-3">
+                        <button type="submit" class="min-h-11 cursor-pointer rounded-lg bg-primary-700 px-4 font-bold text-white">Gửi giải trình</button>
+                        <button type="button" data-act="cancel" class="min-h-11 cursor-pointer rounded-lg border-2 border-primary-100 px-4 font-bold text-primary-600">Huỷ</button></div></form>`;
+                const form = body.querySelector('form');
+                form.addEventListener('submit', e => {
+                    e.preventDefault();
+                    const v = form.elements.t.value.trim();
+                    if (!v) body.querySelector('[data-err]').classList.remove('hidden'); else close(v);
+                });
+                bindActions(body, { cancel: () => close() });
+            },
+        });
+        if (!text) return;
+        try {
+            await explainShift(this.shopId, workScheduleId, text);
+            this.notice = { ok: true, text: 'Đã gửi giải trình, công chuyển sang chờ quản lý duyệt.' };
+            await this.load();
+        } catch (err) {
+            this.notice = { ok: false, text: err.noAccess ? 'Bạn chưa được cấp quyền gửi giải trình.' : (err.message || 'Không gửi được giải trình.') };
+            this.render();
+        }
     }
 
     async submit(workScheduleId) {

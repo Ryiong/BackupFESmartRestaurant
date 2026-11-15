@@ -9,7 +9,12 @@ const STATE = {
     WAIT: ['Chưa chấm công', 'gray'], ONTIME: ['Đang làm', 'green'], LATE: ['Đi muộn', 'red'],
     DONE: ['Đã ra ca', 'green'], ABSENT: ['Vắng mặt', 'red'],
 };
-const REVIEW = { PENDING: ['Chờ duyệt', 'amber'], APPROVED: ['Đã duyệt', 'green'], REJECTED: ['Từ chối', 'red'] };
+const REVIEW = { PENDING: ['Chờ duyệt', 'amber'], APPROVED: ['Đã duyệt', 'green'], REJECTED: ['Từ chối', 'red'], UNKNOWN: ['Chưa rõ', 'gray'] };
+// Backend hiện chưa map attendanceStatus vào response: khi thiếu, vẫn cho thao tác (backend sẽ từ chối nếu công đã xử lý) nhưng không khẳng định trạng thái.
+const reviewOf = s => REVIEW[s.attendanceStatus] ?? REVIEW.UNKNOWN;
+const canReview = s => !s.attendanceStatus || s.attendanceStatus === 'PENDING';
+// Thiếu lượt vào/ra vẫn duyệt được nếu nhân viên đã giải trình; vì response chưa trả giải trình nên để máy chủ quyết định và hiện thông báo của máy chủ.
+const canApprove = () => true;
 
 class AttendancePanel extends HrPanel {
     state = { date: ymd(), list: [] };
@@ -37,15 +42,17 @@ class AttendancePanel extends HrPanel {
         const { list, date } = this.state;
         this.querySelector('[data-date]').textContent = dayLabel(date);
         this.querySelector('[data-pick]').value = date;
-        this.querySelector('[data-banner]').innerHTML = HR_MODE === 'spring'
-            ? notice('Backend chưa mở API xem giờ vào/ra và duyệt công (endpoint đang bị chặn quyền, quyền chấm công chưa được seed). Màn hình sẽ đầy đủ khi backend sửa các mục này.') : '';
+        const unknown = list.some(s => !s.attendanceStatus);
+        this.querySelector('[data-banner]').innerHTML = unknown
+            ? notice('Máy chủ chưa trả <b>trạng thái duyệt công</b>, lý do từ chối và nội dung giải trình, nên cột “Duyệt công” có thể hiện “Chưa rõ”. Bạn vẫn duyệt/từ chối được; công đã xử lý rồi sẽ bị máy chủ từ chối.') : '';
 
         const st = list.map(s => attState(s));
         const count = c => st.filter(x => x.code === c).length;
         const pending = list.filter(s => s.attendanceStatus === 'PENDING').length;
+        const pendingLabel = list.some(s => !s.attendanceStatus) ? 'Chờ duyệt (đã biết)' : 'Chờ duyệt';
         const box = (label, v, tone = '') => `<div class="${CARD} p-4!"><p class="text-xs font-bold uppercase text-secondary-700">${label}</p><p class="mt-1 text-2xl font-bold ${tone}">${v}</p></div>`;
         this.querySelector('[data-sum]').innerHTML = box('Ca trong ngày', list.length) + box('Đang / đã làm', count('ONTIME') + count('LATE') + count('DONE'), 'text-primary-700')
-            + box('Đi muộn / vắng', st.filter(x => x.late || x.code === 'ABSENT').length, 'text-red-600') + box('Chờ duyệt', pending, 'text-amber-700');
+            + box('Đi muộn / vắng', st.filter(x => x.late || x.code === 'ABSENT').length, 'text-red-600') + box(pendingLabel, pending, 'text-amber-700');
 
         this.querySelector('[data-table]').innerHTML = list.length ? `
             <ul class="divide-y divide-primary-50 md:hidden">${list.map((s, i) => this.card(s, st[i])).join('')}</ul>
@@ -60,9 +67,9 @@ class AttendancePanel extends HrPanel {
 
     row(s, a) {
         const [stLabel, stTone] = STATE[a.code];
-        const [rvLabel, rvTone] = REVIEW[s.attendanceStatus] ?? REVIEW.PENDING;
-        const pending = s.attendanceStatus === 'PENDING';
-        const full = s.attendances.length >= 2 || s.explanation;
+        const [rvLabel, rvTone] = reviewOf(s);
+        const pending = canReview(s);
+        const full = canApprove(s);
         return `<tr class="border-t border-primary-50">
             <th scope="row" class="px-3 py-3 text-left"><span class="block font-bold">${esc(s.staffName)}</span></th>
             <td class="px-3 py-3 whitespace-nowrap">${esc(s.shiftName)} <span class="text-xs text-secondary-700">${hm(s.startTime)} - ${hm(s.endTime)}</span></td>
@@ -70,7 +77,7 @@ class AttendancePanel extends HrPanel {
             <td class="px-3 py-3 text-center tabular-nums">${clock(a.outAt)}</td>
             <td class="px-3 py-3 text-center tabular-nums">${workedHours(s) ? `${workedHours(s)} giờ` : '—'}</td>
             <td class="px-3 py-3">${chip(stLabel, stTone)}${a.late && a.code !== 'LATE' ? ' ' + chip('Đi muộn', 'red') : ''}</td>
-            <td class="px-3 py-3">${chip(rvLabel, rvTone)}${s.rejectReason ? `<span class="mt-1 block max-w-44 truncate text-xs text-red-600" title="${esc(s.rejectReason)}">${esc(s.rejectReason)}</span>` : ''}</td>
+            <td class="px-3 py-3">${chip(rvLabel, rvTone)}${s.rejectReason ? `<span class="mt-1 block max-w-44 truncate text-xs text-red-600" title="${esc(s.rejectReason)}">${esc(s.rejectReason)}</span>` : ''}${this.extra(s)}</td>
             <td class="px-3 py-3"><div class="flex justify-end gap-1.5 whitespace-nowrap">
                 ${pending ? `<p-button data-act="approve" data-id="${s.id}" label="Duyệt" icon="check" ${full ? '' : 'disabled'}></p-button>
                     <p-button data-act="reject" data-id="${s.id}" label="Từ chối" icon="close" variant="danger"></p-button>` : ''}
@@ -80,18 +87,23 @@ class AttendancePanel extends HrPanel {
 
     card(s, a) {
         const [stLabel, stTone] = STATE[a.code];
-        const [rvLabel, rvTone] = REVIEW[s.attendanceStatus] ?? REVIEW.PENDING;
-        const pending = s.attendanceStatus === 'PENDING';
-        const full = s.attendances.length >= 2 || s.explanation;
+        const [rvLabel, rvTone] = reviewOf(s);
+        const pending = canReview(s);
+        const full = canApprove(s);
         return `<li class="grid gap-2 p-4">
             <div class="flex items-start justify-between gap-2"><div><p class="font-bold">${esc(s.staffName)}</p>
                 <p class="text-xs text-secondary-700">${esc(s.shiftName)} · ${hm(s.startTime)} - ${hm(s.endTime)}</p></div>
                 <div class="flex flex-wrap justify-end gap-1">${chip(stLabel, stTone)}${chip(rvLabel, rvTone)}</div></div>
             <p class="text-sm tabular-nums">Vào <b class="${a.late ? 'text-red-600' : ''}">${clock(a.inAt)}</b> · Ra <b>${clock(a.outAt)}</b>${workedHours(s) ? ` · ${workedHours(s)} giờ` : ''}</p>
-            ${s.rejectReason ? `<p class="text-xs text-red-600">${esc(s.rejectReason)}</p>` : ''}
+            ${s.rejectReason ? `<p class="text-xs text-red-600">${esc(s.rejectReason)}</p>` : ''}${this.extra(s)}
             ${pending ? `<div class="flex gap-2"><p-button data-act="approve" data-id="${s.id}" label="Duyệt" icon="check" ${full ? '' : 'disabled'}></p-button>
                 <p-button data-act="reject" data-id="${s.id}" label="Từ chối" icon="close" variant="danger"></p-button></div>` : ''}
         </li>`;
+    }
+
+    /** Giải trình của nhân viên + người duyệt (chỉ hiện khi backend trả về). */
+    extra(s) {
+        return `${s.explanation ? `<span class="mt-1 block max-w-56 text-xs text-secondary-800" title="${esc(s.explanation)}"><b>Giải trình:</b> ${esc(s.explanation)}</span>` : ''}${s.reviewedBy || s.reviewedAt ? `<span class="mt-0.5 block text-xs text-secondary-700">Duyệt bởi ${esc(s.reviewedBy ?? '—')}${s.reviewedAt ? ` · ${esc(String(s.reviewedAt).slice(0, 16).replace('T', ' '))}` : ''}</span>` : ''}`;
     }
 
     go(date) { this.state.date = date; this.reload(); }

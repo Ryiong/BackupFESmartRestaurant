@@ -69,6 +69,10 @@ const mapShift = w => {
         startTime: hm(w.shift?.startTime),
         endTime: hm(w.shift?.endTime),
         attendances: (w.attendances ?? []).map(a => ({ type: a.type, at: a.createdAt })),
+        // Chỉ có khi backend trả (mapper hiện chưa map attendanceStatus/giải trình): không có thì giao diện không khẳng định gì.
+        attendanceStatus: w.attendanceStatus ?? null,
+        rejectReason: w.rejectReason ?? null,
+        explanation: (w.explaination ?? w.explanation ?? '').trim() || null,
     };
     return { ...s, ...shiftWindow(s) };
 };
@@ -95,6 +99,14 @@ export async function listMyShifts(shopId) {
         .filter(s => s.date === today || s.closes > Date.now())
         .sort((a, b) => a.start - b.start);
 }
+
+/** Ca đã qua khung giờ chấm công mà chưa đủ 2 lượt (thiếu vào hoặc ra) -> nhân viên có thể gửi giải trình. */
+export const needsExplanation = (s, now = Date.now()) =>
+    s.attendances.length < 2 && now > s.closes && s.attendanceStatus !== 'APPROVED';
+
+/** POST /work-schedule/{shopId}/explain/{id}. Công đã APPROVED thì backend từ chối. */
+export const explainShift = (shopId, workScheduleId, text) =>
+    http('POST', `/work-schedule/${shopId}/explain/${workScheduleId}`, { explaination: String(text ?? '').trim() });
 
 /** Các ca đang trong khung giờ cho phép chấm công và chưa chấm đủ vào/ra. */
 export const eligibleShifts = (shifts, now = Date.now()) =>

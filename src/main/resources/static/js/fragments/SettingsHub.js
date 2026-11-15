@@ -1,4 +1,5 @@
-// <settings-hub>: menu 6 bước bên trái + panel nội dung bên phải, điều hướng bằng location.hash.
+// <settings-hub>: menu 7 bước bên trái + panel nội dung bên phải, điều hướng bằng location.hash.
+import './hr/LocationPanel.js';
 import './hr/RolePanel.js';
 import './hr/StaffPanel.js';
 import './hr/ShiftPanel.js';
@@ -9,8 +10,10 @@ import { hr, ymd, addDays } from '../services/HrService.js';
 import { esc } from './hr/ui.js';
 import { ICONS } from '../icon.js';
 import { logout } from '../services/HttpClient.js';
+import { getCurrentShop, getShopLocation } from '../services/ShopService.js';
 
 const STEPS = [
+    { key: 'location', tag: 'hr-location', icon: 'clock', label: 'Cửa hàng & vị trí', desc: 'Thông tin cửa hàng, toạ độ và bán kính cho phép chấm công.' },
     { key: 'roles', tag: 'hr-roles', icon: 'shield', label: 'Vai trò & phân quyền', desc: 'Tạo các vai trò của cửa hàng và chọn quyền cho từng vai trò.' },
     { key: 'staff', tag: 'hr-staff', icon: 'users', label: 'Nhân viên', desc: 'Đăng ký nhân viên, cấp tài khoản – mật khẩu và gán vai trò.' },
     { key: 'shifts', tag: 'hr-shifts', icon: 'clock', label: 'Ca kíp', desc: 'Định nghĩa các ca làm việc và khung giờ.' },
@@ -29,7 +32,7 @@ class SettingsHub extends HTMLElement {
         this.innerHTML = `
         <div class="grid items-start gap-4 pb-6 2xl:grid-cols-[250px_minmax(0,1fr)]">
             <nav aria-label="Các bước thiết lập" class="min-w-0 rounded-2xl bg-white p-2 shadow-sm md:p-3 2xl:sticky 2xl:top-4">
-                <p class="hidden px-3 pt-2 pb-3 text-xs md:block font-bold uppercase tracking-wide text-secondary-700">Thiết lập nhân sự</p>
+                <p class="hidden px-3 pt-2 pb-3 text-xs md:block font-bold uppercase tracking-wide text-secondary-700">Thiết lập cửa hàng & nhân sự</p>
                 <ol data-steps class="flex gap-1 overflow-x-auto scroll-smooth pb-1 scrollbar-width:none 2xl:flex-col 2xl:overflow-visible"></ol>
             </nav>
             <div class="min-w-0">
@@ -72,9 +75,9 @@ class SettingsHub extends HTMLElement {
 
     async refreshSummary() {
         try {
-            const [roles, staff, shifts, week] = await Promise.all([hr.listRoles(), hr.listStaff(), hr.listShifts(), hr.listScheduleRange(ymd(), addDays(ymd(), 6))]);
+            const [roles, staff, shifts, week, shop] = await Promise.all([hr.listRoles(), hr.listStaff(), hr.listShifts(), hr.listScheduleRange(ymd(), addDays(ymd(), 6)), getCurrentShop().catch(() => null)]);
             this.summary = {
-                roles: roles.length, staff: staff.filter(s => s.status === 'ACTIVE').length,
+                location: getShopLocation(shop) ? 1 : 0, roles: roles.length, staff: staff.filter(s => s.status === 'ACTIVE').length,
                 shifts: shifts.filter(s => s.status === 'ACTIVE').length, schedule: week.length,
             };
         } catch { this.summary = {}; }
@@ -82,7 +85,7 @@ class SettingsHub extends HTMLElement {
     }
 
     drawSteps() {
-        const sub = { roles: 'vai trò', staff: 'nhân viên', shifts: 'ca kíp', schedule: 'ca trong 7 ngày tới' };
+        const sub = { location: 'vị trí đã đặt', roles: 'vai trò', staff: 'nhân viên', shifts: 'ca kíp', schedule: 'ca trong 7 ngày tới' };
         this.steps.innerHTML = STEPS.map((s, i) => {
             const on = s.key === this.key, n = this.summary[s.key], done = n > 0;
             return `<li class="shrink-0 grow 2xl:grow-0"><a href="#${s.key}" ${on ? 'aria-current="step"' : ''}
