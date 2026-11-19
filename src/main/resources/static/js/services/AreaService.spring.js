@@ -142,11 +142,11 @@ async function fetchTableOrder(tableId) {
     try {
         res = await http('GET', `/order/table/${tableId}`);
     } catch (err) {
-        if (err.status === 404) return null; // bàn chưa có đơn nào đang mở
-        throw err; // lỗi khác (mất kết nối, 403...) không được hiểu thành "bàn trống"
+        // Backend trả 404 hoặc 400 (ValidateException / InvalidStatusException) khi bàn chưa có đơn mở
+        if (err.status === 404 || err.status === 400) return null;
+        throw err;
     }
     const list = (Array.isArray(res) ? res : res?.content ?? [res]).filter(o => o && o.id != null && isOpenOrder(o));
-    // nếu có nhiều đơn mở thì lấy đơn mới nhất
     return list.sort((x, y) => Number(y.id) - Number(x.id))[0] ?? null;
 }
 
@@ -205,7 +205,7 @@ async function saveArea(a) {
         if (next && next.name !== t.name) await http('PUT', `/tables/${t.id}`, { name: next.name, qrEnabled: t.qrEnabled });
     }
     for (const t of (a.tables ?? []).filter(t => !t.id)) await http('POST', `/tables/area/${areaId}`, { name: t.name, qrEnabled: true });
-    
+
     return { id: sid(areaId) };
 }
 
