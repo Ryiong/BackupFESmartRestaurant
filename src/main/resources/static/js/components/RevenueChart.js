@@ -93,7 +93,7 @@ class RevenueChart extends HTMLElement {
         <section class="bg-white p-4 shadow">
             <header class="mb-2 flex items-center justify-between">
                 <h2 class="text-lg font-extrabold text-text">${esc(title)}</h2>
-                <a href="${esc(href)}" class="font-semibold text-text hover:underline">Xem chi tiết &gt;&gt;</a>
+                <!--<a href="${esc(href)}" class="font-semibold text-text hover:underline">Xem chi tiết &gt;&gt;</a> -->
             </header>
             <div class="relative">
                 <div class="flex h-44 flex-col justify-between">${grid}</div>

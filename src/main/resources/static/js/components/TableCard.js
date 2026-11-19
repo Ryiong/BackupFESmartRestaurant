@@ -71,13 +71,13 @@ class TableCard extends HTMLElement {
         } else {
             const key = esc(this.dataset.key ?? '');
             footer = `
-                <div class="mt-2 flex gap-1.5">
+                <div class="mt-2 flex gap-1.5 justify-between">
                     <button type="button" data-act="edit-table" data-key="${key}" aria-label="Sửa ${name}"
-                        class="flex h-6 w-10 cursor-pointer items-center justify-center rounded bg-primary-700 text-white transition-all hover:scale-95 hover:bg-primary-800">
+                        class="flex h-6 w-10 cursor-pointer items-center justify-center rounded bg-primary-200 text-text transition-all hover:bg-primary-300">
                         ${ICONS.edit}
                     </button> 
-                    <button type="button" data-act="delete-table" data-key="${key}" aria-label="Tạm ngưng ${name}"
-                        class="flex h-6 w-10 cursor-pointer items-center justify-center rounded bg-red-400 text-white transition-all hover:scale-95 hover:bg-red-500">
+                    <button type="button" data-act="pause-table" data-key="${key}" aria-label="Tạm ngưng ${name}"
+                        class="flex h-6 w-10 cursor-pointer items-center justify-center rounded bg-red-500 text-white transition-all hover:bg-red-600">
                         ${ICONS.pause}
                     </button>
                 </div>
@@ -86,12 +86,12 @@ class TableCard extends HTMLElement {
 
         this.innerHTML = `
             <div ${a11y} class="${base}${look}${sel}">
-                <p class="line-clamp-1 text-sm font-bold text-text">
+                <p class="line-clamp-1 text-sm font-bold text-text text-center">
                     ${name}
                 </p>
-                <p class="mt-0.5 text-xs text-secondary-700">
+                <!-- <p class="mt-0.5 text-xs text-secondary-700">
                     Sức chứa: ${capacity} khách
-                </p>
+                </p> -->
                 ${footer}
             </div>
         `;

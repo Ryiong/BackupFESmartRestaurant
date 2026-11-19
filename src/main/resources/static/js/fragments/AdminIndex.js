@@ -55,12 +55,12 @@ function renderShopBar(shops, current) {
             ${note}
         </div>
         <div class="btn-row">
-            <p-button id="shop-edit" label="Sửa cửa hàng" icon="edit" ${current.status !== 'ACTIVE' ? 'disabled title="Chỉ sửa được sau khi quản trị viên duyệt cửa hàng"' : ''}></p-button>
+            <p-button id="shop-edit" label="Sửa cửa hàng" icon="edit"></p-button>
             <p-button id="shop-create" label="Tạo cửa hàng" icon="add" variant="solid"></p-button>
         </div>`;
         
     el.bar.querySelector('#shop-select')?.addEventListener('change', e => setCurrentShopId(e.target.value));
-    el.bar.querySelector('#shop-edit').addEventListener('click', () => { if (current.status === 'ACTIVE') shopEditDialog(current); });
+    el.bar.querySelector('#shop-edit').addEventListener('click', () => shopEditDialog(current));
     el.bar.querySelector('#shop-create').addEventListener('click', createShopFlow);
 }
 

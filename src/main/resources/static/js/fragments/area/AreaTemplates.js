@@ -12,7 +12,7 @@ const qrBlock = table => `
         <span class="text-sm font-semibold">QR gọi món</span>
         <button type="button" role="switch" aria-checked="${!!table.qrEnabled}" aria-label="Bật/tắt QR gọi món" data-act="toggle-qr"
             class="relative h-6 w-11 cursor-pointer rounded-full transition-colors ${table.qrEnabled ? 'bg-primary-700' : 'bg-primary-200'}">
-            <span class="absolute top-0.5 size-5 rounded-full bg-white shadow transition-all ${table.qrEnabled ? 'left-[22px]' : 'left-0.5'}"></span>
+            <span class="absolute top-0.5 size-5 rounded-full bg-white shadow transition-all ${table.qrEnabled ? 'left-5.5' : 'left-0.5'}"></span>
         </button>
         ${table.qrEnabled ? '<p-button data-act="show-qr" label="Xem QR" icon="qr"></p-button>' : '<span class="text-xs text-secondary-700">Đang tắt</span>'}
     </div>`;

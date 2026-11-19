@@ -63,7 +63,6 @@ const recordPaid = (orderId, total) => {
 export const paidTotalOf = orderId => Number(readLedger()[sid(orderId)]) || 0;
 
 const sid = v => String(v);
-const localDate = (d = new Date()) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 let shopPromise = null;
 export function getShopId() {
@@ -96,10 +95,9 @@ function mergeItems(target, items) {
 
 const mapTable = (t, order, local, occupiedIds) => {
     const tid = sid(t.id);
-    // Bàn đang dùng nếu: có đơn PENDING trong GET /order, hoặc bàn báo OCCUPIED,
-    // hoặc vừa gọi món ở máy này và backend chưa báo bàn trống.
-    // Chỉ tin backend: giỏ món local KHÔNG được tự làm bàn thành "đang dùng"
-    const occupied = !!order || t.orderStatus === 'OCCUPIED';
+    // Bàn đang dùng khi và chỉ khi GET /order/table/{id} trả về một đơn đang mở.
+    // Giỏ món lưu ở máy này KHÔNG được tự làm bàn thành "đang dùng".
+    const occupied = !!order;
     if (!occupied) {
         openOrders.delete(tid);
         return {
@@ -117,7 +115,7 @@ const mapTable = (t, order, local, occupiedIds) => {
         capacity: DEFAULT_CAPACITY,
         status: paying.has(tid) ? 'paying' : 'serving',
         guests: 0,
-        startedAt: local?.startedAt ?? (created.length ? Math.min(...created) : Date.now()),
+        startedAt: local?.startedAt ?? (Date.parse(order?.createdAt) || (created.length ? Math.min(...created) : Date.now())),
         reservedAt: null,
         reservedUntil: null,
         orders: apiItems ?? local?.items ?? [],
@@ -127,34 +125,49 @@ const mapTable = (t, order, local, occupiedIds) => {
     };
 };
 
-let pendingByTable = new Map();
-
-const tableIdOf = o => o.table?.id ?? o.tableId ?? o.tableResponse?.id;
+/*
+ * Đơn đang mở của MỘT bàn: GET /order/table/{tableId}.
+ * Đây là nguồn duy nhất để biết bàn trống hay đang dùng (không còn quét /order?date=, vì quét theo ngày
+ * sẽ bỏ sót đơn chưa thanh toán từ những ngày trước).
+ * Chấp nhận cả trường hợp backend trả một đơn, một mảng đơn, hoặc null; 404 nghĩa là bàn chưa có đơn mở.
+ */
+const OPEN_STATUS = new Set(['PENDING', 'OPEN', 'UNPAID']);
 const isOpenOrder = o => {
-    const st = String(o.orderStatus ?? o.status ?? '').toUpperCase();
-    return st === 'PENDING' || st === 'OPEN' || st === 'UNPAID';
+    const st = String(o?.orderStatus ?? o?.status ?? '').toUpperCase();
+    return !st || OPEN_STATUS.has(st); // không có trạng thái thì coi là đơn đang mở (đúng ngữ nghĩa "đơn của bàn")
 };
 
-async function fetchPendingOrders(shopId, back = 1) {
-    // Backend lọc theo ngày TẠO đơn (giờ server) -> quét cả các ngày trước để thấy đơn mở qua đêm / lệch múi giờ.
-    // Quét từ cũ đến mới để đơn mới nhất của bàn được ưu tiên.
-    const days = Array.from({ length: back + 1 }, (_, i) => localDate(new Date(Date.now() - (back - i) * 864e5)));
-    const lists = await Promise.all(days.map(date => http('GET', `/order/${shopId}`, undefined, { query: { date } })));
-    const orders = lists.flatMap(l => l ?? []);
-    const map = new Map();
-    for (const o of orders ?? []) {
-        const tid = tableIdOf(o);
-        if (tid != null && isOpenOrder(o)) map.set(sid(tid), o);
+async function fetchTableOrder(tableId) {
+    let res;
+    try {
+        res = await http('GET', `/order/table/${tableId}`);
+    } catch (err) {
+        if (err.status === 404) return null; // bàn chưa có đơn nào đang mở
+        throw err; // lỗi khác (mất kết nối, 403...) không được hiểu thành "bàn trống"
     }
-    if (orders?.length && !map.size) console.warn('[AreaService] Không nhận ra đơn PENDING nào trong /order, mẫu:', orders[0]);
-    return map;
+    const list = (Array.isArray(res) ? res : res?.content ?? [res]).filter(o => o && o.id != null && isOpenOrder(o));
+    // nếu có nhiều đơn mở thì lấy đơn mới nhất
+    return list.sort((x, y) => Number(y.id) - Number(x.id))[0] ?? null;
+}
+
+/** Chạy fn trên từng phần tử với tối đa `limit` request song song. */
+async function pool(items, fn, limit = 6) {
+    const out = new Array(items.length);
+    let i = 0;
+    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, async () => {
+        while (i < items.length) { const k = i++; out[k] = await fn(items[k]); }
+    }));
+    return out;
 }
 
 async function listAreas() {
     const shopId = await getShopId();
-    const [areas, pending] = await Promise.all([httpAll(`/area/shop/${shopId}`), fetchPendingOrders(shopId)]);
-    pendingByTable = pending;
+    const areas = await httpAll(`/area/shop/${shopId}`);
     const tablesByArea = await Promise.all(areas.map(a => a.status === 'ACTIVE' ? httpAll(`/tables/area/${a.id}`) : []));
+    // Mỗi bàn đang hoạt động hỏi riêng đơn của bàn đó để biết còn trống hay không.
+    const activeTables = tablesByArea.flat().filter(t => t.status === 'ACTIVE');
+    const orders = await pool(activeTables, t => fetchTableOrder(t.id));
+    const orderByTable = new Map(activeTables.map((t, i) => [sid(t.id), orders[i]]));
     const occupiedIds = new Set();
     const result = areas.map((a, i) => ({
         id: sid(a.id),
@@ -162,7 +175,7 @@ async function listAreas() {
         description: a.description ?? '',
         active: a.status === 'ACTIVE',
         tables: tablesByArea[i].filter(t => t.status === 'ACTIVE')
-            .map(t => mapTable(t, pending.get(sid(t.id)), openOrders.get(sid(t.id)), occupiedIds)),
+            .map(t => mapTable(t, orderByTable.get(sid(t.id)), openOrders.get(sid(t.id)), occupiedIds)),
         pausedTables: tablesByArea[i].filter(t => t.status !== 'ACTIVE')
             .map(t => ({ id: sid(t.id), name: t.name, capacity: DEFAULT_CAPACITY })),
     }));
@@ -185,12 +198,14 @@ async function saveArea(a) {
     }
 
     const keep = new Map((a.tables ?? []).filter(t => t.id).map(t => [sid(t.id), t]));
+    console.log('Danh sách ID giữ lại:', [...keep.keys()], 'Hiện tại trên server:', current.map(t => sid(t.id)));
     for (const t of current) if (!keep.has(sid(t.id))) await http('DELETE', `/tables/${t.id}`);
     for (const t of current) {
         const next = keep.get(sid(t.id));
         if (next && next.name !== t.name) await http('PUT', `/tables/${t.id}`, { name: next.name, qrEnabled: t.qrEnabled });
     }
     for (const t of (a.tables ?? []).filter(t => !t.id)) await http('POST', `/tables/area/${areaId}`, { name: t.name, qrEnabled: true });
+    
     return { id: sid(areaId) };
 }
 
@@ -204,13 +219,8 @@ async function listMenu() {
 }
 
 async function orderIdOfTable(tableId) {
-    const tid = sid(tableId);
-    const shopId = await getShopId();
-    let o = pendingByTable.get(tid) ?? (await fetchPendingOrders(shopId)).get(tid);
-    const cached = openOrders.get(tid)?.orderId;
-    // Bàn báo đang dùng nhưng chưa thấy đơn: quét rộng hơn (đơn mở từ vài ngày trước)
-    if (!o && cached == null) o = (await fetchPendingOrders(shopId, 7)).get(tid);
-    const id = o?.id ?? cached;
+    const o = await fetchTableOrder(tableId);
+    const id = o?.id ?? openOrders.get(sid(tableId))?.orderId;
     if (id == null) throw new Error('Bàn này chưa có đơn hàng đang mở');
     return id;
 }
@@ -220,6 +230,7 @@ export const springAreaService = {
     listMenu,
     saveArea,
     setAreaActive: (id, active) => active ? http('PATCH', `/area/${id}/activate`) : http('DELETE', `/area/${id}`),
+    setTableActive: (id, active) => active ? http('PATCH', `/tables/${id}/activate`) : http('DELETE', `/tables/${id}`),
 
     setTableQr: (tableId, enabled, name) => http('PUT', `/tables/${tableId}`, { name, qrEnabled: !!enabled }),
 

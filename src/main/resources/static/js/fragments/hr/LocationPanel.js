@@ -119,7 +119,7 @@ class LocationPanel extends HrPanel {
             let failed = 0;
             L.tileLayer(TILES, { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' })
                 .on('tileerror', () => {
-                    if (++failed === 3) errBox.innerHTML = notice('Không tải được ô bản đồ từ OpenStreetMap (có thể bị chặn mạng). Bạn vẫn nhập toạ độ bằng tay hoặc bấm “Dùng vị trí hiện tại của tôi”.');
+                    if (++failed === 3) errBox.innerHTML = notice('Không tải được bản đồ từ OpenStreetMap (có thể do nhà mặng chặn). Bạn vẫn có thể nhập toạ độ bằng tay hoặc ấn “Dùng vị trí hiện tại của tôi”.');
                 })
                 .addTo(this.map);
             this.L = L;
