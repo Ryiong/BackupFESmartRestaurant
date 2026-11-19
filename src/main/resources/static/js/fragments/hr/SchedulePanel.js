@@ -25,12 +25,12 @@ class SchedulePanel extends HrPanel {
                     <span data-date class="min-w-44 rounded-lg border border-primary-100 bg-white px-4 py-1.5 text-center text-sm font-bold text-primary-800"></span>
                     <button type="button" data-act="next" aria-label="Ngày sau" class="grid size-9 cursor-pointer place-items-center rounded-lg border border-primary-100 bg-white text-primary-700 hover:border-primary-500">${ICONS.chevR}</button>
                     <p-button data-act="today" label="Hôm nay"></p-button>
-                    <input type="date" data-pick aria-label="Chọn ngày" class="${INPUT_CLS} !w-auto !py-1.5 text-sm">
+                    <input type="date" data-pick aria-label="Chọn ngày" class="${INPUT_CLS} w-auto! py-1.5! text-sm">
                 </div>
                 <p-button data-act="assign" label="Phân ca làm mới" icon="add" variant="solid" class="block md:inline-block"></p-button>
             </div>
             <div data-week class="grid grid-cols-7 gap-2"></div>
-            <section class="${CARD} !p-0 overflow-hidden"><div data-table class="overflow-x-auto"></div></section>
+            <section class="${CARD} p-0! overflow-hidden"><div data-table class="overflow-x-auto"></div></section>
         </div>`;
     }
 
@@ -39,7 +39,7 @@ class SchedulePanel extends HrPanel {
         const from = weekStart(s.date), to = addDays(from, 6);
         const [staff, shifts, week] = await Promise.all([hr.listStaff(), hr.listShifts(), hr.listScheduleRange(from, to)]);
         s.staff = staff.filter(x => x.status === 'ACTIVE');
-        // Nhân viên đã nghỉ việc vẫn có thể còn ca đã xếp (backend không tự huỷ) -> vẫn hiện hàng của họ để quản lý xoá ca.
+
         const known = new Set(s.staff.map(x => x.id));
         for (const w of week) {
             if (w.employmentId != null && !known.has(w.employmentId)) {

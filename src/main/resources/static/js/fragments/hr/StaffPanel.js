@@ -25,7 +25,7 @@ class StaffPanel extends HrPanel {
                     <label class="relative w-full md:w-auto">
                         <span class="sr-only">Tìm nhân viên</span>
                         <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-primary-300">${ICONS.search}</span>
-                        <input data-q type="search" placeholder="Tìm tên, email, số điện thoại…" class="${INPUT_CLS} w-full! md:!w-72 !pl-10 text-sm">
+                        <input data-q type="search" placeholder="Tìm tên, email, số điện thoại…" class="${INPUT_CLS} w-full! md:w-72! pl-10! text-sm">
                     </label>
                     <select data-status class="${SELECT_CLS}" aria-label="Lọc theo trạng thái">
                         <option value="">Tất cả</option><option value="ACTIVE" selected>Đang làm</option><option value="TERMINATED">Đã nghỉ</option>
@@ -34,7 +34,7 @@ class StaffPanel extends HrPanel {
                 </div>
                 <p-button data-act="add" label="Thêm nhân viên mới" icon="add" variant="solid" class="block md:inline-block"></p-button>
             </div>
-            <section class="${CARD} !p-0 overflow-hidden"><div data-table class="overflow-x-auto"></div></section>
+            <section class="${CARD} p-0! overflow-hidden"><div data-table class="overflow-x-auto"></div></section>
         </div>`;
     }
 
@@ -91,7 +91,7 @@ class StaffPanel extends HrPanel {
         return openDialog({
             title: 'Chi tiết nhân viên', width: 440,
             render: (body, close) => {
-                const row = (k, v) => `<dt class="font-semibold text-secondary-700">${k}</dt><dd class="min-w-0 break-words font-medium">${v}</dd>`;
+                const row = (k, v) => `<dt class="font-semibold text-secondary-700">${k}</dt><dd class="min-w-0 wrap-break-word font-medium">${v}</dd>`;
                 body.innerHTML = `
                 <dl class="grid grid-cols-[7.5rem_1fr] gap-x-3 gap-y-3 text-sm">
                     ${row('Họ tên', esc(x.name))}

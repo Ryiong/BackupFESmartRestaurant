@@ -27,13 +27,13 @@ class PayrollPanel extends HrPanel {
                 </div>
                 <div class="flex flex-wrap items-end gap-3">
                     <label class="grid gap-1 text-xs font-bold">Ngày công chuẩn/tháng
-                        <input data-p="days" type="number" min="1" max="31" class="${INPUT_CLS} !w-28 !py-1.5 text-sm"></label>
+                        <input data-p="days" type="number" min="1" max="31" class="${INPUT_CLS} w-28! py-1.5! text-sm"></label>
                     <label class="grid gap-1 text-xs font-bold">Giờ/ngày công
-                        <input data-p="hours" type="number" min="1" max="24" step="0.5" class="${INPUT_CLS} !w-28 !py-1.5 text-sm"></label>
+                        <input data-p="hours" type="number" min="1" max="24" step="0.5" class="${INPUT_CLS} w-28! py-1.5! text-sm"></label>
                     <p-button data-act="csv" label="Xuất CSV" icon="check" class="block md:inline-block"></p-button>
                 </div>
             </div>
-            <section class="${CARD} !p-0 overflow-hidden"><div data-table class="overflow-x-auto"></div></section>
+            <section class="${CARD} p-0! overflow-hidden"><div data-table class="overflow-x-auto"></div></section>
             <p class="text-xs text-secondary-700">Chỉ tính các ca đã được <b>duyệt công</b> và có đủ giờ vào/ra. Số liệu là ước tính, chưa gồm thưởng, phạt, phụ cấp hay thuế.</p>
         </div>`;
         const p = this.state.params;

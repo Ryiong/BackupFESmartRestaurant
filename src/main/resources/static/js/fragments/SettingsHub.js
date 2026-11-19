@@ -90,7 +90,7 @@ class SettingsHub extends HTMLElement {
             const on = s.key === this.key, n = this.summary[s.key], done = n > 0;
             return `<li class="shrink-0 grow 2xl:grow-0"><a href="#${s.key}" ${on ? 'aria-current="step"' : ''}
                 class="flex min-h-11 items-center gap-2 rounded-xl px-2.5 py-2 transition-all md:gap-3 md:px-3 md:py-2.5 hover:bg-neutral-50 ${on ? 'bg-primary-50 text-primary-800' : 'text-secondary-800'}">
-                <!-- <span class="grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold ${done ? 'bg-primary-600 text-white' : on ? 'bg-white text-primary-700 ring-2 ring-primary-300' : 'bg-neutral-100 text-secondary-700'}">${done ? '✓' : i + 1}</span> -->
+                <span class="grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold ${done ? 'bg-primary-600 text-white' : on ? 'bg-white text-primary-700 ring-2 ring-primary-300' : 'bg-neutral-100 text-secondary-700'}">${done ? '✓' : i + 1}</span>
                 <span class="grid"><span class="text-sm font-bold whitespace-nowrap">${esc(s.label)}</span>
                 ${sub[s.key] && n !== undefined ? `<span class="hidden text-xs md:block font-medium text-secondary-700">${n} ${sub[s.key]}</span>` : ''}</span></a></li>`;
         }).join('');
