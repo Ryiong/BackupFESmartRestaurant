@@ -6,7 +6,7 @@ import { ICONS } from '../../icon.js';
 
 const FIELD = 'mb-3';
 const LABEL = 'mb-1.5 block text-sm font-semibold';
-const BTN_ROW = 'mt-5 flex flex-wrap justidy-center gap-3';
+const BTN_ROW = 'mt-5 flex flex-wrap justify-center gap-3';
 const MAX_IMAGE = 5 * 1024 * 1024;
 const ICON_BTN = 'cursor-pointer rounded-lg p-1.5 text-primary-700 transition-all hover:scale-90 hover:bg-white';
 
@@ -162,7 +162,7 @@ export function categoryDialog({ categories, ctx }) {
             body.innerHTML = `
                 <div data-list class="max-h-96 space-y-3 overflow-y-auto pr-1"></div>
                 <div class="${BTN_ROW}">
-                    <p-button data-act="cat-add" label="Thêm danh mục" icon="addBox"></p-button>
+                    <p-button data-act="cat-add" label="Thêm danh mục" icon="addBox" class="text-support-100!"></p-button>
                     <p-button data-act="done" label="Xong" icon="check" variant="solid"></p-button>
                 </div>`;
             const box = body.querySelector('[data-list]');
@@ -172,7 +172,7 @@ export function categoryDialog({ categories, ctx }) {
                     <input data-f="c-name" maxlength="100" autocomplete="off" placeholder="Tên danh mục" value="${esc(editing.name)}" class="${INPUT_CLS}">
                     <input data-f="c-desc" autocomplete="off" placeholder="Mô tả (không bắt buộc)" value="${esc(editing.description)}" class="${INPUT_CLS}">
                     <p data-err class="min-h-4 text-xs font-medium text-red-600" role="alert"></p>
-                    <div class="flex gap-2">
+                    <div class="flex gap-2 justify-around">
                         <p-button data-act="cat-save" label="Lưu" icon="check" variant="solid"></p-button>
                         <p-button data-act="cat-cancel" label="Huỷ"></p-button>
                     </div>

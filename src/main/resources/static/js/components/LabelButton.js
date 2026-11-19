@@ -1,7 +1,7 @@
 import { esc } from '../utils/format.js';
 
 const VARIANTS = {
-    primary: 'border-primary-600 bg-primary-600 text-white',
+    primary: 'border-primary-300 bg-primary-300 text-text',
     solid: 'border-primary-100 bg-white text-secondary-800'
 };
 

@@ -128,7 +128,7 @@ class AreaManager extends HTMLElement {
         this.el.filters.innerHTML = FILTERS.map(f => {
             const on = this.state.filter === f.v;
             return `<button type="button" data-act="filter" data-v="${f.v}" aria-pressed="${on}"
-                class="cursor-pointer rounded-full border px-3 py-1 text-xs font-bold transition-all hover:scale-95 ${on ? 'border-primary-700 bg-primary-700 text-white' : 'border-primary-200 bg-white text-primary-700'}">
+                class="cursor-pointer rounded-full border px-3 py-1 text-xs font-bold transition-all hover:scale-95 ${on ? 'border-support-300 bg-support-300 text-white' : 'border-primary-200 bg-white text-primary-700'}">
                 ${f.label} <span class="opacity-70">${tables.filter(f.match).length}</span></button>`;
         }).join('');
     }

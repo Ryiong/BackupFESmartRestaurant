@@ -7,7 +7,7 @@ import { productDialog, categoryDialog } from './MenuDialogs.js';
 import { ICONS } from '../../icon.js';
 import { productCard, skeletonGrid, stateHtml } from './MenuTemplates.js';
 
-const FIELD_CLS = 'rounded-xl border border-support-600 bg-white py-2 text-sm text-text focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500';
+const FIELD_CLS = 'rounded-xl border border-primary-400 outline-primary-400 bg-white py-2 text-sm text-text focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500';
  
 const fold = s => String(s ?? '').normalize('NFD').replace(/\p{M}/gu, '').replace(/đ/g, 'd').toLowerCase();
  
@@ -40,7 +40,7 @@ class MenuManager extends HTMLElement {
                 <label class="relative block min-w-56 flex-1 sm:max-w-80 sm:flex-none">
                     <span class="sr-only">Tìm món</span>
                     <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-primary-700">${ICONS.search}</span>
-                    <input data-f="q" type="search" autocomplete="off" placeholder="Tìm tên món, danh mục…" class="${FIELD_CLS} w-full pl-9 pr-3">
+                    <input id="search-menu" data-f="q" type="search" autocomplete="off" placeholder="Tìm tên món, danh mục…" class="${FIELD_CLS} w-full pl-9 pr-3">
                 </label>
                 <label class="block">
                     <span class="sr-only">Danh mục</span>

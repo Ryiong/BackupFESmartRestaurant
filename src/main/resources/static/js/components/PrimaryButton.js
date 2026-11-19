@@ -2,7 +2,7 @@ import { ICONS } from '../icon.js';
 import { esc } from '../utils/format.js';
 
 const VARIANTS = {
-    primary: 'border-primary-600 text-primary-600 hover:border-primary-700 hover:text-primary-700',
+    primary: 'border-primary-300 bg-white text-text hover:border-primary-400',
     danger: 'border-red-200 text-red-500 hover:border-red-500 bg-white',
     solid: 'border-primary-300 bg-primary-300 text-text hover:bg-primary-400',
 };

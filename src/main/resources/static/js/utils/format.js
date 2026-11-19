@@ -37,7 +37,7 @@ export const STATUS = {
         label: 'TRỐNG',
         panel: 'TRỐNG',
         card: 'border-primary-200 bg-white',
-        badge: 'bg-neutral-100 text-primary-500'
+        badge: 'bg-support-50 text-support-700'
     },
     serving: {
         label: 'ĐANG PHỤC VỤ',

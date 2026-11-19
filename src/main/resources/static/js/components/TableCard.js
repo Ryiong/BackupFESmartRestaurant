@@ -58,7 +58,7 @@ class TableCard extends HTMLElement {
         let footer = '';
         if (variant === 'view') {
             footer = `
-                <span class="mt-2 inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold ${st.badge}">
+                <span class="mt-2 inline-block rounded-full px-2.5 py-0.5 text-[10px] font-bold w-full text-center ${st.badge}">
                     ${esc(note || st.label)}
                 </span>
             `;

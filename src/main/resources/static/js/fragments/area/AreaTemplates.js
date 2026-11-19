@@ -11,7 +11,7 @@ const qrBlock = table => `
     <div class="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-primary-200 bg-white p-3">
         <span class="text-sm font-semibold">QR gọi món</span>
         <button type="button" role="switch" aria-checked="${!!table.qrEnabled}" aria-label="Bật/tắt QR gọi món" data-act="toggle-qr"
-            class="relative h-6 w-11 cursor-pointer rounded-full transition-colors ${table.qrEnabled ? 'bg-primary-700' : 'bg-primary-200'}">
+            class="relative h-6 w-11 cursor-pointer rounded-full transition-colors ${table.qrEnabled ? 'bg-support-100' : 'bg-support-200'}">
             <span class="absolute top-0.5 size-5 rounded-full bg-white shadow transition-all ${table.qrEnabled ? 'left-5.5' : 'left-0.5'}"></span>
         </button>
         ${table.qrEnabled ? '<p-button data-act="show-qr" label="Xem QR" icon="qr"></p-button>' : '<span class="text-xs text-secondary-700">Đang tắt</span>'}
@@ -139,7 +139,7 @@ export function detailHtml({ table, area, pay }) {
                     <span class="font-bold">TỔNG THANH TOÁN</span><b class="text-lg text-primary-700">${money(total)}</b>
                 </div>
                 <h4 class="mb-2 mt-4 text-[15px] font-bold">Phương thức thanh toán</h4>
-                <div class="flex gap-2">${methodBtn('cash', 'Tiền mặt')}${methodBtn('transfer', 'Chuyển khoản')}</div>
+                <div class="flex gap-2 justify-around">${methodBtn('cash', 'Tiền mặt')}${methodBtn('transfer', 'Chuyển khoản')}</div>
                 ${pay.method === 'cash' ? `
                 <div class="mt-3 grid grid-cols-[96px_1fr] items-center gap-2">
                     <label for="pay-received" class="text-sm">Khách đưa</label>
