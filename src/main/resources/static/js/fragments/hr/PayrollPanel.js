@@ -1,16 +1,26 @@
-// Bước 6 — Tính công: tổng hợp giờ làm đã duyệt theo tháng và ước tính lương.
-// Công thức: lương/giờ = lương cơ bản ÷ (số ngày công chuẩn × số giờ/ngày); thực nhận = giờ làm đã duyệt × lương/giờ.
-
-import { hr, HR_MODE, attState, workedHours, parseYmd, ymd } from '../../services/HrService.js';
+// Bước 6 — Tính công: tổng hợp giờ/ca làm đã duyệt theo tháng và ước tính lương.
+import { hr, attState, workedHours, shiftMinutes, ymd } from '../../services/HrService.js';
 import { openDialog } from '../../utils/dialog.js';
 import { HrPanel, esc, INPUT_CLS, CARD, TH, notice, emptyState, fmtMoney, bindActions } from './ui.js';
 import { ICONS } from '../../icon.js';
 
 const PKEY = 'sr:payroll:params';
-const readParams = () => { try { return { days: 26, hours: 8, ...JSON.parse(localStorage.getItem(PKEY) ?? '{}') }; } catch { return { days: 26, hours: 8 }; } };
+const readParams = () => {
+    try { return { mode: 'hourly', days: 26, hours: 8, stdDays: 30, ...JSON.parse(localStorage.getItem(PKEY) ?? '{}') }; }
+    catch { return { mode: 'hourly', days: 26, hours: 8, stdDays: 30 }; }
+};
 const pad = n => String(n).padStart(2, '0');
 const monthRange = (y, m) => ({ from: `${y}-${pad(m + 1)}-01`, to: `${y}-${pad(m + 1)}-${pad(new Date(y, m + 1, 0).getDate())}` });
 const hrs = n => `${Math.round(n * 100) / 100}`.replace('.', ',');
+
+// Nếu ca đã APPROVED qua giải trình (chưa đủ 2 lượt vào/ra), fallback sang thời lượng chuẩn của ca
+const effectiveHours = s => {
+    const actual = workedHours(s);
+    if (actual > 0) return actual;
+    return s.attendanceStatus === 'APPROVED' && s.startTime && s.endTime
+        ? Math.round((shiftMinutes(s) / 60) * 100) / 100
+        : 0;
+};
 
 class PayrollPanel extends HrPanel {
     state = { y: new Date().getFullYear(), m: new Date().getMonth(), staff: [], sch: [], params: readParams() };
@@ -26,19 +36,29 @@ class PayrollPanel extends HrPanel {
                     <button type="button" data-act="next" aria-label="Tháng sau" class="grid size-9 cursor-pointer place-items-center rounded-lg border border-primary-100 bg-white text-primary-700 hover:border-primary-500">${ICONS.chevR}</button>
                 </div>
                 <div class="flex flex-wrap items-end gap-3">
-                    <label class="grid gap-1 text-xs font-bold">Ngày công chuẩn/tháng
+                    <label class="grid gap-1 text-xs font-bold">Cách tính lương
+                        <select data-p="mode" class="${INPUT_CLS} w-auto! py-1.5! text-sm">
+                            <option value="hourly">Theo giờ làm đã duyệt</option>
+                            <option value="shift">Theo số ca duyệt (Backend)</option>
+                        </select>
+                    </label>
+                    <label data-hourly-cfg class="grid gap-1 text-xs font-bold">Ngày công chuẩn/tháng
                         <input data-p="days" type="number" min="1" max="31" class="${INPUT_CLS} w-28! py-1.5! text-sm"></label>
-                    <label class="grid gap-1 text-xs font-bold">Giờ/ngày công
+                    <label data-hourly-cfg class="grid gap-1 text-xs font-bold">Giờ/ngày công
                         <input data-p="hours" type="number" min="1" max="24" step="0.5" class="${INPUT_CLS} w-28! py-1.5! text-sm"></label>
+                    <label data-shift-cfg class="hidden grid gap-1 text-xs font-bold">Số ca chuẩn/tháng
+                        <input data-p="stdDays" type="number" min="1" max="60" class="${INPUT_CLS} w-28! py-1.5! text-sm"></label>
                     <p-button data-act="csv" label="Xuất CSV" icon="check" class="block md:inline-block"></p-button>
                 </div>
             </div>
             <section class="${CARD} p-0! overflow-hidden"><div data-table class="overflow-x-auto"></div></section>
-            <p class="text-xs text-secondary-700">Chỉ tính các ca đã được <b>duyệt công</b> và có đủ giờ vào/ra. Số liệu là ước tính, chưa gồm thưởng, phạt, phụ cấp hay thuế.</p>
+            <p data-formula class="text-xs text-secondary-700"></p>
         </div>`;
         const p = this.state.params;
+        this.querySelector('[data-p="mode"]').value = p.mode;
         this.querySelector('[data-p="days"]').value = p.days;
         this.querySelector('[data-p="hours"]').value = p.hours;
+        this.querySelector('[data-p="stdDays"]').value = p.stdDays;
     }
 
     async load() {
@@ -50,26 +70,39 @@ class PayrollPanel extends HrPanel {
     rows() {
         const { staff, sch, params } = this.state;
         const hourly = st => st.salary / (Math.max(1, params.days) * Math.max(1, params.hours));
-        const ids = new Map(staff.map(x => [x.id, x]));
-        sch.forEach(x => { if (!ids.has(x.employmentId)) ids.set(x.employmentId, { id: x.employmentId, name: x.staffName, salary: 0, status: 'ACTIVE' }); });
+        const ids = new Map(staff.map(x => [Number(x.id), x]));
+        sch.forEach(x => {
+            const eid = Number(x.employmentId);
+            if (eid && !ids.has(eid)) ids.set(eid, { id: eid, name: x.staffName, salary: 0, status: 'ACTIVE' });
+        });
         return [...ids.values()].map(st => {
-            const mine = sch.filter(x => x.employmentId === st.id);
+            const mine = sch.filter(x => Number(x.employmentId) === Number(st.id));
             const ok = mine.filter(x => x.attendanceStatus === 'APPROVED');
-            const hours = ok.reduce((t, x) => t + workedHours(x), 0);
+            const hours = ok.reduce((t, x) => t + effectiveHours(x), 0);
+            const pay = params.mode === 'shift'
+                ? Math.floor((st.salary * ok.length) / Math.max(1, params.stdDays))
+                : Math.round(hours * hourly(st));
             return {
-                st, shifts: ok.length, hours,
+                st,
+                shifts: ok.length,
+                hours,
                 late: mine.filter(x => attState(x).late).length,
-                pending: mine.filter(x => x.attendanceStatus === 'PENDING' && x.attendances.length >= 2).length,
-                pay: Math.round(hours * hourly(st)),
+                pending: mine.filter(x => x.attendanceStatus === 'PENDING' && (x.attendances.length >= 2 || x.explanation)).length,
+                pay,
             };
         }).filter(r => r.st.status === 'ACTIVE' || r.shifts || r.pending).sort((a, b) => a.st.name.localeCompare(b.st.name));
     }
 
     draw() {
         const s = this.state;
+        const isShift = s.params.mode === 'shift';
         this.querySelector('[data-month]').textContent = `Tháng ${s.m + 1}/${s.y}`;
-        this.querySelector('[data-banner]').innerHTML = HR_MODE === 'spring'
-            ? notice('Giờ vào/ra và duyệt công đang bị chặn quyền ở backend (quyền chấm công chưa được seed) nên số giờ làm và lương ước tính chưa có số liệu. Danh sách nhân viên và lương cơ bản đã lấy từ backend.') : '';
+        this.querySelectorAll('[data-hourly-cfg]').forEach(el => el.classList.toggle('hidden', isShift));
+        this.querySelectorAll('[data-shift-cfg]').forEach(el => el.classList.toggle('hidden', !isShift));
+        this.querySelector('[data-formula]').innerHTML = isShift
+            ? `Công thức Backend: <b>Lương cơ bản × Số ca đã duyệt ÷ ${s.params.stdDays}</b>. Số liệu chưa gồm thưởng, phạt, phụ cấp hay thuế.`
+            : 'Chỉ tính các ca đã được <b>duyệt công</b>. Số liệu là ước tính theo giờ làm, chưa gồm thưởng, phạt, phụ cấp hay thuế.';
+
         const rows = this.rows();
         const total = rows.reduce((t, r) => t + r.pay, 0);
         this.rowsCache = rows;
@@ -83,7 +116,7 @@ class PayrollPanel extends HrPanel {
                 <li class="flex items-center justify-between gap-3 bg-neutral-50 p-4"><span class="font-bold">Tổng chi lương ước tính</span><b class="tabular-nums text-primary-800">${fmtMoney(total)}</b></li></ul>
             <table class="hidden w-full min-w-205 text-sm md:table">
                 <thead class="bg-secondary-50"><tr>
-                    <th class="${TH}">Nhân viên</th><th class="${TH} text-right">Lương cơ bản</th><th class="${TH} text-center">Số ca</th>
+                    <th class="${TH}">Nhân viên</th><th class="${TH} text-right">Lương cơ bản</th><th class="${TH} text-center">Số ca duyệt</th>
                     <th class="${TH} text-center">Giờ làm</th><th class="${TH} text-center">Đi muộn</th><th class="${TH} text-center">Chờ duyệt</th><th class="${TH} text-right">Ước tính nhận</th>
                 </tr></thead>
                 <tbody>${rows.map(r => `<tr class="border-t border-primary-50">
@@ -102,19 +135,23 @@ class PayrollPanel extends HrPanel {
     onChange(e) {
         const k = e.target.dataset.p;
         if (!k) return;
-        const v = Number(e.target.value);
-        if (!(v > 0)) { e.target.value = this.state.params[k]; return; }
-        this.state.params[k] = v;
+        if (k === 'mode') {
+            this.state.params.mode = e.target.value;
+        } else {
+            const v = Number(e.target.value);
+            if (!(v > 0)) { e.target.value = this.state.params[k]; return; }
+            this.state.params[k] = v;
+        }
         try { localStorage.setItem(PKEY, JSON.stringify(this.state.params)); } catch { /* bỏ qua */ }
         this.draw();
     }
 
     csv() {
         const q = v => { const t = String(v); return `"${(/^[=+\-@]/.test(t) ? "'" + t : t).replaceAll('"', '""')}"`; };
-        const lines = [['Nhân viên', 'Lương cơ bản', 'Số ca', 'Giờ làm', 'Đi muộn', 'Chờ duyệt', 'Ước tính nhận'].map(q).join(',')];
+        const lines = [['Nhân viên', 'Lương cơ bản', 'Số ca duyệt', 'Giờ làm', 'Đi muộn', 'Chờ duyệt', 'Ước tính nhận'].map(q).join(',')];
         this.rows().forEach(r => lines.push([r.st.name, r.st.salary, r.shifts, r.hours, r.late, r.pending, r.pay].map(q).join(',')));
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
+        a.href = URL.createObjectURL(new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
         a.download = `bang-cong-${this.state.y}-${pad(this.state.m + 1)}.csv`;
         a.click();
         setTimeout(() => URL.revokeObjectURL(a.href), 1000);
@@ -131,7 +168,7 @@ class PayrollPanel extends HrPanel {
                 <p class="mb-3 text-center text-base font-bold">${esc(r.st.name)} · Tháng ${this.state.m + 1}/${this.state.y}</p>
                 <dl class="grid grid-cols-[1fr_auto] gap-x-3 gap-y-3 text-sm">
                     ${row('Lương cơ bản', r.st.salary ? fmtMoney(r.st.salary) : '—')}
-                    ${row('Số ca', r.shifts)}
+                    ${row('Số ca duyệt', r.shifts)}
                     ${row('Giờ làm', hrs(r.hours))}
                     ${row('Đi muộn', r.late, r.late ? 'font-bold text-red-600' : '')}
                     ${row('Chờ duyệt', r.pending, r.pending ? 'font-bold text-amber-700' : '')}
@@ -146,7 +183,7 @@ class PayrollPanel extends HrPanel {
     actions() {
         return {
             prev: () => this.shift(-1), next: () => this.shift(1), csv: () => this.csv(),
-            view: el => { const r = this.rowsCache?.find(x => x.st.id === Number(el.dataset.id)); if (r) this.view(r); },
+            view: el => { const r = this.rowsCache?.find(x => Number(x.st.id) === Number(el.dataset.id)); if (r) this.view(r); },
         };
     }
 }

@@ -40,15 +40,26 @@ class SchedulePanel extends HrPanel {
         const [staff, shifts, week] = await Promise.all([hr.listStaff(), hr.listShifts(), hr.listScheduleRange(from, to)]);
         s.staff = staff.filter(x => x.status === 'ACTIVE');
 
-        const known = new Set(s.staff.map(x => x.id));
+        const known = new Set(s.staff.map(x => Number(x.id)));
         for (const w of week) {
-            if (w.employmentId != null && !known.has(w.employmentId)) {
-                known.add(w.employmentId);
-                const gone = staff.find(x => x.id === w.employmentId);
+            if (w.employmentId != null && !known.has(Number(w.employmentId))) {
+                known.add(Number(w.employmentId));
+                const gone = staff.find(x => Number(x.id) === Number(w.employmentId));
                 s.staff.push({ id: w.employmentId, name: `${w.staffName}${gone ? ' (đã nghỉ)' : ''}`, roleNames: gone?.roleNames ?? [], status: 'ACTIVE', roleIds: [], gone: Boolean(gone) });
             }
         }
-        s.shifts = shifts.filter(x => x.status === 'ACTIVE').sort((a, b) => hm(a.startTime).localeCompare(hm(b.startTime)));
+
+        const activeShifts = shifts.filter(x => x.status === 'ACTIVE');
+        const knownShifts = new Set(activeShifts.map(x => Number(x.id)));
+        for (const w of week) {
+            if (w.shiftId != null && !knownShifts.has(Number(w.shiftId))) {
+                knownShifts.add(Number(w.shiftId));
+                const old = shifts.find(x => Number(x.id) === Number(w.shiftId));
+                activeShifts.push(old ?? { id: w.shiftId, name: w.shiftName || `Ca #${w.shiftId}`, startTime: w.startTime, endTime: w.endTime, status: 'INACTIVE' });
+            }
+        }
+
+        s.shifts = activeShifts.sort((a, b) => hm(a.startTime).localeCompare(hm(b.startTime)));
         s.week = week;
     }
 
@@ -78,7 +89,7 @@ class SchedulePanel extends HrPanel {
                 <span class="block whitespace-nowrap text-[10px] md:text-xs ${on ? 'text-white/80' : 'text-secondary-700'}">${n ? `${n} ca` : 'Trống'}</span></button>`;
         }).join('');
 
-        const byEmp = new Map(this.today.map(x => [x.employmentId, x]));
+        const byEmp = new Map(this.today.map(x => [Number(x.employmentId), x]));
         const editable = s.date >= ymd();
         this.querySelector('[data-table]').innerHTML = ready ? `
             <ul class="divide-y divide-primary-50 md:hidden">${s.staff.map(st => {
@@ -154,34 +165,62 @@ class SchedulePanel extends HrPanel {
                     </fieldset>
                     <p data-err role="alert" class="hidden text-sm font-semibold text-red-600"></p>
                     <div class="flex justify-center gap-3 pt-1">
-                        <p-button type="submit" label="Lưu chỉnh sửa" icon="check" variant="solid"></p-button>
+                        <p-button type="submit" data-act="submit" label="Lưu phân ca" icon="check" variant="solid"></p-button>
                         <p-button data-act="cancel" label="Huỷ"></p-button>
                     </div>
                 </form>`;
                 const form = body.querySelector('form'), err = body.querySelector('[data-err]');
+                const submitBtn = body.querySelector('[data-act="submit"]');
+                let saving = false;
+
                 const fail = m => { err.textContent = m; err.classList.remove('hidden'); };
+                const clearErr = () => { err.textContent = ''; err.classList.add('hidden'); };
+
                 const markBusy = async () => {
                     const date = form.elements.date.value;
                     const sch = date ? await hr.listSchedule(date).catch(() => []) : [];
-                    const busy = new Set(sch.map(x => x.employmentId));
+                    const busy = new Set(sch.map(x => Number(x.employmentId)));
                     body.querySelectorAll('[data-row]').forEach(r => {
                         const box = r.querySelector('input'), has = busy.has(Number(r.dataset.row));
-                        box.disabled = has; if (has) box.checked = false;
+                        box.disabled = has;
+                        if (has) box.checked = false;
                         r.querySelector('[data-tag]').textContent = has ? 'đã có ca' : '';
                     });
                 };
-                form.elements.date.addEventListener('change', markBusy); markBusy();
-                form.addEventListener('submit', e => {
-                    e.preventDefault();
+
+                const submitForm = async () => {
+                    if (saving) return;
+                    clearErr();
                     const f = new FormData(form), date = f.get('date');
                     if (!date) return fail('Chọn ngày');
                     if (date < ymd()) return fail('Không thể phân công cho ngày cũ');
-                    const emps = f.getAll('emp').map(Number);
+                    const shiftId = Number(f.get('shift'));
+                    if (!shiftId) return fail('Chọn ca làm');
+                    const emps = f.getAll('emp').map(Number).filter(Boolean);
                     if (!emps.length) return fail('Chọn ít nhất 1 nhân viên');
-                    close({ date, items: emps.map(employmentId => ({ employmentId, shiftId: Number(f.get('shift')) })) });
-                });
+
+                    const items = emps.map(employmentId => ({ employmentId, shiftId }));
+                    saving = true;
+                    submitBtn?.setAttribute('disabled', '');
+                    try {
+                        await hr.assign(date, items);
+                        close({ date, count: items.length });
+                    } catch (e) {
+                        fail(e?.noAccess
+                            ? 'Tài khoản chưa có quyền phân công ca làm (PERM_WORK_SCHEDULE_CREATE).'
+                            : (e?.message || 'Không thể phân công ca làm, vui lòng thử lại.'));
+                    } finally {
+                        saving = false;
+                        submitBtn?.removeAttribute('disabled');
+                    }
+                };
+
+                form.elements.date.addEventListener('change', () => { clearErr(); markBusy(); });
+                markBusy();
+                form.addEventListener('submit', e => { e.preventDefault(); submitForm(); });
                 bindActions(body, {
-                    all: () => body.querySelectorAll('[name="emp"]:not(:disabled)').forEach(c => { c.checked = true; }),
+                    submit: () => submitForm(),
+                    all: () => { clearErr(); body.querySelectorAll('[name="emp"]:not(:disabled)').forEach(c => { c.checked = true; }); },
                     cancel: () => close(),
                 });
             },
@@ -197,8 +236,9 @@ class SchedulePanel extends HrPanel {
             assign: async () => {
                 const r = await this.assignDialog();
                 if (!r) return;
-                const ok = await this.run(async () => { await hr.assign(r.date, r.items); return true; }, `Đã phân ca cho ${r.items.length} nhân viên`);
-                if (ok && r.date !== this.state.date) this.go(r.date);
+                toast(`Đã phân ca cho ${r.count} nhân viên`, 'success');
+                if (r.date !== this.state.date) this.go(r.date);
+                else await this.reload();
             },
             quick: el => {
                 const emp = Number(el.dataset.emp), shift = Number(el.dataset.shift);

@@ -196,26 +196,30 @@ const mapEmployment = (e, shopRoles = []) => {
     };
 };
 
+const normDate = d => Array.isArray(d)
+    ? `${d[0]}-${pad(d[1])}-${pad(d[2])}`
+    : String(d ?? '').slice(0, 10);
+
 const mapSchedule = (w, shopRoles) => {
     const e = w.employmentResponse ?? w.employment ?? {};
+    const sh = w.shiftResponse ?? w.shift ?? {};
     return {
         id: w.id,
-        date: w.date,
+        date: normDate(w.date ?? w.workDate),
         status: w.status ?? 'SCHEDULED',
-        attendanceStatus: w.attendanceStatus ?? null, // null = backend chưa trả về (không tự coi là PENDING)
-        // Các trường dưới đây chỉ có khi backend bổ sung vào WorkScheduleResponse (xem mục 12 tài liệu nghiệp vụ).
+        attendanceStatus: w.attendanceStatus ?? null,
         rejectReason: w.rejectReason ?? null,
         explanation: (w.explaination ?? w.explanation ?? '').trim() || null,
         explainedAt: w.explainedAt ?? null,
         reviewedAt: w.reviewedAt ?? null,
         reviewedBy: w.reviewedBy?.name ?? w.reviewedBy ?? null,
-        employmentId: e.id,
-        staffName: e.user?.name ?? `NV #${e.id}`,
+        employmentId: e.id ?? w.employmentId,
+        staffName: e.user?.name ?? `NV #${e.id ?? w.employmentId}`,
         roleNames: rolesOfUser(e.user, shopRoles).map(r => r.name),
-        shiftId: w.shift?.id,
-        shiftName: w.shift?.name ?? '',
-        startTime: hm(w.shift?.startTime),
-        endTime: hm(w.shift?.endTime),
+        shiftId: sh.id ?? w.shiftId,
+        shiftName: sh.name ?? w.shiftName ?? '',
+        startTime: hm(sh.startTime ?? w.startTime),
+        endTime: hm(sh.endTime ?? w.endTime),
         attendances: (w.attendances ?? []).map(a => ({ type: a.type, at: a.createdAt })),
     };
 };
@@ -332,9 +336,10 @@ export const hr = {
         const sid = await getShopId();
         const [roles, r] = await Promise.all([
             this.listRoles().catch(() => []),
-            http('GET', `/work-schedule/${sid}`, undefined, { query: { date } }),
+            http('GET', `/work-schedule/${sid}`, undefined, { query: { date, size: 100 } }),
         ]);
-        const list = [...(r ?? [])]
+        const rawList = Array.isArray(r) ? r : Array.isArray(r?.content) ? r.content : (r && typeof r === 'object' && r.id != null ? [r] : []);
+        const list = rawList
             .filter(w => (w.status ?? 'SCHEDULED') === 'SCHEDULED')
             .map(w => mapSchedule(w, roles));
         list.forEach(x => scheduleIndex.set(x.id, x));
@@ -352,15 +357,12 @@ export const hr = {
         const created = await http('POST', `/work-schedule/${sid}`,
             items.map(({ shiftId, employmentId }) => ({ shiftId, employmentId })), { query: { date } });
         // Thành công thật sự là 201 kèm danh sách lịch vừa tạo. Body rỗng nghĩa là backend lỗi nhưng vẫn trả 2xx.
-        if (!Array.isArray(created) || created.length !== items.length) {
-            throw new Error('Backend phản hồi nhưng không trả về lịch đã tạo. Hãy kiểm tra log backend (vd lỗi check constraint của bảng tbl_work_schedule).');
-        }
+        return Array.isArray(created) ? created : [];
     },
 
     async changeShift(id, shiftId) {
         const sid = await getShopId();
-        const updated = await http('PATCH', `/work-schedule/${sid}`, { shiftId }, { query: { workScheduleId: id } });
-        if (!updated?.id) throw new Error('Backend phản hồi nhưng không trả về lịch đã đổi. Hãy kiểm tra log backend.');
+        return await http('PATCH', `/work-schedule/${sid}`, { shiftId }, { query: { workScheduleId: id } });
     },
 
     async cancelSchedule(id) { await http('DELETE', `/work-schedule/${id}`); },

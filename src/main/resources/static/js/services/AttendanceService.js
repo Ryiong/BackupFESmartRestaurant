@@ -77,23 +77,18 @@ const mapShift = w => {
     return { ...s, ...shiftWindow(s) };
 };
 
-/**
- * Các ca của người đang đăng nhập tại cửa hàng `shopId` trong hôm nay (và đêm qua, cho ca qua đêm).
- * Backend chỉ có API xem lịch cả cửa hàng nên lọc theo email của mình ở đây;
- * vai trò của nhân viên cần quyền xem lịch làm việc.
- */
 export async function listMyShifts(shopId) {
     const today = ymd();
     let days;
     try {
         days = await Promise.all([addDays(today, -1), today].map(date =>
-            http('GET', `/work-schedule/${shopId}`, undefined, { query: { date } })));
+            http('GET', `/work-schedule/${shopId}`, undefined, { query: { date, size: 100 } })));
     } catch (err) {
         if (err.status === 403) throw new NoAccessError();
         throw err;
     }
     const me = auth.user?.email;
-    return days.flat()
+    return days.flatMap(d => Array.isArray(d) ? d : Array.isArray(d?.content) ? d.content : (d?.id != null ? [d] : []))
         .filter(w => w && (w.status ?? 'SCHEDULED') === 'SCHEDULED' && sameUser(w.employmentResponse ?? w.employment, me))
         .map(mapShift)
         .filter(s => s.date === today || s.closes > Date.now())
