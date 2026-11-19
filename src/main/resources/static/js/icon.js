@@ -306,6 +306,13 @@ export const ICONS = {
         </g>`,
         'size-5'
     ),
+    location: icon('0 0 24 24',
+        'none',
+        `<g fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true">
+            <path d="M9.7685 23.0866C9.7296 23.1333 9.6866 23.1763 9.6399 23.2152C9.2154 23.5686 8.5849 23.511 8.2315 23.0866C2.74384 16.4959 0 11.6798 0 8.63811C0 3.86741 4.2293 0 9 0C13.7707 0 18 3.86741 18 8.63811C18 11.6798 15.2562 16.4959 9.7685 23.0866zM16 8.63811C16 5.06318 12.7595 2 9 2C5.24047 2 2 5.06318 2 8.63811C2 10.9292 4.31851 15.1147 9 20.873C13.6815 15.1147 16 10.9292 16 8.63811zM9 11C7.8954 11 7 10.1046 7 9C7 7.89543 7.8954 7 9 7C10.1046 7 11 7.89543 11 9C11 10.1046 10.1046 11 9 11z"></path
+        </g>`,
+        'size-5'
+    ),
     name: icon('0 0 24 24',
         'none',
         `<g stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

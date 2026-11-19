@@ -5,15 +5,13 @@ import {
     RADIUS_DEFAULT, RADIUS_MAX, distanceMeters,
 } from '../../services/ShopService.js';
 import { getPosition } from '../../services/AttendanceService.js';
+import { loadLeaflet } from '../../services/Leaflet.js';
 import { HrPanel, esc, INPUT_CLS, CARD, chip, field, notice, bindActions, toast } from './ui.js';
 
 const STATUS_TONE = { PENDING: 'amber', ACTIVE: 'green', LOCKED: 'red' };
 
-/** Bản đồ xem trước bằng OpenStreetMap (iframe, không cần thư viện/API key). */
-const mapUrl = (lat, lng) => {
-    const d = 0.0015;
-    return `https://www.openstreetmap.org/export/embed.html?bbox=${lng - d},${lat - d},${lng + d},${lat + d}&layer=mapnik&marker=${lat},${lng}`;
-};
+const DEFAULT_CENTER = [10.7769, 106.7009]; // TP.HCM, chỉ dùng khi cửa hàng chưa có vị trí
+const TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
 class LocationPanel extends HrPanel {
     state = { shop: null, loc: null };
@@ -39,11 +37,16 @@ class LocationPanel extends HrPanel {
                     <p data-hint class="min-h-5 text-sm text-secondary-700"></p>
                     <p data-error role="alert" class="min-h-5 text-sm font-semibold text-red-600"></p>
                     <div class="flex flex-wrap gap-3">
-                        <p-button data-act="here" label="Dùng vị trí hiện tại của tôi" icon="fingerprint"></p-button>
+                        <p-button data-act="here" label="Dùng vị trí hiện tại của tôi" icon="location"></p-button>
                         <p-button data-act="save" label="Lưu vị trí" icon="check" variant="solid"></p-button>
                     </div>
                 </form>
-                <div data-map class="mt-4"></div>
+                <div class="mt-4">
+                    <div data-maperr class="mb-2"></div>
+                    <div data-gmap class="z-0 h-72 w-full rounded-xl border border-primary-100 bg-neutral-50"></div>
+                    <p class="mt-1.5 text-xs text-secondary-700">Bấm vào bản đồ hoặc <b>kéo ghim</b> để chọn vị trí cửa hàng. Vòng tròn xanh là vùng cho phép chấm công.</p>
+                    <a data-maplink class="mt-1 hidden text-xs font-semibold text-primary-700 underline" target="_blank" rel="noopener">Mở bản đồ lớn</a>
+                </div>
             </section>
         </div>`;
     }
@@ -92,16 +95,66 @@ class LocationPanel extends HrPanel {
 
     sync() {
         const v = this.read();
-        const f = this.querySelector('[data-form]').elements;
         this.querySelector('[data-range]').value = Math.min(500, Number(v.attendanceRadius) || RADIUS_DEFAULT);
         const lat = Number(v.latitude), lng = Number(v.longitude);
         const ok = v.latitude !== '' && v.longitude !== '' && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
-        this.querySelector('[data-map]').innerHTML = ok ? `
-            <iframe title="Bản đồ vị trí cửa hàng" loading="lazy" referrerpolicy="no-referrer" class="h-56 w-full rounded-xl border border-primary-100" src="${mapUrl(lat, lng)}"></iframe>
-            <a class="mt-1 inline-block text-xs font-semibold text-primary-700 underline" target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=18/${lat}/${lng}">Mở bản đồ lớn</a>` : '';
+        const link = this.querySelector('[data-maplink]');
+        link.classList.toggle('hidden', !ok);
+        if (ok) link.href = `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=18/${lat}/${lng}`;
+        this.drawMap(ok ? [lat, lng] : null, Number(v.attendanceRadius) || 0);
         this.querySelector('[data-hint]').textContent = this.myPos && ok
             ? `Bạn đang cách vị trí này khoảng ${Math.round(distanceMeters({ latitude: lat, longitude: lng }, this.myPos))} m.` : '';
-        void f;
+    }
+
+    /** Khởi tạo bản đồ Leaflet một lần; lỗi thì chỉ báo, vẫn nhập toạ độ bằng tay được. */
+    async initMap() {
+        if (this.map || this._mapBusy) return;
+        const errBox = this.querySelector('[data-maperr]');
+        this._mapBusy = true;
+        try {
+            const L = await loadLeaflet();
+            if (this.map || !this.isConnected) return;
+            const loc = this.state.loc;
+            this.map = L.map(this.querySelector('[data-gmap]'), { center: loc ? [loc.latitude, loc.longitude] : DEFAULT_CENTER, zoom: loc ? 18 : 15 });
+            let failed = 0;
+            L.tileLayer(TILES, { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' })
+                .on('tileerror', () => {
+                    if (++failed === 3) errBox.innerHTML = notice('Không tải được ô bản đồ từ OpenStreetMap (có thể bị chặn mạng). Bạn vẫn nhập toạ độ bằng tay hoặc bấm “Dùng vị trí hiện tại của tôi”.');
+                })
+                .addTo(this.map);
+            this.L = L;
+            this.circle = L.circle(DEFAULT_CENTER, { radius: 0, color: '#16a34a', weight: 2, fillColor: '#16a34a', fillOpacity: 0.15, interactive: false });
+            this.map.on('click', e => this.pick(e.latlng));
+            setTimeout(() => this.map?.invalidateSize(), 0);
+            this.sync();
+        } catch (e) {
+            errBox.innerHTML = notice(`${esc(e.message)} (kiểm tra kết nối tới unpkg.com). Bạn vẫn nhập toạ độ bằng tay được.`);
+            this.querySelector('[data-gmap]').classList.add('hidden');
+        } finally { this._mapBusy = false; }
+    }
+
+    /** Người dùng chọn điểm trên bản đồ -> ghi vào ô toạ độ. */
+    pick(latlng) {
+        const f = this.querySelector('[data-form]').elements;
+        f.latitude.value = latlng.lat.toFixed(6);
+        f.longitude.value = latlng.lng.toFixed(6);
+        this._touched = true; this._fromMap = true;
+        this.querySelector('[data-error]').textContent = '';
+        this.sync();
+        this._fromMap = false;
+    }
+
+    drawMap(pos, radius) {
+        if (!this.map) { this.initMap(); return; }
+        if (!pos) { this.marker?.remove(); this.marker = null; this.circle.remove(); return; }
+        if (!this.marker) {
+            this.marker = this.L.marker(pos, { draggable: true, title: 'Kéo để chọn vị trí cửa hàng' }).addTo(this.map);
+            this.marker.on('drag', e => this.circle.setLatLng(e.latlng));
+            this.marker.on('dragend', () => this.pick(this.marker.getLatLng()));
+        } else this.marker.setLatLng(pos);
+        this.circle.setLatLng(pos).setRadius(radius);
+        if (radius > 0) this.circle.addTo(this.map); else this.circle.remove();
+        if (!this._fromMap && !this.map.getBounds().contains(pos)) this.map.panTo(pos);
     }
 
     onInput(e) {

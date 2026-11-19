@@ -354,6 +354,9 @@
   .left-\[22px\] {
     left: 22px;
   }
+  .z-0 {
+    z-index: 0;
+  }
   .z-50 {
     z-index: 50;
   }
@@ -544,8 +547,8 @@
   .h-44 {
     height: calc(var(--spacing) * 44);
   }
-  .h-56 {
-    height: calc(var(--spacing) * 56);
+  .h-72 {
+    height: calc(var(--spacing) * 72);
   }
   .h-full {
     height: 100%;
@@ -616,9 +619,6 @@
   .\!w-auto {
     width: auto !important;
   }
-  .\!w-full {
-    width: 100% !important;
-  }
   .w-1\.5 {
     width: calc(var(--spacing) * 1.5);
   }
@@ -657,6 +657,9 @@
   }
   .w-full {
     width: 100%;
+  }
+  .w-full\! {
+    width: 100% !important;
   }
   .max-w-5xl {
     max-width: var(--container-5xl);

@@ -25,7 +25,7 @@ class StaffPanel extends HrPanel {
                     <label class="relative w-full md:w-auto">
                         <span class="sr-only">Tìm nhân viên</span>
                         <span class="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-primary-300">${ICONS.search}</span>
-                        <input data-q type="search" placeholder="Tìm tên, email, số điện thoại…" class="${INPUT_CLS} !w-full md:!w-72 !pl-10 text-sm">
+                        <input data-q type="search" placeholder="Tìm tên, email, số điện thoại…" class="${INPUT_CLS} w-full! md:!w-72 !pl-10 text-sm">
                     </label>
                     <select data-status class="${SELECT_CLS}" aria-label="Lọc theo trạng thái">
                         <option value="">Tất cả</option><option value="ACTIVE" selected>Đang làm</option><option value="TERMINATED">Đã nghỉ</option>
