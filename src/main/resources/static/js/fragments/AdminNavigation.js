@@ -8,6 +8,7 @@ import { listShops, getCurrentShop, onShopChange } from '../services/ShopService
 const NAV = [
     { href: `${BASE_URL}/admin/index.html`, name: 'Tổng quan', icon: 'dashboard' },
     { href: `${BASE_URL}/admin/area.html`, name: 'Bàn & Khu vực', icon: 'table' },
+    { href: `${BASE_URL}/admin/orders.html`, name: 'Đơn hàng', icon: 'receipt' },
     { href: `${BASE_URL}/admin/menu.html`, name: 'Thực đơn', icon: 'menu' },
     { href: `${BASE_URL}/admin/storage.html`, name: 'Kho nguyên liệu', icon: 'storage' },
     { href: `${BASE_URL}/admin/settings.html`, name: 'Cài đặt', icon: 'setting' },

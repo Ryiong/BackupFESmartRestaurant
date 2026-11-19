@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đơn hàng</title>
+    <link rel="stylesheet" href="../../static/css/output.css">
+    <script type="module" src="../../static/js/fragments/AdminOrders.js"></script>
+</head>
+<body>
+    <app-navigation></app-navigation>
+    <div class="mx-0 pb-24 md:ml-24 md:mr-5 md:pb-0">
+        <app-header title="Đơn hàng" data-title="Theo dõi đơn đang mở và lịch sử đơn theo ngày" user-role="Chủ nhà hàng"></app-header>
+        <div class="px-4 md:px-5">
+            <order-manager></order-manager>
+        </div>
+    </div>
+</body>
+</html>
