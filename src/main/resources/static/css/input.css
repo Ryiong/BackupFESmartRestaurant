@@ -44,9 +44,9 @@
   --color-primary-300: #ffdd3d;
   --color-primary-400: #ffd30f;
   --color-primary-500: #ffca00;
-  --color-primary-600: #d9a800;
-  --color-primary-700: #a67f00;
-  --color-primary-800: #6b5200;
+  --color-primary-600: #946f00;
+  --color-primary-700: #7a5a00;
+  --color-primary-800: #5c4400;
   --color-primary-900: #3d2e00;
 
   /* Secondary: nâu đậm */
@@ -85,6 +85,15 @@
   --color-support-800: #2b2b2b;
   --color-support-900: #161616;
 
+  /* Honey (#F2C94C) – nền dịu, dùng cho thẻ/khu vực nhấn */
+  --color-honey: #f2c94c;
+  --color-honey-soft: #fdf1c4;
+  --color-honey-pale: #fff9e3;
+  /* Ngữ nghĩa: luôn đi kèm icon + viền, không chỉ dựa vào màu */
+  --color-ok-bg: #e6f5ec;   --color-ok-fg: #14633f;   --color-ok-bd: #7cc59d;
+  --color-warn-bg: #fff1e3; --color-warn-fg: #8a2e0b; --color-warn-bd: #f5a35c; --color-warn-ac: #e8590c;
+  --color-danger-bg: #fdecea; --color-danger-fg: #b42318; --color-danger-bd: #f1a7a0;
+  --color-info-bg: #e8f1fb; --color-info-fg: #1d4f91; --color-info-bd: #9cc0ea;
   --color-text: #1B2422;
   --color-bug: #C62F3A;
 }

@@ -3,8 +3,8 @@ import { esc } from '../utils/format.js';
 
 const VARIANTS = {
     primary: 'border-primary-300 bg-white text-text hover:border-primary-400',
-    danger: 'border-red-200 text-red-500 hover:border-red-500 bg-white',
-    solid: 'border-primary-300 bg-primary-300 text-text hover:bg-primary-400',
+    danger: 'border-danger-bd text-danger-fg hover:border-danger-fg bg-white',
+    solid: 'border-primary-500 bg-primary-500 text-primary-900 hover:bg-primary-400',
 };
 
 class PrimaryButton extends HTMLElement {

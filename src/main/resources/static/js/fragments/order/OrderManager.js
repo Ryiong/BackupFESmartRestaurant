@@ -8,10 +8,10 @@ import { ordersApi, ymd, addDays } from '../../services/OrderService.js';
 const CARD = 'rounded-2xl bg-white p-5 shadow-sm';
 const TH = 'px-3 py-2.5 text-left text-xs font-bold uppercase tracking-wide text-primary-700';
 const CHIP = {
-    green: 'bg-primary-50 text-primary-800', red: 'bg-red-100 text-red-700', amber: 'bg-amber-100 text-amber-800',
-    gray: 'bg-neutral-100 text-secondary-800', sky: 'bg-sky-100 text-sky-900',
+    green: 'bg-ok-bg text-ok-fg border-ok-bd', red: 'bg-danger-bg text-danger-fg border-danger-bd', amber: 'bg-warn-bg text-warn-fg border-warn-bd',
+    gray: 'bg-neutral-100 text-secondary-800 border-neutral-300', sky: 'bg-info-bg text-info-fg border-info-bd',
 };
-const chip = (text, tone = 'gray') => `<span class="inline-block rounded-full px-2.5 py-0.5 text-xs font-bold whitespace-nowrap ${CHIP[tone]}">${esc(text)}</span>`;
+const chip = (text, tone = 'gray') => `<span class="inline-block rounded-full border px-2.5 py-0.5 text-xs font-bold whitespace-nowrap ${CHIP[tone]}">${esc(text)}</span>`;
 const WEEKDAY = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
 const dayLabel = s => { const [y, m, d] = s.split('-').map(Number); return `${WEEKDAY[new Date(y, m - 1, d).getDay()]} (${d}/${m}/${y})`; };
 const shortDay = s => { const [y, m, d] = s.split('-').map(Number); return `${d}/${m}/${y}`; };
@@ -117,7 +117,7 @@ class OrderManager extends HTMLElement {
         const { filter } = this.state;
         const count = v => v === 'all' ? rows.length : rows.filter(o => o.state === v).length;
         const f = (v, label) => `<button type="button" data-act="filter" data-v="${v}" aria-pressed="${filter === v}"
-            class="cursor-pointer rounded-full border px-3 py-1 text-xs font-bold transition-all hover:scale-95 ${filter === v ? 'border-primary-700 bg-primary-700 text-white' : 'border-primary-200 bg-white text-primary-700'}">${label} <span class="opacity-70">${count(v)}</span></button>`;
+            class="cursor-pointer rounded-full border px-3 py-1 text-xs font-bold transition-all hover:scale-95 ${filter === v ? 'border-primary-700 bg-primary-500 text-primary-900 ring-1 ring-primary-700' : 'border-primary-200 bg-white text-primary-800'}">${label} <span class="opacity-70">${count(v)}</span></button>`;
         this.q('[data-chips]').innerHTML = f('all', 'Tất cả') + f('OPEN', 'Chưa thanh toán') + f('PAID', 'Đã thanh toán');
     }
 
@@ -126,16 +126,16 @@ class OrderManager extends HTMLElement {
         const paid = rows.filter(o => o.state === 'PAID');
         const revenue = paid.reduce((s, o) => s + o.total, 0);
         this.q('[data-sum]').innerHTML = box('Số đơn', rows.length) + box('Đã thanh toán', paid.length, 'text-primary-700')
-            + box('Chưa thanh toán', rows.filter(o => o.state === 'OPEN').length, 'text-amber-700') + box('Doanh thu', money(revenue), 'text-primary-700');
+            + box('Chưa thanh toán', rows.filter(o => o.state === 'OPEN').length, 'text-warn-fg') + box('Doanh thu', money(revenue), 'text-primary-700');
 
         const today = startOfToday();
         const stale = open.filter(o => o.startedAt && o.startedAt < today);
         const oldest = stale.length ? ymd(new Date(Math.min(...stale.map(o => o.startedAt)))) : '';
-        const staleNote = stale.length ? `<div class="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-800">
+        const staleNote = stale.length ? `<div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border-l-4 border-danger-fg bg-danger-bg px-4 py-3 text-sm text-danger-fg" role="alert">
             <p><b>${stale.length} đơn từ ngày trước chưa được thanh toán.</b> Hãy kiểm tra và thanh toán hoặc xử lý để bàn được trả lại.</p>
-            ${oldest !== this.state.date ? `<button type="button" data-act="stale" data-v="${esc(oldest)}" class="min-h-11 cursor-pointer rounded-lg border-2 border-red-200 bg-white px-3 text-sm font-bold text-red-700 hover:bg-red-50">Xem ngày ${esc(shortDay(oldest))}</button>` : ''}</div>` : '';
+            ${oldest !== this.state.date ? `<button type="button" data-act="stale" data-v="${esc(oldest)}" class="min-h-11 cursor-pointer rounded-lg border-2 border-danger-bd bg-white px-3 text-sm font-bold text-danger-fg hover:bg-danger-bg">Xem ngày ${esc(shortDay(oldest))}</button>` : ''}</div>` : '';
         const noTotal = paid.some(o => !o.total)
-            ? '<div class="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">Một số đơn đã thanh toán chưa có tổng tiền vì máy chủ không trả số tiền ở danh sách và đơn đó không được thanh toán trên trình duyệt này.</div>' : '';
+            ? '<div class="rounded-xl border-l-4 border-warn-ac bg-warn-bg px-4 py-3 text-sm text-warn-fg" role="note">Một số đơn đã thanh toán chưa có tổng tiền vì máy chủ không trả số tiền ở danh sách và đơn đó không được thanh toán trên trình duyệt này.</div>' : '';
         this.q('[data-note]').innerHTML = staleNote || noTotal ? `<div class="flex flex-col gap-3">${staleNote}${noTotal}</div>` : '';
     }
 

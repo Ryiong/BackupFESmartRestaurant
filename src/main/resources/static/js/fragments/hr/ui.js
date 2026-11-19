@@ -12,15 +12,16 @@ export const CARD = 'rounded-2xl bg-white p-5 shadow-sm';
 export const SELECT_CLS = `${INPUT_CLS} cursor-pointer !w-auto !py-1.5 text-sm font-semibold text-primary-700`;
 
 const CHIP = {
-    green: 'bg-primary-50 text-primary-800',
-    red: 'bg-red-100 text-red-700',
-    amber: 'bg-amber-100 text-amber-800',
-    gray: 'bg-neutral-100 text-secondary-800',
-    sky: 'bg-sky-100 text-sky-900',
+    green: 'bg-ok-bg text-ok-fg border-ok-bd',
+    red: 'bg-danger-bg text-danger-fg border-danger-bd',
+    amber: 'bg-warn-bg text-warn-fg border-warn-bd',
+    gray: 'bg-neutral-100 text-secondary-800 border-neutral-300',
+    sky: 'bg-info-bg text-info-fg border-info-bd',
+    honey: 'bg-honey-soft text-primary-900 border-honey',
 };
 
 export const chip = (text, tone = 'gray') =>
-    `<span class="inline-block rounded-full whitespace-nowrap px-2.5 py-0.5 text-xs font-bold ${CHIP[tone]}">${esc(text)}</span>`;
+    `<span class="inline-block rounded-full whitespace-nowrap border px-2.5 py-0.5 text-xs font-bold ${CHIP[tone]}">${esc(text)}</span>`;
 
 export const field = (label, inner, hint = '') => `
     <label class="grid gap-1.5 text-sm font-semibold">
@@ -28,10 +29,20 @@ export const field = (label, inner, hint = '') => `
         ${hint ? `<span class="text-xs font-medium text-secondary-700">${esc(hint)}</span>` : ''}
     </label>`;
 
-export const notice = (html, tone = 'amber') => `
-    <div class="flex items-start gap-2.5 rounded-xl px-4 py-3 text-sm ${tone === 'amber' ? 'bg-amber-50 text-amber-900' : 'bg-primary-50/60 text-primary-800'}">
-        <span class="mt-0.5 shrink-0">${ICONS.info}</span><div>${html}</div>
+const NOTICE = {
+    amber: ['bg-warn-bg text-warn-fg border-warn-ac', 'warning'],
+    red: ['bg-danger-bg text-danger-fg border-danger-fg', 'warning'],
+    green: ['bg-ok-bg text-ok-fg border-ok-fg', 'info'],
+    sky: ['bg-info-bg text-info-fg border-info-fg', 'info'],
+    honey: ['bg-honey-soft text-primary-900 border-honey', 'info'],
+};
+export const notice = (html, tone = 'amber') => {
+    const [cls, ic] = NOTICE[tone] ?? NOTICE.honey;
+    return `
+    <div role="${tone === 'red' || tone === 'amber' ? 'alert' : 'note'}" class="flex items-start gap-2.5 rounded-xl border-l-4 px-4 py-3 text-sm leading-relaxed ${cls}">
+        <span class="mt-0.5 shrink-0">${ICONS[ic] ?? ICONS.info}</span><div>${html}</div>
     </div>`;
+};
 
 export const emptyState = (title, sub = '') => `
     <div class="grid place-items-center gap-1 py-14 text-center">

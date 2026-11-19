@@ -277,6 +277,13 @@ export const ICONS = {
         </g>`,
         'size-5'
     ),
+    warning: icon('0 0 24 24',
+        'none',
+        `<g stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3 2 20h20L12 3Z"></path><path d="M12 10v5"></path><path d="M12 17.5v.5"></path>
+        </g>`,
+        'size-5'
+    ),
     info: icon('0 0 24 24',
         'none',
         `<g stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
