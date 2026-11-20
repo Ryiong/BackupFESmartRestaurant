@@ -12,6 +12,7 @@ const CHIP = {
     gray: 'bg-neutral-100 text-secondary-800 border-neutral-300', sky: 'bg-info-bg text-info-fg border-info-bd',
 };
 const chip = (text, tone = 'gray') => `<span class="inline-block rounded-full border px-2.5 py-0.5 text-xs font-bold whitespace-nowrap ${CHIP[tone]}">${esc(text)}</span>`;
+
 const WEEKDAY = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
 const dayLabel = s => { const [y, m, d] = s.split('-').map(Number); return `${WEEKDAY[new Date(y, m - 1, d).getDay()]} (${d}/${m}/${y})`; };
 const shortDay = s => { const [y, m, d] = s.split('-').map(Number); return `${d}/${m}/${y}`; };
@@ -117,7 +118,7 @@ class OrderManager extends HTMLElement {
         const { filter } = this.state;
         const count = v => v === 'all' ? rows.length : rows.filter(o => o.state === v).length;
         const f = (v, label) => `<button type="button" data-act="filter" data-v="${v}" aria-pressed="${filter === v}"
-            class="cursor-pointer rounded-full border px-3 py-1 text-xs font-bold transition-all hover:scale-95 ${filter === v ? 'border-primary-700 bg-primary-500 text-primary-900 ring-1 ring-primary-700' : 'border-primary-200 bg-white text-primary-800'}">${label} <span class="opacity-70">${count(v)}</span></button>`;
+             class="cursor-pointer rounded-full border px-3 py-1 text-xs font-bold transition-all hover:scale-95 ${filter === v ? 'border-primary-700 bg-primary-500 text-primary-900 ring-1 ring-primary-700' : 'border-primary-200 bg-white text-primary-800'}">${label} <span class="opacity-70">${count(v)}</span></button>`;
         this.q('[data-chips]').innerHTML = f('all', 'Tất cả') + f('OPEN', 'Chưa thanh toán') + f('PAID', 'Đã thanh toán');
     }
 
@@ -131,9 +132,9 @@ class OrderManager extends HTMLElement {
         const today = startOfToday();
         const stale = open.filter(o => o.startedAt && o.startedAt < today);
         const oldest = stale.length ? ymd(new Date(Math.min(...stale.map(o => o.startedAt)))) : '';
-        const staleNote = stale.length ? `<div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border-l-4 border-danger-fg bg-danger-bg px-4 py-3 text-sm text-danger-fg" role="alert">
+         const staleNote = stale.length ? `<div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border-l-4 border-danger-fg bg-danger-bg px-4 py-3 text-sm text-danger-fg" role="alert">
             <p><b>${stale.length} đơn từ ngày trước chưa được thanh toán.</b> Hãy kiểm tra và thanh toán hoặc xử lý để bàn được trả lại.</p>
-            ${oldest !== this.state.date ? `<button type="button" data-act="stale" data-v="${esc(oldest)}" class="min-h-11 cursor-pointer rounded-lg border-2 border-danger-bd bg-white px-3 text-sm font-bold text-danger-fg hover:bg-danger-bg">Xem ngày ${esc(shortDay(oldest))}</button>` : ''}</div>` : '';
+            ${oldest !== this.state.date ? `<button type="button" data-act="stale" data-v="${esc(oldest)}" class="min-h-11 sr-press cursor-pointer rounded-xl border-2 border-danger-bd bg-white px-3 text-sm font-bold text-danger-fg hover:bg-danger-bg">Xem ngày ${esc(shortDay(oldest))}</button>` : ''}</div>` : '';
         const noTotal = paid.some(o => !o.total)
             ? '<div class="rounded-xl border-l-4 border-warn-ac bg-warn-bg px-4 py-3 text-sm text-warn-fg" role="note">Một số đơn đã thanh toán chưa có tổng tiền vì máy chủ không trả số tiền ở danh sách và đơn đó không được thanh toán trên trình duyệt này.</div>' : '';
         this.q('[data-note]').innerHTML = staleNote || noTotal ? `<div class="flex flex-col gap-3">${staleNote}${noTotal}</div>` : '';
@@ -155,7 +156,7 @@ class OrderManager extends HTMLElement {
                 : '<p class="mt-2 rounded-xl bg-neutral-50 p-3 text-sm text-secondary-700">Chưa có thông tin món. Tổng tiền sẽ do hệ thống tính khi thanh toán.</p>';
         };
         const actions = o => o.entry ? `<div class="flex flex-wrap items-center justify-end gap-2">
-                <button type="button" data-act="toggle" data-id="${esc(rowKey(o))}" aria-expanded="${expanded.has(rowKey(o))}" class="min-h-11 cursor-pointer rounded-lg border-2 border-primary-100 px-3 text-sm font-bold text-primary-700 hover:bg-primary-50">${expanded.has(rowKey(o)) ? 'Ẩn món' : 'Xem món'}</button>
+                <button type="button" data-act="toggle" data-id="${esc(rowKey(o))}" aria-expanded="${expanded.has(rowKey(o))}" class="min-h-11 sr-press cursor-pointer rounded-xl border-2 border-primary-100 px-3 text-sm font-bold text-primary-700 hover:bg-primary-50">${expanded.has(rowKey(o)) ? 'Ẩn món' : 'Xem món'}</button>
                 <a href="${AREA_URL}" class="grid min-h-11 place-items-center rounded-lg border-2 border-primary-100 px-3 text-sm font-bold text-primary-700 hover:bg-primary-50">Mở sơ đồ bàn</a>
                 <p-button data-act="pay" data-id="${esc(o.entry.tableId)}" label="Thanh toán" icon="check" variant="solid"></p-button></div>` : '';
         const row = o => {
@@ -181,7 +182,7 @@ class OrderManager extends HTMLElement {
         this.q('[data-body]').innerHTML = error ? emptyState('Không tải được danh sách đơn', error)
             : loading && !history.length ? emptyState('Đang tải…')
                 : !list.length ? emptyState('Không có đơn nào', rows.length ? 'Thử đổi bộ lọc trạng thái.' : 'Ngày này chưa có đơn hàng.')
-                    : `<ul class="divide-y divide-primary-50 md:hidden">${list.map(card).join('')}</ul>
+                    : `<ul class="sr-stagger divide-y divide-primary-50 md:hidden">${list.map(card).join('')}</ul>
                        <table class="hidden w-full min-w-170 text-sm md:table"><thead class="bg-secondary-50"><tr>
                            <th class="${TH}">Mã đơn</th><th class="${TH}">Bàn</th><th class="${TH}">Trạng thái</th><th class="${TH}">Thanh toán</th>
                            <th class="${TH}">Giờ</th><th class="${TH} text-right">Tổng tiền</th><th class="${TH} text-right">Thao tác</th></tr></thead><tbody>${list.map(row).join('')}</tbody></table>`;

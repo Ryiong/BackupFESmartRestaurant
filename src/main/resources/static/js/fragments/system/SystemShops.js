@@ -45,10 +45,10 @@ class SystemShops extends HTMLElement {
                 </div>
                 <div class="flex shrink-0 items-center gap-2">
                     <span class="hidden max-w-40 truncate text-sm font-semibold sm:block">${esc(auth.user?.name || auth.user?.email || '')}</span>
-                    <button data-act="logout" class="min-h-11 cursor-pointer rounded-lg border border-primary-200 bg-white px-3 text-sm font-bold text-primary-700 hover:border-primary-500">Đăng xuất</button>
+                    <button data-act="logout" class="min-h-11 sr-press cursor-pointer rounded-xl border border-primary-200 bg-white px-3 text-sm font-bold text-primary-700 hover:border-primary-500">Đăng xuất</button>
                 </div>
             </header>
-            <nav data-tabs class="flex gap-2 overflow-x-auto [scrollbar-width:none]" aria-label="Trạng thái cửa hàng"></nav>
+            <nav data-tabs class="flex gap-2 overflow-x-auto scrollbar-none" aria-label="Trạng thái cửa hàng"></nav>
             <div class="flex flex-col gap-2 sm:flex-row">
                 <label class="relative flex-1">
                     <span class="sr-only">Tìm theo tên, địa chỉ, số điện thoại</span>
@@ -168,7 +168,7 @@ class SystemShops extends HTMLElement {
         return openDialog({
             title: 'Chi tiết cửa hàng', width: 440,
             render: (body, close) => {
-                const row = (k, v) => `<dt class="font-semibold text-secondary-700">${k}</dt><dd class="min-w-0 break-words font-medium">${v || '—'}</dd>`;
+                const row = (k, v) => `<dt class="font-semibold text-secondary-700">${k}</dt><dd class="min-w-0 wrap-break-word font-medium">${v || '—'}</dd>`;
                 body.innerHTML = `
                     <dl class="grid grid-cols-[7.5rem_1fr] gap-x-3 gap-y-3 text-sm">
                         ${row('Mã', esc(s.id))}${row('Tên', esc(s.name))}${row('Địa chỉ', esc(s.address))}
@@ -215,7 +215,7 @@ class SystemShops extends HTMLElement {
                         <p class="text-sm">Cửa hàng: <b>${esc(s.name)}</b></p>
                         <label class="grid gap-1 text-sm font-semibold">${cfg.label}
                             <textarea name="reason" rows="3" maxlength="500" class="${INPUT_CLS} font-normal" placeholder="Nhập lý do…"></textarea></label>
-                        <p data-err role="alert" class="hidden text-sm font-semibold text-red-600">Hãy nhập lý do.</p>
+                        <p data-err role="alert" class="sr-form-error hidden">Hãy nhập lý do.</p>
                         <div class="grid gap-3 md:flex md:justify-center">
                             <p-button type="submit" label="${cfg.btn}" variant="danger" class="block md:inline-block"></p-button>
                             <p-button data-act="cancel" label="Huỷ" class="block md:inline-block"></p-button>

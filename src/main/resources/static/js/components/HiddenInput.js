@@ -10,7 +10,7 @@ class HiddenInput extends HTMLElement {
 
     this.classList.add('block', 'relative');
     this.innerHTML = `
-        <input type="password" required minlength="8" class="block w-full min-w-12 pt-2.5 pb-2.5 pl-3.5 pr-3.5 border-solid border border-support-600 rounded-xl bg-white text-text transition-border duration-200 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500">
+        <input type="password" required minlength="8" class="block w-full rounded-xl border border-support-600 bg-white px-3.5 py-2.5 text-text focus:outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-300 min-w-12">
         <button type="button" aria-pressed="false" class="absolute top-1 right-1 grid place-items-center w-10 h-10 border-0 rounded-lg bg-transparent text-support-900 cursor-pointer">
             ${ICONS.eye}
         </button>`;
@@ -47,7 +47,7 @@ class HiddenInput extends HTMLElement {
       detail: { visible: show },
     }));
   }
-  
+
   get inputId() { return this.input?.id ?? ''; }
   get value() { return this.input?.value ?? ''; }
   set value(v) { if (this.input) this.input.value = v; }

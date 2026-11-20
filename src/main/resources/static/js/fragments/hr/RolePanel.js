@@ -3,6 +3,7 @@
 import { hr, PERM_MATRIX, PERM_LABEL, cap } from '../../services/HrService.js';
 import { confirmDialog } from '../../utils/dialog.js';
 import { HrPanel, esc, INPUT_CLS, CARD, TH, notice, toast } from './ui.js';
+import { invalid } from '../../utils/validate.js';
 import { ICONS } from '../../icon.js';
 
 const COLS = [['view', 'Xem'], ['create', 'Thêm mới'], ['update', 'Sửa'], ['delete', 'Xoá']];
@@ -187,7 +188,7 @@ class RolePanel extends HrPanel {
             },
             save: async () => {
                 const s = this.state, d = s.draft;
-                if (!d.name.trim()) return toast('Tên vai trò không được để trống');
+                 if (!d.name.trim()) return invalid(this.querySelector('#role-name'), 'Tên vai trò không được để trống');
                 const ids = [...d.names].map(n => s.permIdByName[n]).filter(Boolean);
                 // Cập nhật selection/draft ngay trong fn để lần reload kế tiếp vẽ đúng (không bị lẫn mục "Vai trò mới…").
                 await this.run(async () => {

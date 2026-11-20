@@ -8,7 +8,7 @@ const FIELD = 'mb-3';
 const LABEL = 'mb-1.5 block text-sm font-semibold';
 const BTN_ROW = 'mt-5 flex flex-wrap justify-center gap-3';
 const MAX_IMAGE = 5 * 1024 * 1024;
-const ICON_BTN = 'cursor-pointer rounded-lg p-1.5 text-primary-700 transition-all hover:scale-90 hover:bg-white';
+const ICON_BTN = 'sr-press cursor-pointer rounded-xl p-1.5 text-primary-700 transition-all hover:scale-90 hover:bg-white';
 
 const fmtPrice = n => (Number.isFinite(n) ? n.toLocaleString('vi-VN') : '');
 
@@ -65,7 +65,7 @@ export function productDialog({ product = null, categories, categoryId = null })
                         <input data-f="image" type="file" accept="image/jpeg,image/png,image/webp" hidden>
                         <p class="mt-1 text-xs text-secondary-700">JPG, PNG hoặc WEBP, tối đa 5MB. Tỉ lệ ảnh khuyến nghị 16/9${isNew ? '' : ' Không chọn ảnh mới thì giữ ảnh cũ.'}</p>
                     </div>
-                    <p data-error class="mb-1 min-h-5 text-sm font-medium text-red-600" role="alert"></p>
+                    <p data-error class="sr-form-error " role="alert"></p>
                     <div class="${BTN_ROW}">
                         <p-button data-act="ok" label="${isNew ? 'Thêm món' : 'Lưu chỉnh sửa'}" icon="check" variant="solid"></p-button>
                         <p-button data-act="cancel" label="Huỷ"></p-button>
@@ -171,7 +171,7 @@ export function categoryDialog({ categories, ctx }) {
                 <div data-edit class="space-y-2 rounded-2xl border border-primary-200 bg-white p-3">
                     <input data-f="c-name" maxlength="100" autocomplete="off" placeholder="Tên danh mục" value="${esc(editing.name)}" class="${INPUT_CLS}">
                     <input data-f="c-desc" autocomplete="off" placeholder="Mô tả (không bắt buộc)" value="${esc(editing.description)}" class="${INPUT_CLS}">
-                    <p data-err class="min-h-4 text-xs font-medium text-red-600" role="alert"></p>
+                    <p data-error class="sr-form-error " role="alert"></p>
                     <div class="flex gap-2 justify-around">
                         <p-button data-act="cat-save" label="Lưu" icon="check" variant="solid"></p-button>
                         <p-button data-act="cat-cancel" label="Huỷ"></p-button>

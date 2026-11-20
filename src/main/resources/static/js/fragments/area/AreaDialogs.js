@@ -1,5 +1,6 @@
 import '../../components/PrimaryButton.js';
 import '../../components/TableCard.js';
+import { invalid } from '../../utils/validate.js';
 import { openDialog, confirmDialog, bindActions, toast } from '../../utils/dialog.js';
 import { esc, money, INPUT_CLS, titleCase } from '../../utils/format.js';
 import qrcode from '../../utils/qrcode.js';
@@ -283,14 +284,14 @@ export function areaEditorDialog({ area }) {
                 'table-cancel': () => { editing = null; drawForm(); },
                 'table-save': () => {
                     const name = editing.name.trim();
-                    if (!name) return toast('Vui lòng nhập tên bàn');
-                    if (dup(name, editing.key)) return toast(`Tên bàn "${name}" đã tồn tại trong khu vực`);
+                    if (!name) return invalid(body.querySelector('[data-f="t-name"]'), 'Vui lòng nhập tên bàn');
+                    if (dup(name, editing.key)) return invalid(body.querySelector('[data-f="t-name"]'), `Tên bàn "${name}" đã tồn tại trong khu vực`);
                     if (editing.isNew) draft.tables.push({ _k: `new-${++seq}`, name, capacity: editing.capacity, status: 'empty' });
                     else Object.assign(byKey(editing.key), { name, capacity: editing.capacity });
                     editing = null; drawGrid(); drawForm();
                 },
                 'save-area': () => guard(async () => {
-                    if (!draft.name.trim()) return toast('Vui lòng nhập tên khu vực');
+                     if (!draft.name.trim()) return invalid(body.querySelector('[data-f="area-name"]'), 'Vui lòng nhập tên khu vực');
                     const saved = await areaService.saveArea({
                         id: draft.id,
                         name: draft.name.trim(),

@@ -28,7 +28,7 @@ export function loginQrDialog() {
                     <form class="grid gap-4" novalidate>
                         <p class="text-sm leading-relaxed">Nhập lại mật khẩu của <b>${esc(email)}</b> để tạo mã QR. Sau đó mở trang đăng nhập ở thiết bị kia, chọn “Quét QR đăng nhập” (hoặc dùng camera) rồi quét mã.</p>
                         <input name="password" type="password" autocomplete="current-password" placeholder="Mật khẩu" required class="${INPUT_CLS}">
-                        <p data-err role="alert" class="${error ? '' : 'hidden'} text-sm font-semibold text-red-600">${esc(error)}</p>
+                        <p data-err role="alert" class="sr-form-error hidden">${esc(error)}</p
                         <div class="flex justify-center gap-3">
                             <p-button type="submit" label="Tạo mã QR" icon="key" variant="solid"></p-button>
                             <p-button data-act="cancel" label="Huỷ"></p-button>

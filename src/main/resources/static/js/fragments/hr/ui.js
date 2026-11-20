@@ -18,10 +18,11 @@ const CHIP = {
     gray: 'bg-neutral-100 text-secondary-800 border-neutral-300',
     sky: 'bg-info-bg text-info-fg border-info-bd',
     honey: 'bg-honey-soft text-primary-900 border-honey',
+
 };
 
 export const chip = (text, tone = 'gray') =>
-    `<span class="inline-block rounded-full whitespace-nowrap border px-2.5 py-0.5 text-xs font-bold ${CHIP[tone]}">${esc(text)}</span>`;
+     `<span class="inline-block rounded-full whitespace-nowrap border px-2.5 py-0.5 text-xs font-bold ${CHIP[tone]}">${esc(text)}</span>`;
 
 export const field = (label, inner, hint = '') => `
     <label class="grid gap-1.5 text-sm font-semibold">
@@ -44,6 +45,7 @@ export const notice = (html, tone = 'amber') => {
     </div>`;
 };
 
+
 export const emptyState = (title, sub = '') => `
     <div class="grid place-items-center gap-1 py-14 text-center">
         <p class="font-bold text-primary-800">${esc(title)}</p>
@@ -62,7 +64,7 @@ export class HrPanel extends HTMLElement {
     connectedCallback() {
         if (this.dataset.ready) return;
         this.dataset.ready = '1';
-        this.classList.add('block');
+        this.classList.add('block', 'sr-enter');
         this.loading = true;
         this.build?.();
         bindActions(this, this.actions?.() ?? {});

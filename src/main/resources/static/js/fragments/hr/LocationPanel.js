@@ -35,7 +35,7 @@ class LocationPanel extends HrPanel {
                         <input data-range type="range" min="10" max="500" step="5" aria-label="Kéo để chọn bán kính" class="w-full cursor-pointer accent-primary-600">
                     </div>
                     <p data-hint class="min-h-5 text-sm text-secondary-700"></p>
-                    <p data-error role="alert" class="min-h-5 text-sm font-semibold text-red-600"></p>
+                     <p data-error role="alert" class="sr-form-error "></p>
                     <div class="flex flex-wrap gap-3">
                         <p-button data-act="here" label="Dùng vị trí hiện tại của tôi" icon="location"></p-button>
                         <p-button data-act="save" label="Lưu vị trí" icon="check" variant="solid"></p-button>

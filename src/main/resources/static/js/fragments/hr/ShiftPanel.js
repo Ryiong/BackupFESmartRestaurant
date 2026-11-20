@@ -60,7 +60,7 @@ class ShiftPanel extends HrPanel {
                         ${field('Giờ kết thúc', `<input name="end" type="time" class="${INPUT_CLS}" required value="${esc(hm(shift?.endTime) || '11:00')}">`)}
                     </div>
                     <p data-hint class="text-sm text-secondary-700"></p>
-                    <p data-err role="alert" class="hidden text-sm font-semibold text-red-600"></p>
+                     <p data-err role="alert" class="sr-form-error hidden"></p>
                     <div class="flex justify-center gap-3 pt-1">
                         <p-button type="submit" label="Lưu chỉnh sửa" icon="check" variant="solid"></p-button>
                         <p-button data-act="cancel" label="Huỷ"></p-button>

@@ -165,7 +165,7 @@ class StaffPanel extends HrPanel {
                             <label class="cursor-pointer"><input type="checkbox" name="role" value="${r.id}" ${picked.has(r.id) ? 'checked' : ''} class="peer sr-only">
                                 <span class="inline-block rounded-full border-2 border-primary-100 px-3.5 py-1.5 text-sm font-bold text-secondary-800 transition-all peer-checked:border-primary-600 peer-checked:bg-primary-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-primary-300">${esc(cap(r.name))}</span></label>`).join('')}</div>
                     </fieldset>
-                    <p data-err role="alert" class="hidden text-sm font-semibold text-red-600"></p>
+                    <p data-err role="alert" class="sr-form-error hidden"></p>
                     <div class="flex justify-center gap-3 pt-1">
                         <p-button type="submit" data-act="submit" label="${edit ? 'Lưu chỉnh sửa' : 'Tạo nhân viên'}" icon="check" variant="solid"></p-button>
                         <p-button data-act="cancel" label="Huỷ"></p-button>

@@ -1,5 +1,5 @@
 // Bước 5 — Chấm công: xem giờ vào/ra theo ngày, quản lý duyệt hoặc từ chối công.
-
+import { invalid } from '../../utils/validate.js'
 import { hr, HR_MODE, attState, hm, ymd, addDays, workedHours } from '../../services/HrService.js';
 import { openDialog } from '../../utils/dialog.js';
 import { HrPanel, esc, INPUT_CLS, CARD, TH, chip, field, notice, emptyState, bindActions, dayLabel, clock } from './ui.js';
@@ -116,13 +116,16 @@ class AttendancePanel extends HrPanel {
                 body.innerHTML = `<form class="grid gap-4" novalidate>
                     <p class="text-sm">Lý do từ chối công của <b>${esc(name)}</b>:</p>
                     ${field('Lý do', `<textarea name="reason" rows="3" maxlength="200" class="${INPUT_CLS}" required></textarea>`)}
-                    <p data-err role="alert" class="hidden text-sm font-semibold text-red-600">Nhập lý do từ chối</p>
-                    <div class="flex justify-center gap-3"><p-button type="submit" label="Từ chối công" icon="close" variant="danger"></p-button><p-button data-act="cancel" label="Huỷ"></p-button></div></form>`;
+                     <div class="flex justify-center gap-3">
+                        <p-button type="submit" label="Từ chối công" icon="close" variant="danger"></p-button>
+                        <p-button data-act="cancel" label="Huỷ"></p-button>
+                        </div>
+                    </form>`;
                 const form = body.querySelector('form');
                 form.addEventListener('submit', e => {
                     e.preventDefault();
                     const v = form.elements.reason.value.trim();
-                    if (!v) body.querySelector('[data-err]').classList.remove('hidden'); else close(v);
+                     if (!v) { body.querySelector('[data-err]')?.remove(); invalid(form.elements.reason, 'Nhập lý do từ chối'); } else close(v);
                 });
                 bindActions(body, { cancel: () => close() });
             },

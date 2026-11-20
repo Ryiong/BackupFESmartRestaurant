@@ -46,7 +46,7 @@ class PayrollPanel extends HrPanel {
                         <input data-p="days" type="number" min="1" max="31" class="${INPUT_CLS} w-28! py-1.5! text-sm"></label>
                     <label data-hourly-cfg class="grid gap-1 text-xs font-bold">Giờ/ngày công
                         <input data-p="hours" type="number" min="1" max="24" step="0.5" class="${INPUT_CLS} w-28! py-1.5! text-sm"></label>
-                    <label data-shift-cfg class="hidden grid gap-1 text-xs font-bold">Số ca chuẩn/tháng
+                    <label data-shift-cfg class="grid gap-1 text-xs font-bold">Số ca chuẩn/tháng
                         <input data-p="stdDays" type="number" min="1" max="60" class="${INPUT_CLS} w-28! py-1.5! text-sm"></label>
                     <p-button data-act="csv" label="Xuất CSV" icon="check" class="block md:inline-block"></p-button>
                 </div>

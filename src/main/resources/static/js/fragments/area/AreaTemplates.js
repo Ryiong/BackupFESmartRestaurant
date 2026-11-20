@@ -122,7 +122,7 @@ export function detailHtml({ table, area, pay }) {
             const canPay = pay.method === 'transfer' || received >= total;
             const methodBtn = (v, label) => `
                 <button type="button" data-act="pay-method" data-v="${v}" aria-pressed="${pay.method === v}"
-                    class="flex-1 cursor-pointer rounded-lg border-2 px-3 py-2 text-sm font-bold transition-all hover:scale-95 ${pay.method === v
+                     class="flex-1 sr-press cursor-pointer rounded-xl border-2 px-3 py-2 text-sm font-bold transition-all hover:scale-95 ${pay.method === v
                     ? 'border-primary-700 bg-primary-700 text-white' : 'border-primary-200 bg-white text-primary-700'}">${label}</button>`;
             return `${title}
                 <div class="${CARD}">

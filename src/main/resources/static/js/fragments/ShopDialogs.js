@@ -45,7 +45,7 @@ function shopFormDialog({ shop = null } = {}) {
                             <input id="sh-close" name="closeTime" type="time" value="${esc(val.closeTime)}" class="${INPUT_CLS}">
                         </div>
                     </div>
-                    <p data-error class="mb-1 min-h-5 text-sm font-medium text-red-600" role="alert"></p>
+                    <p data-error class="sr-form-error " role="alert"></p
                     ${isNew ? '<p class="text-xs text-secondary-700">Cửa hàng mới ở trạng thái <b>Chờ duyệt</b> cho đến khi quản trị viên phê duyệt.</p>' : ''}
                     <div class="mt-5 flex flex-wrap justify-center gap-3">
                         <p-button data-act="ok" label="${isNew ? 'Tạo cửa hàng' : 'Lưu thay đổi'}" icon="check" variant="solid"></p-button>

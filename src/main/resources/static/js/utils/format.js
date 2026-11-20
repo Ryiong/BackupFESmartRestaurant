@@ -65,4 +65,4 @@ export const STATUS = {
     },
 }
 
-export const INPUT_CLS = 'block w-full rounded-xl border border-support-600 bg-white px-3.5 py-2 text-text transition-color duration-200 focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500';
+export const INPUT_CLS = 'block w-full rounded-xl border border-support-600 bg-white px-3.5 py-2.5 text-text focus:outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-300';

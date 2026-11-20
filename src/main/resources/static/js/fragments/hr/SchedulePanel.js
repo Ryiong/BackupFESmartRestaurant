@@ -163,7 +163,7 @@ class SchedulePanel extends HrPanel {
                             <label class="flex items-center gap-2 rounded-lg border border-primary-50 px-3 py-2 text-sm font-semibold has-disabled:opacity-50" data-row="${st.id}">
                                 <input type="checkbox" name="emp" value="${st.id}" class="size-4 cursor-pointer accent-primary"><span>${esc(st.name)}</span><span data-tag class="ml-auto text-xs font-medium text-secondary-700"></span></label>`).join('')}</div>
                     </fieldset>
-                    <p data-err role="alert" class="hidden text-sm font-semibold text-red-600"></p>
+                     <p data-err role="alert" class="sr-form-error hidden"></p>
                     <div class="flex justify-center gap-3 pt-1">
                         <p-button type="submit" data-act="submit" label="Lưu phân ca" icon="check" variant="solid"></p-button>
                         <p-button data-act="cancel" label="Huỷ"></p-button>

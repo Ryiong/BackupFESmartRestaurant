@@ -62,7 +62,7 @@ export function ingredientDialog({ ingredient = null }) {
                     <p class="text-sm"><span class="font-semibold">Tồn kho hiện tại:</span> <b>${num(ingredient.stock)} ${esc(ingredient.unit)}</b></p>
                     <p class="${HINT}">Tồn kho chỉ thay đổi qua phiếu kho (nhập, xuất, hao hụt).</p>`}
                 </div>
-                <p data-error class="mb-1 min-h-5 text-sm font-medium text-red-600" role="alert"></p>
+                <p data-error class="sr-form-error " role="alert"></p>
                 <div class="${BTN_ROW}">
                     <p-button data-act="ok" label="${isNew ? 'Thêm nguyên liệu' : 'Lưu chỉnh sửa'}" icon="check" variant="solid"></p-button>
                     <p-button data-act="cancel" label="Huỷ"></p-button>
@@ -148,7 +148,7 @@ export function documentCreateDialog({ ingredients }) {
                 </div>
                 <div data-lines class="max-h-72 overflow-y-auto rounded-xl border border-primary-200 bg-white"></div>
                 <p data-warn class="${HINT}"></p>
-                <p data-error class="mb-1 mt-2 min-h-5 text-sm font-medium text-red-600" role="alert"></p>
+                <p data-error class="sr-form-error " role="alert"></p>
                 <div class="${BTN_ROW}">
                     <p-button data-act="ok" label="Tạo phiếu" icon="check" variant="solid"></p-button>
                     <p-button data-act="cancel" label="Huỷ"></p-button>
@@ -269,7 +269,7 @@ export function documentDetailDialog({ doc, ingredients = [] }) {
                     ${doc.note ? `<p class="mb-3 text-sm"><span class="font-semibold">Ghi chú:</span> ${esc(doc.note)}</p>` : ''}
                     ${items.length ? `
                     <div class="overflow-x-auto rounded-xl border border-primary-200">
-                        <table class="w-full min-w-[28rem] text-sm">
+                        <table class="w-full min-w-md text-sm">
                             <thead><tr class="bg-primary-50 text-left text-xs uppercase text-primary-700">
                                 <th class="px-3 py-2.5 font-bold">Mã NL</th><th class="px-3 py-2.5 font-bold">Tên nguyên liệu</th>
                                 <th class="px-3 py-2.5 text-right font-bold">Số lượng</th><th class="px-3 py-2.5 font-bold">Đơn vị</th>
@@ -292,7 +292,7 @@ export function documentDetailDialog({ doc, ingredients = [] }) {
                     ${pending ? `
                     <label for="dd-reason" class="mb-1.5 mt-5 block text-sm font-semibold">Phản hồi của người duyệt phiếu</label>
                     <textarea id="dd-reason" data-f="reason" rows="3" class="${INPUT_CLS} resize-none" placeholder="Nhập lý do từ chối (bắt buộc khi từ chối)…"></textarea>
-                    <p data-error class="mt-1 min-h-5 text-sm font-medium text-red-600" role="alert"></p>
+                    <p data-error class="sr-form-error " role="alert"></p>
                     <div class="mt-2 flex flex-wrap justify-end gap-3">
                         <p-button data-act="reject" label="Từ chối duyệt" icon="close" variant="danger"></p-button>
                         <p-button data-act="approve" label="Phê duyệt phiếu" icon="check" variant="solid"></p-button>
@@ -362,7 +362,7 @@ export function recipeDialog({ product, ingredients }) {
                     <div><label class="${LABEL}" for="rc-qty">Số lượng</label><input id="rc-qty" inputmode="decimal" autocomplete="off" placeholder="0" class="${INPUT_CLS} text-right"></div>
                     <p-button data-act="r-add" label="Thêm" icon="add"></p-button>
                 </div>
-                <p data-error class="mt-2 min-h-5 text-sm font-medium text-red-600" role="alert"></p>
+                <p data-error class="sr-form-error " role="alert"></p>
                 <div class="${BTN_ROW}">
                     <p-button data-act="r-save" label="Lưu thay đổi" icon="check" variant="solid" disabled></p-button>
                     <p-button data-act="done" label="Đóng"></p-button>

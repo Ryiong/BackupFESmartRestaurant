@@ -15,7 +15,7 @@ const NAV = [
 
 ];
 
-const LINK_BASE = 'flex-1 md:flex-none md:w-full flex items-center justify-center rounded-lg hover:bg-primary-50 transition-all cursor-pointer';
+const LINK_BASE = 'flex-1 md:flex-none md:w-full flex items-center justify-center rounded-lg hover:bg-primary-50 sr-press duration-300 cursor-pointer';
 const LINK_ACTIVE = 'bg-primary-500 text-primary-900 font-bold shadow-sm';
 const LINK_IDLE = 'text-support-900';
 
