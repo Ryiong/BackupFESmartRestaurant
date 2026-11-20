@@ -17,14 +17,23 @@ function paidOrders(shopId, date) {
     return promise;
 }
 
+const calcOrderTotal = o => {
+    if (o.totalPrice != null) return Number(o.totalPrice) || 0;
+    if (Array.isArray(o.itemResponses) && o.itemResponses.length) {
+        return o.itemResponses
+            .filter(i => String(i.itemStatus ?? i.status ?? 'ACTIVE').toUpperCase() === 'ACTIVE')
+            .reduce((s, i) => s + (Number(i.totalPrice) || (Number(i.price) || 0) * (Number(i.quantity) || 1)), 0);
+    }
+    return paidTotalOf(o.id);
+};
+
 const toTx = o => ({
     id: String(o.id),
     at: o.paidAt ? Date.parse(o.paidAt) : Date.now(),
     tableName: o.table?.name ?? '',
     areaName: '',
     method: o.paymentMethod === 'BANKING' ? 'transfer' : 'cash',
-    // Backend không trả totalPrice ở GET /order -> lấy từ sổ ghi lúc thanh toán
-    total: Number(o.totalPrice) || paidTotalOf(o.id),
+    total: calcOrderTotal(o),
 });
 
 export const springRevenue = {

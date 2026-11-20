@@ -232,6 +232,24 @@ class AreaManager extends HTMLElement {
                 const items = await orderDialog({ tableName: titleCase(table.name), menu });
                 if (items?.length) this.run(() => areaService.addOrder(table.id, items), 'Đã thêm món vào bàn');
             },
+            'delete-item': async el => {
+                const table = this.table;
+                if (!table || !el.dataset.id) return;
+                const item = (table.orders ?? []).find(i => String(i.id) === String(el.dataset.id));
+                const label = item ? `${item.qty} x ${titleCase(item.name)}` : 'món đã chọn';
+                const ok = await confirmDialog({
+                    title: 'Xoá món khỏi đơn',
+                    message: `Xác nhận xoá «${label}»? Bếp sẽ nhận phiếu huỷ món (VOID).`,
+                    confirmLabel: 'Xoá món',
+                    confirmIcon: 'close',
+                    variant: 'danger',
+                });
+                if (!ok) return;
+                this.run(
+                    () => areaService.deleteOrderItems(table.id, [el.dataset.id]),
+                    'Đã xoá món khỏi đơn',
+                );
+            },
             'toggle-qr': () => {
                 const t = this.table;
                 // Lật công tắc ngay (lạc quan) để người dùng thấy núm trượt; nếu lỗi, lần vẽ lại sẽ trả về trạng thái cũ.

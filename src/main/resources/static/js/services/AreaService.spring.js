@@ -77,16 +77,35 @@ export function getShopId() {
     return shopPromise;
 }
 
-const mapOrderItems = o => (o.itemResponses ?? []).map(i => ({
-    key: sid(i.productResponse?.id ?? i.productId ?? i.productName),
+/** Map 1 OrderItemResponse → object FE dùng cho UI. Giữ id để xoá món. */
+const mapOneItem = i => ({
+    id: i.id != null ? sid(i.id) : null,
+    key: sid(i.productResponse?.id ?? i.productId ?? i.productName ?? i.id),
     name: i.productName ?? i.productResponse?.name ?? '',
     price: Number(i.price) || 0,
     qty: i.quantity ?? 1,
-}));
+    note: i.note ?? '',
+    status: String(i.itemStatus ?? i.status ?? 'ACTIVE').toUpperCase(),
+    deletedAt: i.deletedAt ? Date.parse(i.deletedAt) : null,
+    deletedBy: i.deletedByUserName ?? null,
+    deletedById: i.deletedByUserId ?? null,
+});
+
+const mapOrderItems = o => (o.itemResponses ?? []).map(mapOneItem);
+
+/** Chỉ món còn hiệu lực (ACTIVE) — dùng tính tổng tiền / tạm tính. */
+export const activeItems = items => (items ?? []).filter(i => !i.status || i.status === 'ACTIVE');
 
 function mergeItems(target, items) {
     for (const it of items) {
-        const ex = target.find(x => x.key === it.key);
+        // Ưu tiên giữ dòng theo id order-item (không gộp) để xoá đúng dòng.
+        if (it.id) {
+            const ex = target.find(x => x.id && x.id === it.id);
+            if (ex) Object.assign(ex, it);
+            else target.push({ ...it });
+            continue;
+        }
+        const ex = target.find(x => !x.id && x.key === it.key && (x.status ?? 'ACTIVE') === 'ACTIVE');
         if (ex) ex.qty += it.qty;
         else target.push({ ...it });
     }
@@ -108,6 +127,15 @@ const mapTable = (t, order, local, occupiedIds) => {
     occupiedIds.add(tid);
     const apiItems = order?.itemResponses?.length ? mapOrderItems(order) : null;
     const created = order?.itemResponses?.map(i => Date.parse(i.createdAt)).filter(Number.isFinite) ?? [];
+    // Ưu tiên dữ liệu server (có id + trạng thái soft-delete); fallback local cache.
+    const orders = apiItems ?? local?.items ?? [];
+    if (apiItems) {
+        openOrders.set(tid, {
+            orderId: order?.id != null ? sid(order.id) : (local?.orderId ?? null),
+            startedAt: local?.startedAt ?? (Date.parse(order?.createdAt) || (created.length ? Math.min(...created) : Date.now())),
+            items: apiItems,
+        });
+    }
     return {
         id: tid,
         name: t.name,
@@ -118,8 +146,9 @@ const mapTable = (t, order, local, occupiedIds) => {
         startedAt: local?.startedAt ?? (Date.parse(order?.createdAt) || (created.length ? Math.min(...created) : Date.now())),
         reservedAt: null,
         reservedUntil: null,
-        orders: apiItems ?? local?.items ?? [],
+        orders,
         orderId: order?.id != null ? sid(order.id) : (local?.orderId ?? null),
+        totalPrice: Number(order?.totalPrice) || 0,
         mergedInto: null,
         mergedIds: [],
     };
@@ -251,16 +280,69 @@ export const springAreaService = {
         });
         console.info('[AreaService] POST /order trả về:', res);
         if (res?.id == null) throw new Error('Backend không trả về đơn hàng sau khi gọi món (xem Console: "POST /order trả về")');
+
         const tid = sid(tableId);
-        const entry = openOrders.get(tid) ?? { orderId: res.id, startedAt: Date.now(), items: [] };
-        if (res?.id != null) entry.orderId = sid(res.id);
-        // POST /order chỉ trả các món vừa thêm -> cộng dồn; nếu không có itemResponses thì dùng chính dữ liệu đã gửi
+        // Kéo lại toàn bộ đơn PENDING từ server để đồng bộ đủ món (bao gồm món khách gọi qua QR hoặc máy khác)
+        const freshOrder = await fetchTableOrder(tableId);
+        if (freshOrder) {
+            const mapped = mapOrderItems(freshOrder);
+            openOrders.set(tid, {
+                orderId: sid(freshOrder.id),
+                startedAt: openOrders.get(tid)?.startedAt ?? (Date.parse(freshOrder.createdAt) || Date.now()),
+                items: mapped,
+            });
+            saveOrders();
+            return freshOrder;
+        }
+
+        const entry = openOrders.get(tid) ?? { orderId: sid(res.id), startedAt: Date.now(), items: [] };
+        entry.orderId = sid(res.id);
+        // Fallback nếu fetchTableOrder chưa kịp trả về
         const added = res?.itemResponses?.length
             ? mapOrderItems(res)
-            : items.map(i => ({ key: sid(i.id), name: i.name, price: Number(i.price) || 0, qty: i.qty }));
+            : items.map(i => ({
+                id: null,
+                key: sid(i.id),
+                name: i.name,
+                price: Number(i.price) || 0,
+                qty: i.qty,
+                note: i.note ?? '',
+                status: 'ACTIVE',
+                deletedAt: null,
+                deletedBy: null,
+            }));
         mergeItems(entry.items, added);
         openOrders.set(tid, entry);
         saveOrders();
+        return res;
+    },
+
+    /**
+     * Soft-delete các OrderItem khỏi đơn PENDING của bàn.
+     * Body: { tableId, orderItemIds } — khớp BE DELETE /order/{shopId}
+     */
+    async deleteOrderItems(tableId, orderItemIds) {
+        const ids = (orderItemIds ?? []).map(Number).filter(n => Number.isFinite(n) && n > 0);
+        if (!ids.length) throw new Error('Chưa chọn món cần xoá');
+        const shopId = await getShopId();
+        const res = await http('DELETE', `/order/${shopId}`, {
+            tableId: Number(tableId),
+            orderItemIds: ids,
+        });
+        const tid = sid(tableId);
+        const entry = openOrders.get(tid);
+        if (entry?.items?.length) {
+            const idSet = new Set(ids.map(sid));
+            for (const it of entry.items) {
+                if (it.id && idSet.has(it.id)) {
+                    it.status = 'INACTIVE';
+                    it.deletedAt = Date.now();
+                }
+            }
+            // Nếu không còn món ACTIVE → vẫn giữ entry (bàn vẫn OCCUPIED theo BE) nhưng UI sẽ hiện trống
+            openOrders.set(tid, entry);
+            saveOrders();
+        }
         return res;
     },
 
@@ -269,15 +351,35 @@ export const springAreaService = {
 
     async checkoutTable(tableId, { received = 0 } = {}) {
         const shopId = await getShopId();
-        const orderId = await orderIdOfTable(tableId);
-        const res = await http('POST', `/order/${shopId}/payment/${orderId}`);
+        // 1. Luôn lấy đơn PENDING mới nhất từ server trước khi thanh toán để tránh lệch orderId / tổng tiền
+        const latestOrder = await fetchTableOrder(tableId);
         const tid = sid(tableId);
-        const localTotal = (openOrders.get(tid)?.items ?? []).reduce((s, i) => s + i.price * i.qty, 0);
-        const total = Number(res?.totalPrice) || localTotal;
+        const orderId = latestOrder?.id ?? openOrders.get(tid)?.orderId;
+        if (orderId == null) throw new Error('Bàn này chưa có đơn hàng đang mở');
+
+        // 2. Gọi API thanh toán (Backend tự tính totalPrice từ các OrderItem ACTIVE)
+        const res = await http('POST', `/order/${shopId}/payment/${orderId}`);
+
+        // 3. Tính tổng tiền chuẩn: ưu tiên totalPrice từ response thanh toán -> itemResponses từ server -> cache local
+        const serverItems = latestOrder?.itemResponses?.length ? mapOrderItems(latestOrder) : null;
+        const activeList = activeItems(serverItems ?? openOrders.get(tid)?.items);
+        const fallbackTotal = activeList.reduce((s, i) => s + i.price * i.qty, 0);
+
+        const total = res?.totalPrice != null
+            ? Number(res.totalPrice)
+            : (latestOrder?.totalPrice != null ? Number(latestOrder.totalPrice) : fallbackTotal);
+
+        const cashReceived = Number(received) > 0 ? Number(received) : total;
+
         recordPaid(orderId, total);
         paying.delete(tid); savePaying();
         openOrders.delete(tid); saveOrders();
-        return { total, change: Math.max(0, received - total) };
+        return {
+            order: res,
+            total,
+            received: cashReceived,
+            change: Math.max(0, cashReceived - total),
+        };
     },
 
     cancelReservation: async () => { throw new Error('Backend chưa hỗ trợ đặt bàn trước'); },
@@ -294,15 +396,20 @@ export const springAreaService = {
         const r = await http('POST', `/order/${await getShopId()}/merge-table`, undefined, { query: { fromId, toId: primaryId } });
         const from = sid(fromId), to = sid(primaryId);
         const src = openOrders.get(from);
-        if (src) {
-            const dst = openOrders.get(to) ?? { orderId: null, startedAt: src.startedAt, items: [] };
-            mergeItems(dst.items, src.items);
-            dst.startedAt = Math.min(dst.startedAt ?? Infinity, src.startedAt ?? Infinity);
-            openOrders.set(to, dst);
-            openOrders.delete(from);
-            saveOrders();
+        openOrders.delete(from);
+        paying.delete(from);
+
+        // Đồng bộ lại đơn đã gộp từ server cho bàn đích
+        const mergedOrder = await fetchTableOrder(primaryId);
+        if (mergedOrder) {
+            openOrders.set(to, {
+                orderId: sid(mergedOrder.id),
+                startedAt: Math.min(openOrders.get(to)?.startedAt ?? Infinity, src?.startedAt ?? Infinity, Date.now()),
+                items: mapOrderItems(mergedOrder),
+            });
         }
-        paying.delete(from); savePaying();
+        savePaying();
+        saveOrders();
         return r;
     },
 };

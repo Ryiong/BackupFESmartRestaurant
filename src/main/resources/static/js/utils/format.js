@@ -27,7 +27,10 @@ export const titleCase = s =>
 
 export const minutesSince = ts => Math.max(0, Math.floor((Date.now() - ts) / 60000));
 
-export const orderTotal = t => (t?.orders ?? []).reduce((s, o) => s + o.price * o.qty, 0);
+/** Tổng tiền chỉ từ món còn hiệu lực (ACTIVE). Món soft-delete không tính. */
+export const orderTotal = t => (t?.orders ?? [])
+    .filter(o => !o.status || String(o.status).toUpperCase() === 'ACTIVE')
+    .reduce((s, o) => s + o.price * o.qty, 0);
 
 export const effectiveCapacity = (table, tables) =>
     table.capacity + (table.mergedIds ?? []).reduce((s, id) => s + (tables.find(t => t.id === id)?.capacity ?? 0), 0);

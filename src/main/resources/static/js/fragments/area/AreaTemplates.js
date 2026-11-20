@@ -23,10 +23,28 @@ const header = (table, status) => `
         <span class="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold ${STATUS[status].badge}">${STATUS[status].panel}</span>
     </div>`;
 
-const orderList = (orders, strong = false) => orders.length
-    ? `<ul class="space-y-1 text-sm">${orders.map(o => `
-        <li class="flex justify-between gap-3"><span>${o.qty} x ${esc(titleCase(o.name))}</span><b>${moneyK(o.price * o.qty)}</b></li>`).join('')}</ul>`
-    : '<p class="text-sm text-secondary-700">Chưa có món nào.</p>';
+const orderList = (orders, { allowDelete = false } = {}) => {
+    const list = orders ?? [];
+    if (!list.length) return '<p class="text-sm text-secondary-700">Chưa có món nào.</p>';
+    return `<ul class="space-y-1.5 text-sm">${list.map(o => {
+        const inactive = o.status && String(o.status).toUpperCase() === 'INACTIVE';
+        const note = o.note ? `<span class="block text-xs text-secondary-600">Ghi chú: ${esc(o.note)}</span>` : '';
+        const deletedMeta = inactive && (o.deletedBy || o.deletedAt)
+            ? `<span class="block text-xs text-danger-fg">Đã xoá${o.deletedBy ? ` bởi ${esc(o.deletedBy)}` : ''}${o.deletedAt ? ` · ${hhmm(o.deletedAt)}` : ''}</span>`
+            : '';
+        const delBtn = allowDelete && !inactive && o.id
+            ? `<p-button type="button" data-act="delete-item" data-id="${esc(o.id)}" aria-label="Xoá ${esc(titleCase(o.name))}"
+                label="Xoá" icon="delete" variant="danger"></p-button>`
+            : '';
+        return `<li class="flex items-center justify-between gap-3 ${inactive ? 'hidden' : ''}">
+            <span class="min-w-0 text-sm font-semibold ${inactive ? 'line-through' : ''}">${o.qty} x ${esc(titleCase(o.name))}${note}${deletedMeta}</span>
+            <span class="flex shrink-0 items-center gap-2">
+                <b class="${inactive ? 'line-through text-secondary-600' : 'text-sm'}">${moneyK(o.price * o.qty)}</b>
+                ${delBtn}
+            </span>
+        </li>`;
+    }).join('')}</ul>`;
+};
 
 export function emptyDetailHtml(hasArea) {
     return `${title}
@@ -85,6 +103,7 @@ export function detailHtml({ table, area, pay }) {
 
         case 'serving': {
             const merged = (table.mergedIds ?? []).map(id => titleCase(tables.find(t => t.id === id)?.name)).filter(Boolean);
+            const activeCount = (table.orders ?? []).filter(o => !o.status || String(o.status).toUpperCase() === 'ACTIVE').length;
             return `${title}
                 <div class="${CARD}">
                     ${header(table, 'serving')}
@@ -101,16 +120,16 @@ export function detailHtml({ table, area, pay }) {
                     </div>
                     ${qrBlock(table)}
                 </div>
-                <h4 class="mb-2 mt-4 text-[15px] font-bold">Danh sách đặt món (${table.orders.length} món)</h4>
-                ${orderList(table.orders)}
+                <h4 class="mb-2 mt-4 text-[15px] font-bold">Danh sách đặt món (${activeCount} món)</h4>
+                ${orderList(table.orders, { allowDelete: true })}
                 ${DIVIDER}
                 <div class="flex items-center justify-between">
                     <span class="font-bold">Tạm tính</span><b class="text-lg text-primary-700">${money(total)}</b>
                 </div>
                 <div class="mt-3 flex flex-col items-start gap-2.5">
                     <p-button data-act="order" label="Đặt món" icon="plus"></p-button>
-                    <p-button data-act="pay" label="THANH TOÁN" variant="solid" ${table.orders.length ? '' : 'disabled'}></p-button>
-                    ${table.orders.length ? '' : '<p class="text-xs text-secondary-700">Cần đặt ít nhất 1 món để thanh toán.</p>'}
+                    <p-button data-act="pay" label="THANH TOÁN" variant="solid" ${activeCount ? '' : 'disabled'}></p-button>
+                    ${activeCount ? '' : '<p class="text-xs text-secondary-700">Cần đặt ít nhất 1 món để thanh toán.</p>'}
                     ${closeBtn}
                 </div>`;
         }
@@ -129,8 +148,8 @@ export function detailHtml({ table, area, pay }) {
                         ${info('Giờ ra', hhmm(Date.now()))}${info('Giờ vào', hhmm(table.startedAt))}
                     </div>
                 </div>
-                <h4 class="mb-2 mt-4 text-[15px] font-bold">Danh sách đặt món (${table.orders.length} món)</h4>
-                ${orderList(table.orders)}
+                <h4 class="mb-2 mt-4 text-[15px] font-bold">Danh sách đặt món (${(table.orders ?? []).filter(o => !o.status || String(o.status).toUpperCase() === 'ACTIVE').length} món)</h4>
+                ${orderList(table.orders, { allowDelete: false })}
                 ${DIVIDER}
                 <div class="flex items-center justify-between">
                     <span class="font-bold">TỔNG THANH TOÁN</span><b class="text-lg text-primary-700">${money(total)}</b>

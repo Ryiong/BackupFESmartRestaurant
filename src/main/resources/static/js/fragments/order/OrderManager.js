@@ -149,16 +149,37 @@ class OrderManager extends HTMLElement {
         const since = o => o.entry?.startedAt ? `<p class="text-xs text-secondary-700">đã ${esc(duration(Date.now() - o.entry.startedAt))}</p>` : '';
         const time = o => o.paidAt ? hhmm(o.paidAt) : o.createdAt ? hhmm(o.createdAt) : o.entry?.startedAt ? hhmm(o.entry.startedAt) : '—';
         const items = o => {
-            if (!o.entry || !expanded.has(rowKey(o))) return '';
-            const its = o.entry.items;
-            return its.length
-                ? `<ul class="mt-2 space-y-1 rounded-xl bg-neutral-50 p-3 text-sm">${its.map(i => `<li class="flex justify-between gap-3"><span>${i.qty} x ${esc(titleCase(i.name))}</span><b>${money(i.price * i.qty)}</b></li>`).join('')}</ul>`
-                : '<p class="mt-2 rounded-xl bg-neutral-50 p-3 text-sm text-secondary-700">Chưa có thông tin món. Tổng tiền sẽ do hệ thống tính khi thanh toán.</p>';
+            if (!expanded.has(rowKey(o))) return '';
+            // Ưu tiên itemResponses từ API (có trạng thái xoá); fallback giỏ local của bàn đang mở
+            const its = (o.items?.length ? o.items : o.entry?.items) ?? [];
+            if (!its.length) {
+                return '<p class="mt-2 rounded-xl bg-neutral-50 p-3 text-sm text-secondary-700">Chưa có thông tin món. Tổng tiền sẽ do hệ thống tính khi thanh toán.</p>';
+            }
+            return `<ul class="mt-2 space-y-1.5 rounded-xl bg-neutral-50 p-3 text-sm">${its.map(i => {
+                const inactive = i.status && String(i.status).toUpperCase() === 'INACTIVE';
+                const note = i.note ? `<span class="block text-xs text-secondary-600">Ghi chú: ${esc(i.note)}</span>` : '';
+                const who = i.userName ? `<span class="text-xs text-secondary-600"> · ${esc(i.userName)}</span>` : '';
+                const deletedMeta = inactive
+                    ? `<span class="block text-xs text-danger-fg">Đã xoá${i.deletedBy ? ` bởi ${esc(i.deletedBy)}` : ''}${i.deletedAt ? ` · ${hhmm(i.deletedAt)}` : ''}</span>`
+                    : '';
+                return `<li class="flex justify-between gap-3 ${inactive ? 'opacity-60' : ''}">
+                    <span class="min-w-0 ${inactive ? 'line-through' : ''}">${i.qty} x ${esc(titleCase(i.name))}${who}${note}${deletedMeta}</span>
+                    <b class="shrink-0 ${inactive ? 'line-through text-secondary-600' : ''}">${money(i.price * i.qty)}</b>
+                </li>`;
+            }).join('')}</ul>`;
         };
-        const actions = o => o.entry ? `<div class="flex flex-wrap items-center justify-end gap-2">
-                <button type="button" data-act="toggle" data-id="${esc(rowKey(o))}" aria-expanded="${expanded.has(rowKey(o))}" class="min-h-11 sr-press cursor-pointer rounded-xl border-2 border-primary-100 px-3 text-sm font-bold text-primary-700 hover:bg-primary-50">${expanded.has(rowKey(o)) ? 'Ẩn món' : 'Xem món'}</button>
-                <a href="${AREA_URL}" class="grid min-h-11 place-items-center rounded-lg border-2 border-primary-100 px-3 text-sm font-bold text-primary-700 hover:bg-primary-50">Mở sơ đồ bàn</a>
-                <p-button data-act="pay" data-id="${esc(o.entry.tableId)}" label="Thanh toán" icon="check" variant="solid"></p-button></div>` : '';
+        const canExpand = o => !!(o.items?.length || o.entry?.items?.length);
+        const actions = o => {
+            const parts = [];
+            if (canExpand(o)) {
+                parts.push(`<button type="button" data-act="toggle" data-id="${esc(rowKey(o))}" aria-expanded="${expanded.has(rowKey(o))}" class="min-h-11 sr-press cursor-pointer rounded-xl border-2 border-primary-100 px-3 text-sm font-bold text-primary-700 hover:bg-primary-50">${expanded.has(rowKey(o)) ? 'Ẩn món' : 'Xem món'}</button>`);
+            }
+            if (o.entry) {
+                parts.push(`<a href="${AREA_URL}" class="grid min-h-11 place-items-center rounded-lg border-2 border-primary-100 px-3 text-sm font-bold text-primary-700 hover:bg-primary-50">Mở sơ đồ bàn</a>`);
+                parts.push(`<p-button data-act="pay" data-id="${esc(o.entry.tableId)}" label="Thanh toán" icon="check" variant="solid"></p-button>`);
+            }
+            return parts.length ? `<div class="flex flex-wrap items-center justify-end gap-2">${parts.join('')}</div>` : '';
+        };
         const row = o => {
             const [label, tone] = stateOf(o);
             const m = o.method === 'transfer' ? 'Chuyển khoản' : o.method === 'cash' ? 'Tiền mặt' : '—';
@@ -168,7 +189,7 @@ class OrderManager extends HTMLElement {
                 <td class="px-3 py-3"><div class="flex flex-wrap gap-1">${chip(label, tone)}${live(o)}</div></td><td class="px-3 py-3">${m}</td>
                 <td class="px-3 py-3 tabular-nums">${time(o)}${since(o)}</td>
                 <td class="px-3 py-3 text-right font-bold tabular-nums">${o.total ? money(o.total) : '—'}</td>
-                <td class="px-3 py-3">${actions(o)}</td></tr>${o.entry && expanded.has(rowKey(o)) ? `<tr><td colspan="7" class="px-3 pb-3">${items(o)}</td></tr>` : ''}`;
+                <td class="px-3 py-3">${actions(o)}</td></tr>${expanded.has(rowKey(o)) ? `<tr><td colspan="7" class="px-3 pb-3">${items(o)}</td></tr>` : ''}`;
         };
         const card = o => {
             const [label, tone] = stateOf(o);
@@ -177,7 +198,7 @@ class OrderManager extends HTMLElement {
                 <p class="mt-1 flex flex-wrap gap-1">${chip(label, tone)}${live(o)}</p>
                 <p class="mt-1 text-sm text-secondary-700">${time(o)}${o.entry?.startedAt ? ` · đã ${esc(duration(Date.now() - o.entry.startedAt))}` : ''}</p></div>
                 <b class="tabular-nums text-primary-700">${o.total ? money(o.total) : '—'}</b></div>
-                ${o.entry ? `<div class="mt-3">${actions(o)}</div>${items(o)}` : ''}</li>`;
+                <div class="mt-3">${actions(o)}</div>${items(o)}</li>`;
         };
         this.q('[data-body]').innerHTML = error ? emptyState('Không tải được danh sách đơn', error)
             : loading && !history.length ? emptyState('Đang tải…')

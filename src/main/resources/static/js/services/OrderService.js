@@ -20,10 +20,30 @@ export function orderState(o) {
     return 'OTHER';
 }
 
+const mapItem = i => ({
+    id: i.id != null ? String(i.id) : null,
+    name: i.productName ?? i.productResponse?.name ?? '',
+    price: Number(i.price) || 0,
+    qty: i.quantity ?? 1,
+    note: i.note ?? '',
+    status: String(i.itemStatus ?? i.status ?? 'ACTIVE').toUpperCase(),
+    deletedAt: i.deletedAt ? Date.parse(i.deletedAt) : null,
+    deletedBy: i.deletedByUserName ?? null,
+    createdAt: i.createdAt ? Date.parse(i.createdAt) : null,
+    userName: i.userName ?? null,
+});
+
 const mapOrder = o => {
     const state = orderState(o);
-    const items = Array.isArray(o.itemResponses) ? o.itemResponses : null;
-    const itemsTotal = items ? items.reduce((s, i) => s + (Number(i.price) || 0) * (i.quantity ?? 1), 0) : 0;
+    const rawItems = Array.isArray(o.itemResponses) ? o.itemResponses : null;
+    const items = rawItems ? rawItems.map(mapItem) : null;
+    // Tổng tiền: ưu tiên totalPrice server → ledger lúc thanh toán → sum món ACTIVE
+    const activeTotal = items
+        ? items.filter(i => i.status === 'ACTIVE').reduce((s, i) => s + i.price * i.qty, 0)
+        : 0;
+    const total = o.totalPrice != null
+        ? Number(o.totalPrice)
+        : (items ? activeTotal : (state === 'PAID' ? paidTotalOf(o.id) : 0));
     return {
         id: String(o.id),
         state,
@@ -33,9 +53,9 @@ const mapOrder = o => {
         method: o.paymentMethod === 'BANKING' ? 'transfer' : o.paymentMethod ? 'cash' : null,
         paidAt: o.paidAt ? Date.parse(o.paidAt) : null,
         createdAt: o.createdAt ? Date.parse(o.createdAt) : null,
-        // GET /order?date= không trả totalPrice: lấy từ sổ ghi lúc thanh toán (cùng cách trang Doanh thu đang làm)
-        total: Number(o.totalPrice) || (state === 'PAID' ? paidTotalOf(o.id) : 0) || itemsTotal,
-        itemCount: items ? items.reduce((s, i) => s + (i.quantity ?? 1), 0) : null,
+        total,
+        itemCount: items ? items.filter(i => i.status === 'ACTIVE').reduce((s, i) => s + i.qty, 0) : null,
+        items, // full list (ACTIVE + INACTIVE) để trang đơn hiện ai xoá / lúc nào
     };
 };
 
