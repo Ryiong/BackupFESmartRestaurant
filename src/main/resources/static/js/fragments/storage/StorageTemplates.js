@@ -2,8 +2,8 @@ import { esc, titleCase } from '../../utils/format.js';
 import { ICONS } from '../../icon.js';
 import { INGREDIENT_TYPES, DOC_TYPES, DOC_STATUS, stockState } from '../../services/StorageService.js';
 
-export const FIELD_CLS = 'rounded-xl border border-support-600 bg-white py-2 text-sm text-text focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500';
-export const ICON_BTN = 'sr-press cursor-pointer rounded-xl p-1.5 text-primary-700 transition-all hover:scale-90 hover:bg-neutral-100';
+export const FIELD_CLS = 'sr-field px-3 py-2 text-sm text-text';
+export const ICON_BTN = 'sr-press cursor-pointer rounded-xl p-1.5 text-primary-700 transition-all hover:bg-neutral-100';
 const BADGE = 'inline-block rounded-full px-2.5 py-1 text-[11px] font-bold';
 
 export const VIEWS = {
@@ -45,7 +45,7 @@ export const tabsHtml = (view, badges = {}) => Object.entries(VIEWS).map(([v, cf
     const on = v === view;
     const b = badges[v] ? ` <span class="ml-1 rounded-full ${v === 'docs' ? 'bg-amber-500' : 'bg-red-600'} px-1.5 py-0.5 text-[10px] text-white">${badges[v]}</span>` : '';
     return `<button type="button" role="tab" data-act="tab" data-v="${v}" aria-selected="${on}"
-        class="cursor-pointer rounded-full border px-4 py-1.5 text-sm font-bold transition-all hover:scale-95 ${on ? 'border-primary-700 bg-primary-700 text-white' : 'border-primary-200 bg-white text-primary-700'}">${cfg.label}${b}</button>`;
+        class="sr-toggle sr-pill px-4 text-sm">${cfg.label}${b}</button>`;
 }).join('');
 
 export const toolbarHtml = view => {

@@ -116,7 +116,7 @@ class StaffAttendance extends HTMLElement {
                     <button data-act="paste" class="min-h-11 sr-press cursor-pointer rounded-xl border-2 border-primary-100 font-bold text-primary-600">Dùng link này</button>
                 </div>
             </details>
-            <button data-act="scan" class="flex min-h-14 w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-primary-700 text-base font-bold text-white shadow hover:bg-primary-800">Quét QR chấm công</button>
+            <button data-act="scan" class="sr-btn sr-btn-fill min-h-14 w-full text-base">Quét QR chấm công</button>
             <a href="${ADMIN_URL}" class="flex min-h-12 w-full items-center justify-center rounded-2xl border-2 border-primary-100 text-base font-bold text-primary-600 hover:bg-primary-50">Mở trang cửa hàng</a>
             <button data-act="loginqr" class="min-h-11 cursor-pointer text-sm font-semibold text-primary-600">Đăng nhập trên thiết bị khác (tạo QR)</button>
         `;
@@ -183,7 +183,7 @@ class StaffAttendance extends HTMLElement {
         else if (this.noAccess) body = this.empty('Không có nội dung', 'Bạn chưa được cấp quyền xem ca làm nên chưa thể chấm công.');
         else if (!open.length) body = '<p class="text-sm font-semibold text-red-700">Hiện không có ca nào trong khung giờ chấm công (từ 30 phút trước đến 30 phút sau ca).</p>';
         else body = open.map(s => `
-            <button data-act="submit" data-id="${s.id}" ${expired || this.busy ? 'disabled' : ''} class="min-h-14 w-full cursor-pointer rounded-xl bg-primary-700 px-4 text-left font-bold text-white disabled:opacity-50">
+            <button data-act="submit" data-id="${s.id}" ${expired || this.busy ? 'disabled' : ''} class="sr-btn sr-btn-fill min-h-14 w-full">
                 Chấm công: ${esc(s.shiftName)} <span class="font-normal tabular-nums">(${esc(s.startTime)} – ${esc(s.endTime)})</span>
             </button>`).join('<div class="h-2"></div>');
         return `<section class="rounded-2xl border-2 border-primary-600 bg-white p-4">

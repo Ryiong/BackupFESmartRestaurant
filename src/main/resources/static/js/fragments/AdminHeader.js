@@ -36,7 +36,7 @@ class AppHeader extends HTMLElement {
                         </div>
                     </div>
                     <button type="button" data-loginqr title="Tạo QR đăng nhập trên thiết bị khác" aria-label="Tạo QR đăng nhập trên thiết bị khác"
-                        class="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg bg-white text-support-100 hover:scale-105 transition-all">${ICONS.qr}</button>
+                        class="grid size-11 shrink-0 cursor-pointer place-items-center rounded-lg bg-white text-support-100 transition-all">${ICONS.qr}</button>
                     
                 </div>
             </header>

@@ -64,7 +64,7 @@ class RolePanel extends HrPanel {
     item(id, label, locked = false, gone = false) {
         const on = this.state.selected === id;
         return `<button type="button" data-act="select" data-id="${esc(id)}" aria-pressed="${on}"
-            class="flex cursor-pointer items-center justify-between gap-3 rounded-xl xl:w-full border px-3.5 py-2.5 text-left text-sm font-semibold transition-all hover:scale-[0.99]
+            class="flex cursor-pointer items-center justify-between gap-3 rounded-xl xl:w-full border px-3.5 py-2.5 text-left text-sm font-semibold transition-all
             ${on ? 'border-primary-300 bg-primary-50 text-primary-800' : 'border-transparent text-secondary-800 hover:bg-neutral-50'} ${gone ? 'opacity-60' : ''}">
             <span class="${gone ? 'line-through' : ''}">${esc(label)}</span>${locked ? `<span class="text-primary-500">${ICONS.lock}</span>` : ''}</button>`;
     }

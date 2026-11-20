@@ -7,7 +7,7 @@ import { productDialog, categoryDialog } from './MenuDialogs.js';
 import { ICONS } from '../../icon.js';
 import { productCard, skeletonGrid, stateHtml } from './MenuTemplates.js';
 
-const FIELD_CLS = 'rounded-xl border border-primary-400 outline-primary-400 bg-white py-2 text-sm text-text focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500';
+const FIELD_CLS = 'sr-field px-3 py-2 text-sm text-text';
  
 const fold = s => String(s ?? '').normalize('NFD').replace(/\p{M}/gu, '').replace(/đ/g, 'd').toLowerCase();
  
@@ -64,7 +64,7 @@ class MenuManager extends HTMLElement {
                     <h2 class="text-lg font-bold">Danh sách món ăn</h2>
                     <span data-count class="text-sm text-secondary-700" aria-live="polite"></span>
                 </div>
-                <div data-grid class="mt-4 grid grid-cols-[repeat(auto-fill,minmax(13rem,1fr))] gap-4"></div>
+                <div data-grid data-swap class="mt-4 grid grid-cols-[repeat(auto-fill,minmax(13rem,1fr))] gap-4"></div>
             </section>
         </div>`;
         this.el = {

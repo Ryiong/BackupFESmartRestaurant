@@ -52,7 +52,7 @@ class OrderManager extends HTMLElement {
             </div>
             <div data-sum class="grid grid-cols-2 gap-3 sm:grid-cols-4"></div>
             <div data-note></div>
-            <section class="${CARD} p-0! overflow-hidden"><div data-body class="overflow-x-auto"></div></section>
+            <section class="${CARD} p-0! overflow-hidden"><div data-body data-swap class="overflow-x-auto"></div></section>
         </div>`;
         this.q = s => this.querySelector(s);
         bindActions(this, this.actions());
@@ -118,7 +118,7 @@ class OrderManager extends HTMLElement {
         const { filter } = this.state;
         const count = v => v === 'all' ? rows.length : rows.filter(o => o.state === v).length;
         const f = (v, label) => `<button type="button" data-act="filter" data-v="${v}" aria-pressed="${filter === v}"
-             class="cursor-pointer rounded-full border px-3 py-1 text-xs font-bold transition-all hover:scale-95 ${filter === v ? 'border-primary-700 bg-primary-500 text-primary-900 ring-1 ring-primary-700' : 'border-primary-200 bg-white text-primary-800'}">${label} <span class="opacity-70">${count(v)}</span></button>`;
+             data-on="${filter === v}" class="sr-toggle sr-pill text-xs">${label} <span class="opacity-70">${count(v)}</span></button>`;
         this.q('[data-chips]').innerHTML = f('all', 'Tất cả') + f('OPEN', 'Chưa thanh toán') + f('PAID', 'Đã thanh toán');
     }
 

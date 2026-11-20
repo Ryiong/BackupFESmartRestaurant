@@ -1,3 +1,5 @@
+import './utils/prefs.js';
+import './utils/motion.js';
 export const API_MODE = 'spring';
 
 export const SPRING_BASE = 'http://localhost:8080/smart-restaurant/v1';

@@ -46,7 +46,7 @@ function renderShopBar(shops, current) {
             <div class="flex flex-wrap items-center gap-2.5">
                 ${shops.length > 1
             ? `<label class="sr-only" for="shop-select">Cửa hàng</label>
-                       <select id="shop-select" class="max-w-full rounded-xl border border-support-600 bg-white px-3 py-2 font-semibold text-text focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
+                       <select id="shop-select" class="sr-field max-w-full px-3 py-2 font-semibold">
                            ${shops.map(s => `<option value="${esc(s.id)}" ${s.id === current.id ? 'selected' : ''}>${esc(titleCase(s.name))}</option>`).join('')}
                        </select>`
             : `<h2 class="min-w-0 truncate text-lg font-bold text-text">${esc(titleCase(current.name))}</h2>`}

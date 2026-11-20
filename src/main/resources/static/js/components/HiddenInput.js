@@ -10,7 +10,7 @@ class HiddenInput extends HTMLElement {
 
     this.classList.add('block', 'relative');
     this.innerHTML = `
-        <input type="password" required minlength="8" class="block w-full rounded-xl border border-support-600 bg-white px-3.5 py-2.5 text-text focus:outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-300 min-w-12">
+        <input type="password" required minlength="8" class="sr-field block w-full px-3.5 py-2.5 text-text min-w-12">
         <button type="button" aria-pressed="false" class="absolute top-1 right-1 grid place-items-center w-10 h-10 border-0 rounded-lg bg-transparent text-support-900 cursor-pointer">
             ${ICONS.eye}
         </button>`;

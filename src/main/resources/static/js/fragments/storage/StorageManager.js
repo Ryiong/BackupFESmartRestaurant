@@ -51,7 +51,7 @@ class StorageManager extends HTMLElement {
             <div data-toolbar class="flex flex-wrap items-center gap-3"></div>
             <section class="min-h-112 rounded-2xl bg-white p-5 shadow-sm" aria-live="polite">
                 <div class="flex justify-end"><span data-count class="text-sm text-secondary-700"></span></div>
-                <div data-body></div>
+                <div data-body data-swap></div>
             </section>
         </div>`;
         this.el = {

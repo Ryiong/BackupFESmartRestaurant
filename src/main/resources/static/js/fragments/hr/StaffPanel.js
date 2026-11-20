@@ -163,7 +163,7 @@ class StaffPanel extends HrPanel {
                         <legend class="mb-1.5 text-sm font-semibold">Vai trò (chọn một hoặc nhiều)</legend>
                         <div class="flex flex-wrap gap-2">${roles.map(r => `
                             <label class="cursor-pointer"><input type="checkbox" name="role" value="${r.id}" ${picked.has(r.id) ? 'checked' : ''} class="peer sr-only">
-                                <span class="inline-block rounded-full border-2 border-primary-100 px-3.5 py-1.5 text-sm font-bold text-secondary-800 transition-all peer-checked:border-primary-600 peer-checked:bg-primary-600 peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-primary-300">${esc(cap(r.name))}</span></label>`).join('')}</div>
+                                <span class="inline-block rounded-full border-2 border-primary-200 bg-white px-3.5 py-1.5 text-sm font-bold text-primary-800 transition-all hover:bg-primary-50 peer-checked:border-primary-700 peer-checked:bg-primary-500 peer-checked:text-primary-900 peer-focus-visible:ring-2 peer-focus-visible:ring-primary-500">${esc(cap(r.name))}</span></label>`).join('')}</div>
                     </fieldset>
                     <p data-err role="alert" class="sr-form-error hidden"></p>
                     <div class="flex justify-center gap-3 pt-1">

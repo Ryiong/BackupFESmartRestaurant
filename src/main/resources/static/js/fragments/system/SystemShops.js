@@ -81,7 +81,7 @@ class SystemShops extends HTMLElement {
         this.innerHTML = `
             <h1 class="text-xl font-bold">Chỉ dành cho quản trị viên hệ thống</h1>
             <p class="text-sm">Tài khoản <b>${esc(auth.user?.email ?? '')}</b> không có quyền truy cập trang này.</p>
-            <a href="${ADMIN_URL}" class="inline-flex min-h-11 items-center rounded-lg bg-primary-700 px-4 font-bold text-white">Về trang quản lý cửa hàng</a>
+            <a href="${ADMIN_URL}" class="sr-btn sr-btn-fill">Về trang quản lý cửa hàng</a>
             <button id="out" class="min-h-11 cursor-pointer text-sm font-semibold text-primary-700">Đăng xuất</button>`;
         this.querySelector('#out').addEventListener('click', () => logout());
     }
@@ -118,8 +118,8 @@ class SystemShops extends HTMLElement {
         this.querySelector('[data-tabs]').innerHTML = SHOP_TABS.map(t => {
             const on = t.status === this.status;
             const n = this.counts[t.status];
-            return `<button data-act="tab" data-status="${t.status}" aria-current="${on}" class="flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-xl px-4 text-sm font-bold ${on ? 'bg-primary-700 text-white' : 'bg-white text-primary-700 border border-primary-100'}">
-                ${t.label}${n == null ? '' : `<span class="rounded-full px-2 text-xs ${on ? 'bg-white/20' : (t.status === 'PENDING' && n ? 'bg-amber-100 text-amber-800' : 'bg-primary-50')}">${n}</span>`}</button>`;
+            return `<button data-act="tab" data-status="${t.status}" aria-current="${on}" class="sr-toggle sr-tab flex shrink-0 items-center gap-2">
+                ${t.label}${n == null ? '' : `<span class="rounded-full px-2 text-xs ${on ? 'bg-primary-900/15' : (t.status === 'PENDING' && n ? 'bg-warn-bg text-warn-fg' : 'bg-primary-50')}">${n}</span>`}</button>`;
         }).join('');
     }
 
@@ -149,7 +149,7 @@ class SystemShops extends HTMLElement {
             ACTIVE: `<p-button data-act="lock" data-id="${s.id}" label="Khoá cửa hàng" icon="pause" variant="danger"></p-button>`,
             LOCKED: `<p-button data-act="unlock" data-id="${s.id}" label="Mở khoá" icon="check" variant="solid"></p-button>`,
         }[this.status];
-        return `<article class="grid gap-3 rounded-2xl bg-white p-4 shadow-sm">
+        return `<article class="sr-lift grid gap-3 rounded-2xl bg-white p-4 shadow-sm">
             <div class="flex items-start justify-between gap-3">
                 <div class="min-w-0"><p class="text-xs font-semibold text-secondary-700">Cửa hàng #${esc(s.id)}</p>
                     <p class="text-base font-bold leading-snug">${esc(s.name)}</p></div>

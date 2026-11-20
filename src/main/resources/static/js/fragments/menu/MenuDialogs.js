@@ -8,7 +8,7 @@ const FIELD = 'mb-3';
 const LABEL = 'mb-1.5 block text-sm font-semibold';
 const BTN_ROW = 'mt-5 flex flex-wrap justify-center gap-3';
 const MAX_IMAGE = 5 * 1024 * 1024;
-const ICON_BTN = 'sr-press cursor-pointer rounded-xl p-1.5 text-primary-700 transition-all hover:scale-90 hover:bg-white';
+const ICON_BTN = 'sr-press cursor-pointer rounded-xl p-1.5 text-primary-700 transition-all hover:bg-white';
 
 const fmtPrice = n => (Number.isFinite(n) ? n.toLocaleString('vi-VN') : '');
 

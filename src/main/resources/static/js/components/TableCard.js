@@ -43,7 +43,7 @@ class TableCard extends HTMLElement {
 
         const interactive = variant !== 'edit';
         const base = 'rounded-2xl border-2 p-3 transition-all ' + 
-            (disabled ? 'cursor-not-allowed opacity-40' : interactive ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md ' : '');
+            (disabled ? 'cursor-not-allowed opacity-40' : interactive ? 'cursor-pointer sr-lift ' : '');
         const look = variant === 'view' ? st.card : 'border-primary-200 bg-white ';
         const sel = selected ? 'ring-4 ring-primary-300 border-primary-700' : '';
         const a11y = interactive

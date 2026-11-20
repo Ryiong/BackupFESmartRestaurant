@@ -82,11 +82,10 @@ class SchedulePanel extends HrPanel {
         const start = weekStart(s.date);
         this.querySelector('[data-week]').innerHTML = Array.from({ length: 7 }, (_, i) => {
             const d = addDays(start, i), n = s.week.filter(x => x.date === d).length, on = d === s.date;
-            return `<button type="button" data-act="day" data-d="${d}" aria-pressed="${on}" class="cursor-pointer rounded-xl border px-0.5 py-2 text-center transition-all hover:scale-[0.98] md:px-2
-                ${on ? 'border-primary-600 bg-primary-600 text-white' : 'border-primary-100 bg-white text-secondary-800'}">
+            return `<button type="button" data-act="day" data-d="${d}" aria-pressed="${on}" data-on="${on}" class="sr-toggle sr-seg px-0.5 py-2 text-center md:px-2">
                 <span class="block text-xs font-semibold opacity-80">${WEEKDAY[parseYmd(d).getDay()].replace('Chủ nhật', 'CN')}</span>
                 <span class="block text-base font-bold">${parseYmd(d).getDate()}</span>
-                <span class="block whitespace-nowrap text-[10px] md:text-xs ${on ? 'text-white/80' : 'text-secondary-700'}">${n ? `${n} ca` : 'Trống'}</span></button>`;
+                <span class="block whitespace-nowrap text-[10px] md:text-xs opacity-80">${n ? `${n} ca` : 'Trống'}</span></button>`;
         }).join('');
 
         const byEmp = new Map(this.today.map(x => [Number(x.employmentId), x]));

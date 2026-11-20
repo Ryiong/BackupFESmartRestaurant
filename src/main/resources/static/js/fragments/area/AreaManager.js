@@ -50,9 +50,9 @@ class AreaManager extends HTMLElement {
                         <h2 class="text-lg font-bold">Sơ đồ bàn</h2>
                         <div data-filters class="flex flex-wrap gap-1.5"></div>
                     </div>
-                    <div data-grid class="mt-4 grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-4"></div>
+                    <div data-grid data-swap class="mt-4 grid grid-cols-[repeat(auto-fill,minmax(8.5rem,1fr))] gap-4"></div>
                 </section>
-                <aside data-detail class="rounded-2xl bg-white p-5 shadow-sm xl:sticky xl:top-4" aria-live="polite"></aside>
+                <aside data-detail data-swap class="rounded-2xl bg-white p-5 shadow-sm xl:sticky xl:top-4" aria-live="polite"></aside>
             </div>
         </div>`;
         this.el = {
@@ -128,7 +128,7 @@ class AreaManager extends HTMLElement {
         this.el.filters.innerHTML = FILTERS.map(f => {
             const on = this.state.filter === f.v;
             return `<button type="button" data-act="filter" data-v="${f.v}" aria-pressed="${on}"
-                class="cursor-pointer rounded-full border px-3 py-1 text-xs font-bold transition-all hover:scale-95 ${on ? 'border-support-300 bg-support-300 text-white' : 'border-primary-200 bg-white text-primary-700'}">
+                data-on="${on}" class="sr-toggle sr-pill text-xs">
                 ${f.label} <span class="opacity-70">${tables.filter(f.match).length}</span></button>`;
         }).join('');
     }
@@ -234,6 +234,9 @@ class AreaManager extends HTMLElement {
             },
             'toggle-qr': () => {
                 const t = this.table;
+                // Lật công tắc ngay (lạc quan) để người dùng thấy núm trượt; nếu lỗi, lần vẽ lại sẽ trả về trạng thái cũ.
+                const sw = this.el.detail.querySelector('[data-act="toggle-qr"]');
+                if (sw) { sw.setAttribute('aria-checked', String(!t?.qrEnabled)); sw.disabled = true; }
                 if (t) this.run(() => areaService.setTableQr(t.id, !t.qrEnabled, t.name), t.qrEnabled ? 'Đã tắt QR gọi món' : 'Đã bật QR gọi món');
             },
             'show-qr': async () => {

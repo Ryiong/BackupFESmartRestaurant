@@ -2,7 +2,7 @@ import { esc, money, titleCase } from "../../utils/format";
 import { ICONS } from "../../icon";
 
 const BADGE = 'shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase';
-const ICON_BTN = 'sr-press cursor-pointer rounded-xl p-1.5 text-primary-700 transition-all hover:scale-90 hover:bg-white'
+const ICON_BTN = 'sr-press cursor-pointer rounded-xl p-1.5 text-primary-700 transition-all hover:bg-white'
 
 export const noImageHtml = `
     <div class="flex size-full flex-col items-center justify-center gap-1 text-primary-300">
@@ -15,7 +15,7 @@ export const productCard = p => {
     const name = esc(titleCase(p.name));
     const toggleLabel = p.active ? 'Ngừng phục vụ' : 'Phục vụ lại';
     return `
-        <article class="flex flex-col overflow-hidden rounded-xl border border-primary-100 bg-white">
+        <article class="sr-lift flex flex-col overflow-hidden rounded-xl border border-primary-100 bg-white">
             <div class="aspect-video w-full overflow-hidden bg-primary-50">
                 ${p.imageUrl
                     ? `<img src="${esc(p.imageUrl)}" alt="${name}" loading="lazy" class="w-full object-cover ${p.active ? '' : 'grayscale'}">`

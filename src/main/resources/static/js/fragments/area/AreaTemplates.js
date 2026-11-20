@@ -11,9 +11,7 @@ const qrBlock = table => `
     <div class="mt-3 flex flex-wrap items-center gap-3 rounded-xl border border-primary-200 bg-white p-3">
         <span class="text-sm font-semibold">QR gọi món</span>
         <button type="button" role="switch" aria-checked="${!!table.qrEnabled}" aria-label="Bật/tắt QR gọi món" data-act="toggle-qr"
-            class="relative h-6 w-11 cursor-pointer rounded-full transition-colors ${table.qrEnabled ? 'bg-support-100' : 'bg-support-200'}">
-            <span class="absolute top-0.5 size-5 rounded-full bg-white shadow transition-all ${table.qrEnabled ? 'left-5.5' : 'left-0.5'}"></span>
-        </button>
+            class="sr-switch"></button>
         ${table.qrEnabled ? '<p-button data-act="show-qr" label="Xem QR" icon="qr"></p-button>' : '<span class="text-xs text-secondary-700">Đang tắt</span>'}
     </div>`;
 
@@ -122,8 +120,7 @@ export function detailHtml({ table, area, pay }) {
             const canPay = pay.method === 'transfer' || received >= total;
             const methodBtn = (v, label) => `
                 <button type="button" data-act="pay-method" data-v="${v}" aria-pressed="${pay.method === v}"
-                     class="flex-1 sr-press cursor-pointer rounded-xl border-2 px-3 py-2 text-sm font-bold transition-all hover:scale-95 ${pay.method === v
-                    ? 'border-primary-700 bg-primary-700 text-white' : 'border-primary-200 bg-white text-primary-700'}">${label}</button>`;
+                     class="sr-toggle sr-seg flex-1">${label}</button>`;
             return `${title}
                 <div class="${CARD}">
                     ${header(table, 'paying')}
@@ -149,11 +146,11 @@ export function detailHtml({ table, area, pay }) {
                         <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-bold text-secondary-700">đ</span>
                     </div>
                     <span class="text-sm">Trả lại khách</span>
-                    <output data-change class="rounded-xl border border-support-600 bg-neutral-50 px-3.5 py-2 text-right font-bold text-primary-700">${received >= total ? money(received - total) : '—'}</output>
+                    <output data-change class="rounded-xl border border-primary-200 bg-primary-50 px-3.5 py-2 text-right font-bold text-primary-700">${received >= total ? money(received - total) : '—'}</output>
                 </div>
                 <div class="mt-2 flex flex-wrap gap-1.5">
                     ${[total, 500000, 200000, 100000].filter((v, i, a) => v > 0 && a.indexOf(v) === i).map(v =>
-                `<button type="button" data-act="quick-cash" data-v="${v}" class="cursor-pointer rounded-full border border-primary-200 bg-white px-2.5 py-1 text-xs font-bold text-primary-700 transition-all hover:scale-95">${v === total ? 'Đủ ' : ''}${moneyK(v)}</button>`).join('')}
+                `<button type="button" data-act="quick-cash" data-v="${v}" class="cursor-pointer rounded-full border border-primary-200 bg-white px-2.5 py-1 text-xs font-bold text-primary-700 transition-all">${v === total ? 'Đủ ' : ''}${moneyK(v)}</button>`).join('')}
                 </div>` : `
                 <p class="mt-3 rounded-xl bg-neutral-100 p-3 text-sm text-secondary-700">Xác nhận sau khi nhận được ${money(total)} vào tài khoản của cửa hàng.</p>`}
                 <div class="mt-4 flex flex-wrap gap-2.5">

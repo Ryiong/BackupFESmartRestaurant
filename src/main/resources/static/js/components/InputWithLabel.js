@@ -10,7 +10,7 @@ class InputAndLabel extends HTMLElement {
     this.classList.add('block', 'mb-4.5');
     this.innerHTML = `
     <label class="block mb-1.5 font-semibold"></label>
-    <input required class="block w-full rounded-xl border border-support-600 bg-white px-3.5 py-2.5 text-text focus:outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-300 min-w-12">
+    <input required class="sr-field block w-full px-3.5 py-2.5 text-text min-w-12">
     `;
 
     this.labelEl = this.querySelector('label');

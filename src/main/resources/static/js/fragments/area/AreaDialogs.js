@@ -56,9 +56,9 @@ export function orderDialog({ tableName, menu, title = `Đặt món — ${tableN
                     <li class="flex items-center justify-between gap-3 py-2">
                         <div class="min-w-0"><p class="line-clamp-1 text-sm font-bold">${esc(titleCase(m.name))}</p><p class="text-xs text-secondary-700">${money(m.price)}</p></div>
                         <div class="flex items-center gap-2">
-                            <button type="button" data-act="dec" data-id="${m.id}" aria-label="Giảm ${esc(titleCase(m.name))}" class="flex size-7 cursor-pointer items-center justify-center rounded-full border-2 border-primary-200 text-primary-700 transition-all hover:scale-90">−</button>
+                            <button type="button" data-act="dec" data-id="${m.id}" aria-label="Giảm ${esc(titleCase(m.name))}" class="flex size-7 cursor-pointer items-center justify-center rounded-full border-2 border-primary-200 text-primary-700 transition-all">−</button>
                             <span data-qty="${m.id}" class="w-6 text-center text-sm font-bold">0</span>
-                            <button type="button" data-act="inc" data-id="${m.id}" aria-label="Thêm ${esc(titleCase(m.name))}" class="flex size-7 cursor-pointer items-center justify-center rounded-full border-2 border-primary-700 bg-primary-700 text-white transition-all hover:scale-90">+</button>
+                            <button type="button" data-act="inc" data-id="${m.id}" aria-label="Thêm ${esc(titleCase(m.name))}" class="flex size-7 cursor-pointer items-center justify-center rounded-full border-2 border-primary-700 bg-primary-500 text-primary-900 transition-all">+</button>
                         </div>
                     </li>`).join('')}
                 </ul>
