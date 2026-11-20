@@ -1,6 +1,7 @@
 import '../../components/PrimaryButton.js';
 import { invalid } from '../../utils/validate.js';
-import { ADMIN_URL } from '../../config.js';
+import { ADMIN_URL, NO_CONTENT } from '../../config.js';
+import { LOGOUT_BTN } from '../../utils/noAccess.js';
 import { requireLogin, logout } from '../../services/HttpClient.js';
 import { auth } from '../../services/AuthStore.js';
 import { esc, INPUT_CLS } from '../../utils/format.js';
@@ -99,8 +100,9 @@ class StaffAttendance extends HTMLElement {
 
             ${this.notice ? `<p role="status" class="rounded-xl p-3 text-sm font-semibold ${this.notice.ok ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-700'}">${esc(this.notice.text)}</p>` : ''}
 
-            ${this.pending ? this.confirmCard(open) : ''}
             ${this.pending ? this.checklist(open) : ''}
+
+            ${this.pending ? this.confirmCard(open) : ''}
 
             <section class="rounded-2xl border border-primary-100 bg-white p-4">
                 <h2 class="mb-2 text-sm font-bold">Ca làm hôm nay</h2>
@@ -152,7 +154,7 @@ class StaffAttendance extends HTMLElement {
     empty(text = 'Không có nội dung', sub = '') {
         return `<div class="grid justify-items-center gap-1 py-6 text-center text-secondary-700">
             <svg class="size-10 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h8"/></svg>
-            <p class="font-semibold">${esc(text)}</p>${sub ? `<p class="text-xs">${esc(sub)}</p>` : ''}</div>`;
+            <p class="font-semibold">${esc(text)}</p>${sub ? `<p class="text-xs">${esc(sub)}</p>` : ''}${text === NO_CONTENT ? LOGOUT_BTN : ''}</div>`;
     }
 
     shiftList(now) {

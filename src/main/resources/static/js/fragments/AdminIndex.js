@@ -3,6 +3,7 @@ import './AdminHeader.js';
 import '../components/StatRing.js';
 import '../components/RevenueChart.js';
 import '../components/PrimaryButton.js';
+import { LOGOUT_BTN } from '../utils/noAccess.js';
 import { API_MODE, NO_CONTENT } from '../config.js';
 import { revenueService } from '../services/RevenueService.js';
 import { getTableStats, getProductStats } from '../services/DashboardService.js';
@@ -160,7 +161,7 @@ async function init() {
         let shops;
         try { shops = await listShops({ force: true }); }
         catch (err) {
-            if (err.noAccess) { el.bar.innerHTML = ''; el.dashboard.hidden = true; el.error.hidden = false; el.error.className = 'mx-5 mb-4 py-16 text-center text-sm font-semibold text-secondary-700'; el.error.textContent = NO_CONTENT; return; }
+            if (err.noAccess) { el.bar.innerHTML = ''; el.dashboard.hidden = true; el.error.hidden = false; el.error.className = 'mx-5 mb-4 py-16 text-center text-sm font-semibold text-secondary-700'; el.error.innerHTML = `<p>${NO_CONTENT}</p><div class="mt-3 grid justify-items-center">${LOGOUT_BTN}</div>`; return; }
             el.error.hidden = false; el.error.textContent = err.message; el.dashboard.hidden = false; return;
         }
 

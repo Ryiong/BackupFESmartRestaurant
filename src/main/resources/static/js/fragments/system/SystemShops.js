@@ -54,7 +54,7 @@ class SystemShops extends HTMLElement {
                     <span class="sr-only">Tìm theo tên, địa chỉ, số điện thoại</span>
                     <input data-q type="search" placeholder="Tìm trong trang này: tên, địa chỉ, số điện thoại…" class="${INPUT_CLS} text-sm">
                 </label>
-                <p-button data-act="refresh" label="Tải lại" icon="check" class="block sm:inline-block"></p-button>
+                <p-button data-act="refresh" label="Làm mới" icon="reload" class="block sm:inline-block"></p-button>
             </div>
             <p data-error role="alert" class="hidden rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-700"></p>
             <section data-list class="grid gap-3 md:grid-cols-2" aria-live="polite"></section>

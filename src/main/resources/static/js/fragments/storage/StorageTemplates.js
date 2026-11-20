@@ -121,10 +121,12 @@ export const recipeTable = list => table(
     </tr>`).join(''));
 
 import { NO_CONTENT } from '../../config.js';
+import { LOGOUT_BTN } from '../../utils/noAccess.js';
 export const stateHtml = (message, { retry = false } = {}) => (retry = retry && message !== NO_CONTENT, `
     <div class="flex flex-col items-center gap-3 py-16 text-center">
         <p class="max-w-md text-sm text-secondary-700">${esc(message)}</p>
         ${retry ? '<p-button data-act="retry" label="Thử lại" icon="check"></p-button>' : ''}
+        ${message === NO_CONTENT ? LOGOUT_BTN : ''}
     </div>`);
 
 export const skeletonRows = (n = 6) => `<div class="animate-pulse space-y-3 py-3">${Array.from({ length: n }, () => '<div class="h-9 rounded-lg bg-primary-50"></div>').join('')}</div>`;

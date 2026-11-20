@@ -57,9 +57,11 @@ export const skeletonGrid = (n = 6) => Array.from({ length: n }, () => `
 `).join('');
 
 import { NO_CONTENT } from '../../config.js';
+import { LOGOUT_BTN } from '../../utils/noAccess.js';
 export const stateHtml = (message, { retry = false } = {}) => (retry = retry && message !== NO_CONTENT, `
     <div class="col-span-full flex flex-col items-center gap-3 py-16 text-center">
         <p class="max-w-md text-sm text-secondary-700">${esc(message)}</p>
         ${retry ? '<p-button data-act="retry" label="Thử lại" icon="check"></p-button>' : ''}
+        ${message === NO_CONTENT ? LOGOUT_BTN : ''}
     </div>
 `);

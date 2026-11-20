@@ -2,6 +2,8 @@ import '../../components/PrimaryButton.js';
 import { esc, INPUT_CLS } from '../../utils/format.js';
 import { bindActions, toast } from '../../utils/dialog.js';
 import { parseYmd, ymd, cap } from '../../services/HrService.js';
+import { NO_CONTENT } from '../../config.js';
+import { LOGOUT_BTN } from '../../utils/noAccess.js';
 import { ICONS } from '../../icon.js';
 
 
@@ -50,6 +52,7 @@ export const emptyState = (title, sub = '') => `
     <div class="grid place-items-center gap-1 py-14 text-center">
         <p class="font-bold text-primary-800">${esc(title)}</p>
         ${sub ? `<p class="max-w-sm text-sm text-secondary-700">${esc(sub)}</p>` : ''}
+        ${title === NO_CONTENT ? LOGOUT_BTN : ''}
     </div>`;
 
 export const WEEKDAY = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];

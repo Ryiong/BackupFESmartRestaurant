@@ -25,13 +25,15 @@ export function safeNext(search = location.search) {
 /** Đăng nhập xong thì về đâu: trang đang dở (next) > chấm công (nhân viên) > duyệt cửa hàng (quản trị hệ thống) > quản lý cửa hàng. */
 export async function landingUrl() {
     const next = safeNext();
-    if (next) return next;
     try {
         const me = await http('GET', '/auth/me');
         auth.setType(me?.type);
-        return me?.type === 'STAFF' ? STAFF_ATTENDANCE_URL : me?.type === 'ADMIN' ? SYSTEM_URL : ADMIN_URL;
+        // Tài khoản hệ thống luôn vào trang hệ thống (chỉ giữ ?next= nếu nó cũng nằm trong khu /system/).
+        if (me?.type === 'ADMIN') return next?.startsWith(SYSTEM_URL.replace(/[^/]*$/, '')) ? next : SYSTEM_URL;
+        if (next) return next;
+        return me?.type === 'STAFF' ? STAFF_ATTENDANCE_URL : ADMIN_URL;
     } catch {
-        return ADMIN_URL;
+        return next ?? ADMIN_URL;
     }
 }
 
